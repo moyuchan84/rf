@@ -1,0 +1,172 @@
+이하 markdown 에 내용에 연계된 프로젝트로 이건 다른 사용자가  web(react - nestjs) 로 이뤄진 시스템에서 photo key 작업 의뢰 및 승인, 데이터 리뷰, 레이아웃 등의 작업을 하기 위한 내용이 필요해. 이에 대해서 GEMINI.md 에 요청할 markdown을 작성해줘
+
+[Web(React-NestJS) 에 대한 요구사양서]
+1. 시스템명 : RFGo
+2. web 시스템의 목적 
+ - 크게 5가지 기능을 목표로 하고 있음. 1) Key Table 에 대한 작업 의뢰 2) Key Table 에 대한 조회 3) Key Design등록 4) Shot 내 Photo Key 배치 기능 5) Key Table 에 대한 Rag 기능
+- 작업에 대한 흐름은 KeyTable 작업의뢰 -> 작업 진행(Key Design 등록(Web) + Key Table 등록작업 : VSTO) -> Key Table 결과 조회 -> Shot 내 Photo Key 배치 작업 + 결과에 대해서 자연어로 Rag 로 검색 질의할 수있음
+ - 해당 시스템의 목적은 Photo 기술팀에서 관리하는 Excel 파일에 대한 Key Table 을 DB 화하고 정형화, 데이터를 좀더 활용할 수 있게 만드는데 있음.
+
+3. 필요 기능
+1) Master 정보 관리 : Processplan - BeolOption - Product 에 대한 관리
+ +) Product 에 추가로 Meta 정보가 있는데 chip/shot/mto 등에 대한 정보 입력 필요
+2) 사용자 권한 부여
+3) Key Table 의뢰 기능
+ - Processplan - beoloption- product 에 대해서 title - description - pdk version - edm urls 등에 대한 정보 입력 -> 관련 담당자들 메일링 발송 (사내 메일링 서비스 이용)
+ 4) Key Table 의뢰 수락 및 관련 status update
+ - 의뢰를 하면, 의뢰서에 대한 내용 검토 후 작업에 대한 승인을 함.
+ - 이때 관련해서 해야하는 작업은 1) 담당자 지정 : 해당 의뢰에 대해서 작업자(RFG,Innovation) 지정
+ - 작업(4단계 - ReferenceTable지정 / KeyTableSetup / Confirmation / GdsVerification) 등의 작업을 작업하는 파트에서 진행하고, 해당 작업을 진행함에 있어 ReferenceTable 과 KeyTableSetup 에 대해서는 RFG 파트와 Innovation 파트 등 각 기능별 권한이 있는 담당자가, VSTO 에서 작업한 Table 을 선택하고, 지정해서 VSTO 및 Web 에서 결과에 대한 Link 를 할수 있게 해줌
+ - 의뢰자 : status 조회/의뢰정보 수정
+ - 작업자 :
+  a) RFG + Innov = 담당자 이름 지정 
+  b) RFG : ReferenceTable 목록 지정 
+  c) Innov : 최종 SetupTable 지정 + Confirmation 결재 상신  + GDS Verification 진행
+  **권한 분리 필요 (Rfg,Inno,Admin,User 등)
+ 4) 제품별 Key Table 조회
+ - VSTO 를 통해 입력한 데이터에 대해서 조회, Summary, Excel download 기능
+ - 동일 Table 에 대해 Version 별 데이터 비교 기능
+ - 동일 Table 에 대해 다른 Product 과 데이터 비교 기능
+ 5) 제품별 의뢰 정보 조회
+ - 제품별 의뢰 정보 목록 확인
+ - 의뢰내용에 들어가면 의뢰에 대한 작업 Table (Revno) 을 확인 및 download 가능
+ 6) Key Design 등록 
+ - key name, description ,image, path 등에 대한 입력
+ 7) Key Layout 배치 기능
+ - clipboard로 입력받은 product reticle 에 대해서 photo key 를 효율적으로 배치하는 기능
+ 8) RAG 로 Key Table 에 대한 정보 조회 기능
+ - VSTO 로 입력하여 postgresql 에 입력된 데이터를 pgvector 를 통해 변환 저장후 검색할 수 있게
+
+5. 데이터 관련 VSTO 에서 추가 확장 필요내용
+ * 종속 entities : processplan-beoloption-product 공유
+ - 의뢰 : request -> title(str), description(str : richtextbox), pdk versions(list[str]), edm lists(list[str]), requester(str), update_date(datetime)
+ - ReferenceTable : reference_table -> request_id(fk), photo_key_id_list(list(int) : photo_key table 의 id들) , updater(str), update_date(datetime)
+ - SetupTable : setup_table -> request_id(fk), photo_key_id_list(list(int):photo_key table 의 id들), updater(str), update_date(datetime)
+ - Layout : product_key_layout -> product_id(fk), reticle_image(binary/img), reticle_layout_info(json), key_elements_layout_pos(json)
+ - KeyDesign : key_design -> key_name(str), key_description(str), key_edm(str), key_img(binary/img), updater(str), update_time(datetime)
+
+6. 요청사항
+ - react - tailwind 디자인으로 구성 필요, 데이터에 대해서 빠른 datatable rendering, 조회, 기능등 필요
+ - 메뉴의 큰 카테고리는
+ a) 의뢰
+ - 신규 의뢰
+ - 의뢰 조회
+ b) 제품관리  
+ - 제품 등록 관리
+ - 제품별 의뢰 조회
+
+ c) Key Design 
+ - 신규 Design 등록
+ - Key Design 조회 / 수정 / 삭제
+  d) Photo Key Table
+ - 제품별 Key Table 조회
+ e) Photo Key Layout 
+  - Key 자동 배치
+ f) RAG 
+ - Key 내용 조회
+
+ 
+ - Stackholder 인 PA 팀에서 신규 제품(Processplan-BeolOption-Product) 또는 기존 제품 에 대해서  Photo Key Table 작업을 해야하는 경우 web 에서  작업의뢰하면 해당 작업에 대해서 작업 status 를 작업 현황 및 결과에 대해서 확인할 수 있고, 각 의뢰 작업에 대해서 VSTO 로 작업한 결과를 web 에서 조회 및 excel 로 내려받기 할 수 있음.
+ - 
+
+
+[참고 : photo key 작업의뢰서를 Web 에서 의뢰한 후 실제 작업을 하는 VSTO 에 대한 요구사항 명세서]
+# 📄 GEMINI.md: Semiconductor Photo-Key Management System
+
+## 1. 프로젝트 개요 (Project Overview)
+본 시스템은 반도체 Photo 공정(Align/Overlay)의 비정형 엑셀 데이터를 구조화하여 **PostgreSQL**에 저장하고, 이를 **RAG** 및 **Web Portal**과 연계하는 **Enterprise VSTO Add-in**입니다. 빌드 프로세스를 최소화하기 위해 WebView2 내에서 CDN 기반의 현대적 UI 프레임워크를 활용합니다.
+
+---
+
+## 2. 기술 스택 (Technical Stack)
+* **Client (VSTO):** C# .NET 4.8+ / .NET 6+, WebView2 Control.
+* **UI Framework:** **Vue 3 (Global Build)** - 별도 빌드 없이 CDN 호출.
+* **Styling:** **Tailwind CSS (Play CDN)** - 현대적이고 정교한 디자인 구현.
+* **Backend:** FastAPI (Python), SQLAlchemy.
+* **Database:** PostgreSQL 15+ (JSONB).
+
+---
+
+## 3. 데이터 스키마 (Worksheet-Centric Schema)
+데이터의 최소 단위는 **Worksheet**이며, 각 시트는 독립적인 메타데이터와 복원 정보를 가집니다.
+
+```json
+{
+  "workbook_meta": {
+    "filename": "PHOTO_KEY_V1.xlsx",
+    "updater": "admin_user"
+  },
+  "worksheets": [
+    {
+      "sheet_name": "Data_Sheet_01",
+      "sheet_type": "DATA",
+      "origin_coord": { "row": 4, "col": 4 },
+      "meta": {
+        "start_cell": "D4",
+        "has_header_delimiter": true,
+        "alias_map": { "col_01": "Target_Name;Raw" }
+      },
+      "style_bundle": "BASE64_ENCODED_STYLE_DATA",
+      "rows": [ { "col_01": "K1", "col_02": 0.12 } ]
+    }
+  ]
+}
+4. WebView2 구현 전략 (No-Build Architecture)
+4.1 UI 구성 방식
+Single File Component (SFC) 지양: 빌드 도구(Vite/Webpack) 없이 작동하도록 별도의 .html 및 .js 파일로 관리.
+
+CDN Integration: * Vue 3: https://unpkg.com/vue@3/dist/vue.global.js
+
+Tailwind: https://cdn.tailwindcss.com (상용 배포 시에는 최적화된 CSS 파일 권장)
+
+C# Bridge: window.chrome.webview.hostObjects.bridge를 통해 C#의 비즈니스 로직에 직접 접근.
+
+4.2 파일 관리 구조
+Resources/WebView/index.html: UI 구조 및 Tailwind 적용.
+
+Resources/WebView/app.js: Vue 인스턴스 로직 및 C# 통신 핸들러.
+
+장점: UI 수정 시 C# 재컴파일 없이 HTML/JS 수정만으로 즉시 반영 가능.
+
+5. 상세 기능 명세 (Functional Requirements)
+5.1 VSTO & UI Interop
+Property Sync: 엑셀에서 추출된 시트 목록을 Vue Data에 바인딩하여 트리뷰 UI 자동 렌더링.
+
+Excel Control: WebView2 버튼 클릭 시 C#의 Excel Object Model을 호출하여 시트 타입(History/Data) 변경 및 영역 선택 실행.
+
+5.2 주요 UI 컴포넌트 (Tailwind 기반)
+Hierarchy Tree: ProcessPlan > BEOL > Product를 시각화하는 다크모드 지원 사이드바.
+
+Data Previewer: JSON 파싱 결과를 테이블 형태로 미리 보여주는 고성능 그리드.
+
+Batch Uploader: 여러 파일을 드래그 앤 드롭하여 일괄 처리 상태를 표시하는 프로그레스 바.
+
+6. 핵심 파싱 및 복원 로직
+Smart Anchor Detection: UsedRange 스캔 후 실제 데이터 시작점(origin_coord) 자동 감지.
+
+Bidirectional Mapping: alias_map을 통해 Original Column -> Aliased Key (DB) -> Original Column (Restore) 순환 구조 완성.
+
+Cell Style Persistence: 배경색, 폰트 굵기 등을 style_bundle에 담아 복원 시 엑셀에 재적용.
+
+7. 시스템 시나리오 (Operation Scenario)
+작업 의뢰: Web Portal 의뢰 확인 및 Reference 로드 (WebView2 화면).
+
+데이터 추출: 엑셀 시트 스캔 -> Vue UI에 리스트업 -> 사용자 속성 매핑.
+
+DB 저장: FastAPI 연동 후 PostgreSQL JSONB 필드에 업로드.
+
+복원: 필요 시 DB 데이터를 선택하여 style_bundle 기반 원본 복구 실행.
+
+8. 보안 및 배포 (Security & Deployment)
+Code Signing: VSTO 및 WebView2 리소스에 대한 디지털 서명 적용.
+
+Local Web Server: 보안상 외부 CDN 차단 시, 프로젝트 리소스 내에 Vue/Tailwind 라이브러리를 포함하여 로컬 경로로 로드 가능하도록 설계.
+
+
+---
+
+### **💡 기획자적 Tip**
+
+1.  **Tailwind Play CDN의 활용:** 개발 단계에서는 `https://cdn.tailwindcss.com`을 사용하면 클래스명을 적는 즉시 디자인이 반영되어 생산성이 극대화됩니다.
+2.  **C# 인터페이스 분리:** `app.js`에서 C# 기능을 호출할 때 `const bridge = chrome.webview.hostObjects.bridge;`와 같이 선언하여 사용하면, 마치 일반 웹 API를 쓰듯 깔끔한 코딩이 가능합니다.
+3.  **HTML/JS 리소스 관리:** 이 파일들을 VSTO 프로젝트의 **'내용(Content)'** 또는 **'매몰된 리소스(Embedded Resource)'**로 설정하면 배포 시 함께 포함되어 경로 이슈를 방지할 수 있습니다.
