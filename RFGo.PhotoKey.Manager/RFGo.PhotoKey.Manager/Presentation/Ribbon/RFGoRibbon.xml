@@ -9,9 +9,11 @@
                   imageMso="FileOpen" />
         </group>
         <group id="groupInquiry" label="Data Inquiry">
-          <button id="btnOpenInquiryTaskPane" label="DB Inquiry" 
-                  size="large" onAction="OnOpenInquiryTaskPane" 
-                  imageMso="DatabaseQuery" />
+          <button id="btnOpenInquiryTaskPane" 
+                  label="DB Inquiry" 
+                  size="large" 
+                  onAction="OnOpenInquiryTaskPane" 
+                  imageMso="GetExternalDataFromAccess" />
         </group>
       </tab>
     </tabs>

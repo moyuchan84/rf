@@ -1,99 +1,91 @@
 using System;
 using System.Text;
+using System.Windows.Forms;
 using MSExcel = Microsoft.Office.Interop.Excel;
-using System.Web.Script.Serialization;
 using RFGo.PhotoKey.Manager.Application.Interfaces;
-using RFGo.PhotoKey.Manager.Domain.Models;
 
 namespace RFGo.PhotoKey.Manager.Infrastructure.Excel
 {
     public class ExcelStyleSerializer : IExcelStyleService
     {
-        private static readonly JavaScriptSerializer Serializer = new JavaScriptSerializer();
-
         public string SerializeStyle(MSExcel.Range range)
         {
             if (range == null) return string.Empty;
 
-            try
+            string htmlData = string.Empty;
+            var thread = new System.Threading.Thread(() =>
             {
-                var info = new CellStyleInfo
+                try
                 {
-                    FontName = range.Font.Name?.ToString(),
-                    FontSize = (double)range.Font.Size,
-                    FontBold = (bool)range.Font.Bold,
-                    FontItalic = (bool)range.Font.Italic,
-                    FontColor = range.Font.Color,
-                    FillColor = range.Interior.Color,
-                    FillPattern = (int)range.Interior.Pattern,
-                    HorizontalAlignment = (int)range.HorizontalAlignment,
-                    VerticalAlignment = (int)range.VerticalAlignment,
-                    NumberFormat = range.NumberFormat?.ToString(),
-                    BorderTop = GetBorderInfo(range.Borders[MSExcel.XlBordersIndex.xlEdgeTop]),
-                    BorderBottom = GetBorderInfo(range.Borders[MSExcel.XlBordersIndex.xlEdgeBottom]),
-                    BorderLeft = GetBorderInfo(range.Borders[MSExcel.XlBordersIndex.xlEdgeLeft]),
-                    BorderRight = GetBorderInfo(range.Borders[MSExcel.XlBordersIndex.xlEdgeRight])
-                };
+                    // 1. 엑셀 영역을 클립보드로 복사
+                    range.Copy();
 
-                string json = Serializer.Serialize(info);
-                return Convert.ToBase64String(Encoding.UTF8.GetBytes(json));
-            }
-            catch { return string.Empty; }
+                    // 2. 클립보드에서 HTML Format 데이터 추출
+                    IDataObject dataObject = Clipboard.GetDataObject();
+                    if (dataObject != null && dataObject.GetDataPresent(DataFormats.Html))
+                    {
+                        htmlData = dataObject.GetData(DataFormats.Html) as string;
+                    }
+                    
+                    // 클립보드 비우기 (선택사항)
+                    Clipboard.Clear();
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine("Style Serialization Error: " + ex.Message);
+                }
+            });
+
+            thread.SetApartmentState(System.Threading.ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+
+            return htmlData;
         }
 
         public void ApplyStyle(MSExcel.Range range, string styleBundle)
         {
             if (range == null || string.IsNullOrEmpty(styleBundle)) return;
 
-            try
+            var thread = new System.Threading.Thread(() =>
             {
-                byte[] bytes = Convert.FromBase64String(styleBundle);
-                var info = Serializer.Deserialize<CellStyleInfo>(Encoding.UTF8.GetString(bytes));
-                if (info == null) return;
-
-                if (!string.IsNullOrEmpty(info.FontName)) range.Font.Name = info.FontName;
-                range.Font.Size = info.FontSize;
-                range.Font.Bold = info.FontBold;
-                range.Font.Italic = info.FontItalic;
-                range.Font.Color = info.FontColor;
-                range.Interior.Color = info.FillColor;
-                range.Interior.Pattern = (MSExcel.XlPattern)info.FillPattern;
-                range.HorizontalAlignment = (MSExcel.XlHAlign)info.HorizontalAlignment;
-                range.VerticalAlignment = (MSExcel.XlVAlign)info.VerticalAlignment;
-                if (!string.IsNullOrEmpty(info.NumberFormat)) range.NumberFormat = info.NumberFormat;
-
-                ApplyBorderInfo(range.Borders[MSExcel.XlBordersIndex.xlEdgeTop], info.BorderTop);
-                ApplyBorderInfo(range.Borders[MSExcel.XlBordersIndex.xlEdgeBottom], info.BorderBottom);
-                ApplyBorderInfo(range.Borders[MSExcel.XlBordersIndex.xlEdgeLeft], info.BorderLeft);
-                ApplyBorderInfo(range.Borders[MSExcel.XlBordersIndex.xlEdgeRight], info.BorderRight);
-            }
-            catch { }
-        }
-
-        private BorderInfo GetBorderInfo(MSExcel.Border border)
-        {
-            if (border == null) return null;
-            return new BorderInfo
-            {
-                LineStyle = (int)border.LineStyle,
-                Weight = (int)border.Weight,
-                Color = border.Color
-            };
-        }
-
-        private void ApplyBorderInfo(MSExcel.Border border, BorderInfo info)
-        {
-            if (border == null || info == null) return;
-            try
-            {
-                border.LineStyle = (MSExcel.XlLineStyle)info.LineStyle;
-                if (info.LineStyle != (int)MSExcel.XlLineStyle.xlLineStyleNone)
+                MSExcel.Application app = null;
+                bool originalDisplayAlerts = true;
+                try
                 {
-                    border.Weight = (MSExcel.XlBorderWeight)info.Weight;
-                    border.Color = info.Color;
+                    app = range.Application;
+                    originalDisplayAlerts = app.DisplayAlerts;
+                    app.DisplayAlerts = false; // 1. 경고창 비활성화
+
+                    // 2. 저장된 HTML 데이터를 클립보드에 설정
+                    DataObject dataObject = new DataObject();
+                    dataObject.SetData(DataFormats.Html, styleBundle);
+                    Clipboard.SetDataObject(dataObject, true);
+
+                    // 3. 대상 영역의 '첫 번째 셀'만 타겟팅 (영역 불일치 팝업 방지 핵심)
+                    MSExcel.Worksheet ws = range.Worksheet;
+                    ws.Activate();
+                    MSExcel.Range topLeftCell = ws.Cells[range.Row, range.Column];
+                    topLeftCell.Select();
+                    
+                    // 4. 붙여넣기
+                    ws.Paste(topLeftCell);
+                    
+                    Clipboard.Clear();
                 }
-            }
-            catch { }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine("Style Application Error: " + ex.Message);
+                }
+                finally
+                {
+                    if (app != null) app.DisplayAlerts = originalDisplayAlerts; // 5. 상태 원복
+                }
+            });
+
+            thread.SetApartmentState(System.Threading.ApartmentState.STA);
+            thread.Start();
+            thread.Join();
         }
     }
 }
