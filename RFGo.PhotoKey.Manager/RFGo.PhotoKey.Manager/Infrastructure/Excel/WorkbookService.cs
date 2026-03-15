@@ -180,7 +180,7 @@ namespace RFGo.PhotoKey.Manager.Infrastructure.Excel
         public bool RestoreToExcel(WorkbookData data, string targetFilePath)
         {
             MSExcel.Application excelApp = new MSExcel.Application();
-            excelApp.Visible = true;
+            excelApp.DisplayAlerts = false; // 저장 중 팝업 방지
             MSExcel.Workbook workbook = excelApp.Workbooks.Add();
 
             try
@@ -195,10 +195,28 @@ namespace RFGo.PhotoKey.Manager.Infrastructure.Excel
                     sheet.Name = wsData.SheetName;
                     RestoreWorksheet(sheet, wsData);
                 }
+
+                if (!string.IsNullOrEmpty(targetFilePath))
+                {
+                    workbook.SaveAs(targetFilePath);
+                    workbook.Close();
+                }
+                else
+                {
+                    excelApp.Visible = true;
+                }
             }
             catch (Exception)
             {
                 return false;
+            }
+            finally
+            {
+                if (!string.IsNullOrEmpty(targetFilePath))
+                {
+                    excelApp.Quit();
+                    System.Runtime.InteropServices.Marshal.ReleaseComObject(excelApp);
+                }
             }
             return true;
         }
