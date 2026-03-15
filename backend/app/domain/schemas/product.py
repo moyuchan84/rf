@@ -22,15 +22,12 @@ class ProcessPlanSchema(BaseModel):
     class Config:
         from_attributes = True
 
-class ProcessPlanBase(BaseModel):
-    design_rule: str
-
-class BeolOptionBase(BaseModel):
-    option_name: str
-
 class ProductBase(BaseModel):
     partid: str
     product_name: str
+
+class ProductCreate(ProductBase):
+    beol_option_id: int
 
 class Product(ProductBase):
     id: int
@@ -38,3 +35,25 @@ class Product(ProductBase):
 
     class Config:
         from_attributes = True
+
+class BeolOptionBase(BaseModel):
+    option_name: str
+
+class BeolOptionCreate(BeolOptionBase):
+    process_plan_id: int
+
+class ProcessPlanBase(BaseModel):
+    design_rule: str
+
+class ProcessPlanCreate(ProcessPlanBase):
+    pass
+
+class ProcessPlanUpdate(BaseModel):
+    design_rule: Optional[str] = None
+
+class BeolOptionUpdate(BaseModel):
+    option_name: Optional[str] = None
+
+class ProductUpdate(BaseModel):
+    partid: Optional[str] = None
+    product_name: Optional[str] = None

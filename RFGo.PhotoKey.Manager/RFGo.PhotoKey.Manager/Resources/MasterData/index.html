@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhotoKey Manager - Master Data Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700&display=swap" rel="stylesheet"/>
+    <style>
+        body { background-color: #f8fafc; font-family: 'Malgun Gothic', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        [v-cloak] { display: none; }
+    </style>
+</head>
+<body class="p-4">
+    <div id="app" v-cloak class="h-screen flex flex-col overflow-hidden">
+        <header class="flex items-center justify-between mb-6 shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="size-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-200">
+                    <span class="material-symbols-outlined text-white text-2xl">account_tree</span>
+                </div>
+                <div>
+                    <h1 class="text-xl font-black text-slate-900 tracking-tight">Master Data Management</h1>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Hierarchy: Plan > Option > Product</p>
+                </div>
+            </div>
+            <button @click="fetchHierarchy" class="p-2.5 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all shadow-sm flex items-center gap-2 text-xs font-bold text-slate-600">
+                <span class="material-symbols-outlined text-sm">refresh</span> Refresh
+            </button>
+        </header>
+
+        <div class="flex-1 flex gap-6 overflow-hidden">
+            <!-- Left Sidebar: Hierarchy Explorer -->
+            <aside class="w-80 bg-white border border-slate-200 rounded-3xl shadow-sm flex flex-col overflow-hidden shrink-0">
+                <div class="p-5 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
+                    <span class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Explorer</span>
+                    <button @click="startCreate('plan')" class="size-6 bg-blue-600 text-white rounded-lg flex items-center justify-center hover:bg-blue-700 transition-all shadow-md shadow-blue-100">
+                        <span class="material-symbols-outlined text-sm">add</span>
+                    </button>
+                </div>
+                <div class="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-2">
+                    <div v-for="pp in hierarchy" :key="pp.id" class="space-y-1">
+                        <div class="group flex items-center gap-2 p-2.5 rounded-xl cursor-pointer transition-all"
+                             :class="selectedNode?.type === 'plan' && selectedNode?.id === pp.id ? 'bg-blue-50 text-blue-700 font-bold' : 'hover:bg-slate-50 text-slate-600'"
+                             @click="selectNode('plan', pp)">
+                            <span class="material-symbols-outlined text-sm" @click.stop="pp.expanded = !pp.expanded">{{ pp.expanded ? 'keyboard_arrow_down' : 'chevron_right' }}</span>
+                            <span class="material-symbols-outlined text-base text-blue-500">category</span>
+                            <span class="text-xs flex-1 truncate">{{ pp.design_rule }}</span>
+                        </div>
+                        
+                        <div v-if="pp.expanded" class="ml-4 pl-3 border-l-2 border-slate-100 space-y-1 animate-in slide-in-from-top-1 duration-200">
+                            <div v-for="bo in pp.beol_options" :key="bo.id" class="space-y-1">
+                                <div class="group flex items-center gap-2 p-2 rounded-xl cursor-pointer transition-all"
+                                     :class="selectedNode?.type === 'option' && selectedNode?.id === bo.id ? 'bg-indigo-50 text-indigo-700 font-bold' : 'hover:bg-slate-50 text-slate-500'"
+                                     @click="selectNode('option', bo, pp)">
+                                    <span class="material-symbols-outlined text-sm" @click.stop="bo.expanded = !bo.expanded">{{ bo.expanded ? 'keyboard_arrow_down' : 'chevron_right' }}</span>
+                                    <span class="text-xs flex-1 truncate">{{ bo.option_name }}</span>
+                                </div>
+
+                                <div v-if="bo.expanded" class="ml-4 pl-3 border-l-2 border-indigo-50 space-y-1">
+                                    <div v-for="prod in bo.products" :key="prod.id"
+                                         class="group flex items-center gap-2 p-2 rounded-xl cursor-pointer transition-all"
+                                         :class="selectedNode?.type === 'product' && selectedNode?.id === prod.id ? 'bg-emerald-50 text-emerald-700 font-bold' : 'hover:bg-slate-50 text-slate-400'"
+                                         @click="selectNode('product', prod, pp, bo)">
+                                        <span class="material-symbols-outlined text-sm text-emerald-500">inventory_2</span>
+                                        <div class="flex-1 min-w-0">
+                                            <div class="text-[11px] truncate font-bold uppercase">{{ prod.partid }}</div>
+                                            <div class="text-[9px] truncate opacity-70">{{ prod.product_name }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Right: CRUD Form Area -->
+            <main class="flex-1 bg-white border border-slate-200 rounded-3xl shadow-sm flex flex-col overflow-hidden">
+                <!-- Empty State -->
+                <div v-if="!formState.active" class="flex-1 flex flex-col items-center justify-center p-12 text-center">
+                    <div class="size-20 bg-slate-50 rounded-[2.5rem] flex items-center justify-center mb-6 border border-slate-100">
+                        <span class="material-symbols-outlined text-slate-200 text-4xl">account_tree</span>
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-900 mb-2 uppercase tracking-widest">Select or Add a Node</h3>
+                    <p class="text-xs text-slate-400 max-w-[240px]">Explore the hierarchy on the left to edit existing items or add new ones.</p>
+                </div>
+
+                <!-- Form Mode -->
+                <div v-else class="flex-1 flex flex-col overflow-hidden">
+                    <header class="p-6 border-b border-slate-50 flex justify-between items-center bg-slate-50/20">
+                        <div class="flex items-center gap-3">
+                            <span class="text-[10px] font-black uppercase px-2 py-1 rounded bg-blue-100 text-blue-600 tracking-widest">
+                                {{ formState.mode === 'create' ? 'CREATE' : 'EDIT' }} {{ formState.type.toUpperCase() }}
+                            </span>
+                        </div>
+                        <div v-if="formState.mode === 'edit'" class="flex gap-2">
+                            <button @click="deleteItem" class="px-4 py-2 text-[10px] font-black text-red-500 hover:bg-red-50 rounded-xl transition-all uppercase tracking-widest">Delete</button>
+                            <button v-if="formState.type !== 'product'" @click="addChild" class="px-4 py-2 bg-blue-600 text-white text-[10px] font-black rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 uppercase tracking-widest">Add Child</button>
+                        </div>
+                    </header>
+
+                    <div class="flex-1 overflow-y-auto p-8 max-w-2xl mx-auto w-full space-y-8">
+                        <!-- Breadcrumb Path -->
+                        <div v-if="formState.path" class="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                            <span v-for="(p, i) in formState.path" :key="i" class="flex items-center gap-2">
+                                <span v-if="i > 0" class="material-symbols-outlined text-[10px]">chevron_right</span>
+                                {{ p }}
+                            </span>
+                        </div>
+
+                        <!-- Level Specific Fields -->
+                        <div v-if="formState.type === 'plan'" class="space-y-2">
+                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Design Rule (Process Plan)</label>
+                            <input v-model="formModel.design_rule" type="text" placeholder="e.g. 14nm, 7nm" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-sm outline-none focus:ring-4 focus:ring-blue-100 transition-all font-bold">
+                        </div>
+
+                        <div v-if="formState.type === 'option'" class="space-y-2">
+                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Option Name (BEOL)</label>
+                            <input v-model="formModel.option_name" type="text" placeholder="e.g. OPT_A, OPT_B" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-sm outline-none focus:ring-4 focus:ring-blue-100 transition-all font-bold">
+                        </div>
+
+                        <div v-if="formState.type === 'product'" class="space-y-6">
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Part ID</label>
+                                <input v-model="formModel.partid" type="text" placeholder="e.g. S5E9925" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-sm outline-none focus:ring-4 focus:ring-blue-100 transition-all font-bold">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Product Name</label>
+                                <input v-model="formModel.product_name" type="text" placeholder="e.g. Exynos 2200" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-sm outline-none focus:ring-4 focus:ring-blue-100 transition-all font-bold">
+                            </div>
+                        </div>
+                    </div>
+
+                    <footer class="p-6 border-t border-slate-50 flex gap-3 bg-white">
+                        <button @click="formState.active = false" class="px-6 py-4 text-xs font-black text-slate-400 hover:text-slate-600 transition-all uppercase tracking-widest">Cancel</button>
+                        <button @click="saveForm" class="flex-1 bg-slate-900 hover:bg-black text-white py-4 rounded-2xl text-xs font-black tracking-[0.2em] shadow-xl transition-all active:scale-[0.98] uppercase">
+                            {{ formState.mode === 'create' ? 'Create' : 'Save Changes' }}
+                        </button>
+                    </footer>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="api.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

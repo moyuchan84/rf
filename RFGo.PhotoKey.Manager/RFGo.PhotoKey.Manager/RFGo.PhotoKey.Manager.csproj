@@ -218,6 +218,15 @@
     <Content Include="Resources\ActiveWorkbookUpload\app.js">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Resources\MasterData\index.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\MasterData\app.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\MasterData\api.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <EmbeddedResource Include="Presentation\Ribbon\RFGoRibbon.xml" />
     <EmbeddedResource Include="Presentation\TaskPane\WebTaskPaneControl.resx">
       <DependentUpon>WebTaskPaneControl.cs</DependentUpon>

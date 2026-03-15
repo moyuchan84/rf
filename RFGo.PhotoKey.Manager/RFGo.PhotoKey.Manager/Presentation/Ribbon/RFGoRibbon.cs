@@ -50,6 +50,12 @@ namespace RFGo.PhotoKey.Manager.Presentation.Ribbon
             form.Show();
         }
 
+        public void OnManageMasterData(Office.IRibbonControl control)
+        {
+            var form = new WebViewPopupForm(null, null, false, "Manage Hierarchy Master Data", "MasterData/index.html");
+            form.Show();
+        }
+
         private static string GetResourceText(string resourceName)
         {
             Assembly asm = Assembly.GetExecutingAssembly();
