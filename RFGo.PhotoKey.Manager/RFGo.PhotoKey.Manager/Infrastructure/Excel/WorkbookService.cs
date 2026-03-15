@@ -175,6 +175,33 @@ namespace RFGo.PhotoKey.Manager.Infrastructure.Excel
             }
         }
 
+        public WorkbookData ParseActiveWorkbook()
+        {
+            MSExcel.Application excelApp = Globals.ThisAddIn.Application;
+            MSExcel.Workbook workbook = excelApp.ActiveWorkbook;
+            var workbookData = new WorkbookData();
+
+            if (workbook == null) return workbookData;
+
+            try
+            {
+                workbookData.Meta.FileName = workbook.Name;
+                workbookData.Meta.FullPath = workbook.FullName;
+
+                for (int i = 1; i <= workbook.Sheets.Count; i++)
+                {
+                    MSExcel.Worksheet sheet = workbook.Sheets[i] as MSExcel.Worksheet;
+                    if (sheet != null)
+                    {
+                        workbookData.Worksheets.Add(ParseWorksheet(sheet, i));
+                    }
+                }
+            }
+            catch (Exception) { }
+
+            return workbookData;
+        }
+
         public bool SaveToPreconfirmTable(WorkbookData data) => true;
 
         public bool RestoreToExcel(WorkbookData data, string targetFilePath)

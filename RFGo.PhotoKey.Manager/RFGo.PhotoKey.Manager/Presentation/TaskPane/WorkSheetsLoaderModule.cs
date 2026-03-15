@@ -62,6 +62,16 @@ namespace RFGo.PhotoKey.Manager.Presentation.TaskPane
             catch (Exception ex) { return "Error: " + ex.Message; }
         }
 
+        public string ParseActiveWorkbook()
+        {
+            try
+            {
+                var data = _workbookService.ParseActiveWorkbook();
+                return JsonConvert.SerializeObject(data);
+            }
+            catch (Exception ex) { return "Error: " + ex.Message; }
+        }
+
         public string ParseFiles(string jsonFilePaths)
         {
             try

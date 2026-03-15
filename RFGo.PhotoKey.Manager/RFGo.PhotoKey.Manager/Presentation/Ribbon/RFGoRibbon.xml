@@ -7,6 +7,9 @@
           <button id="btnOpenTaskPane" label="Folder Upload" 
                   size="large" onAction="OnOpenTaskPane" 
                   imageMso="FileOpen" />
+          <button id="btnActiveWorkbookUpload" label="Active Upload" 
+                  size="large" onAction="OnActiveWorkbookUpload" 
+                  imageMso="FileSaveAs" />
         </group>
         <group id="groupInquiry" label="Data Inquiry">
           <button id="btnOpenInquiryTaskPane" 

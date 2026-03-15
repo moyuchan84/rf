@@ -34,6 +34,16 @@ namespace RFGo.PhotoKey.Manager.Presentation.Ribbon
             }
         }
 
+        public void OnActiveWorkbookUpload(Office.IRibbonControl control)
+        {
+            var window = control.Context as Microsoft.Office.Interop.Excel.Window;
+            if (window != null)
+            {
+                var tp = TaskPaneManager.Instance.GetTaskPane(window, "Active Workbook Upload", "ActiveWorkbookUpload");
+                tp.Visible = !tp.Visible;
+            }
+        }
+
         public void OnOpenInquiryTaskPane(Office.IRibbonControl control)
         {
             var form = new WebViewPopupForm(null, null, false, "Data Inquiry", "DataInquiry/index.html");
