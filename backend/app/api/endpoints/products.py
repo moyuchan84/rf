@@ -11,3 +11,8 @@ router = APIRouter()
 def list_products(db: Session = Depends(get_db)):
     service = ProductService(db)
     return service.list_all_products()
+
+@router.get("/hierarchy", response_model=List[schemas.product.ProcessPlanSchema])
+def get_hierarchy(db: Session = Depends(get_db)):
+    service = ProductService(db)
+    return service.get_product_hierarchy()

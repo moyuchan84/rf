@@ -5,7 +5,6 @@ const apiClient = {
         try {
             const results = [];
             for (const workbook of payload.workbooks) {
-                // preview.js에서 workbook.Config에 설정을 담아 보냄
                 const config = workbook.Config;
                 
                 const singleUpload = {
@@ -18,7 +17,7 @@ const apiClient = {
                     is_reference: config.isReference,
                     table_name: config.tableName,
                     rev_no: parseInt(config.revNo),
-                    workbook_data: workbook, // 정제된 workbook 객체 (Meta, Config, Worksheets)
+                    workbook_data: workbook,
                     filename: workbook.Meta.FileName,
                     updater: 'admin_user'
                 };
@@ -44,6 +43,16 @@ const apiClient = {
 
     async getProducts() {
         const response = await fetch(`${BASE_URL}/products/`);
+        return await response.json();
+    },
+
+    async getHierarchy() {
+        const response = await fetch(`${BASE_URL}/products/hierarchy`);
+        return await response.json();
+    },
+
+    async getRestoreData(keyId) {
+        const response = await fetch(`${BASE_URL}/photo-keys/${keyId}`);
         return await response.json();
     }
 };

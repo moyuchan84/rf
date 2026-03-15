@@ -7,3 +7,6 @@ class ProductService:
 
     def list_all_products(self):
         return self.repository.list_all_products()
+
+    def get_product_hierarchy(self):
+        return self.repository.get_hierarchy()

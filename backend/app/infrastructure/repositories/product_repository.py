@@ -40,3 +40,7 @@ class ProductRepository:
 
     def list_all_products(self):
         return self.db.query(models.Product).all()
+
+    def get_hierarchy(self):
+        # Eager loading을 사용하여 효율적으로 계층 구조를 가져옵니다.
+        return self.db.query(models.ProcessPlan).all()
