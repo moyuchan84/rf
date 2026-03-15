@@ -64,89 +64,103 @@ namespace RFGo.PhotoKey.Manager.Infrastructure.Excel
             };
 
             MSExcel.Range usedRange = sheet.UsedRange;
-            if (usedRange == null) return data;
+            if (usedRange == null || usedRange.Cells.Count == 0) return data;
 
-            MSExcel.Range firstCell = FindFirstCell(usedRange);
-            if (firstCell == null) return data;
+            // 핵심 수정: Origin을 UsedRange의 시작점(좌상단)으로 설정하여 
+            // 전체 시트 데이터(Meta + Table)의 상대적 위치를 보존함.
+            data.Origin.Row = usedRange.Row;
+            data.Origin.Col = usedRange.Column;
 
-            data.Origin.Row = firstCell.Row;
-            data.Origin.Col = firstCell.Column;
-
-            // SheetType에 관계없이 데이터 파싱 수행 (History도 테이블 데이터가 있으므로)
-            ProcessDataSheet(sheet, data, firstCell);
+            ProcessDataSheet(sheet, data);
             
             return data;
         }
 
-        private MSExcel.Range FindFirstCell(MSExcel.Range usedRange)
+        private void ProcessDataSheet(MSExcel.Worksheet sheet, WorksheetData data)
         {
-            foreach (MSExcel.Range cell in usedRange)
-            {
-                if (cell.Value2 != null && !string.IsNullOrEmpty(cell.Value2.ToString()))
-                    return cell;
-            }
-            return null;
-        }
+            MSExcel.Range usedRange = sheet.UsedRange;
+            int startRow = usedRange.Row;
+            int startCol = usedRange.Column;
+            int lastCol = usedRange.Columns.Count + startCol - 1;
+            int lastRow = usedRange.Rows.Count + startRow - 1;
 
-        private void ProcessDataSheet(MSExcel.Worksheet sheet, WorksheetData data, MSExcel.Range startCell)
-        {
-            int startRow = startCell.Row;
-            int startCol = startCell.Column;
+            // 1. 전체 스타일 스냅샷 (복원 시 기본 틀로 사용)
+            data.StyleBundle = _styleSerializer.SerializeStyle(usedRange);
 
-            // 1. 헤더 행(첫 셀이 ';'로 시작하는 행) 찾기
+            // 2. 헤더 행 및 DataOrigin 찾기
             int headerRow = -1;
-            int maxSearchRows = 100; // 안전장치
-            for (int r = startRow; r < startRow + maxSearchRows; r++)
+            int scanLimit = Math.Min(startRow + 100, lastRow);
+            for (int r = startRow; r <= scanLimit; r++)
             {
-                string val = sheet.Cells[r, startCol].Value2?.ToString();
-                if (val != null && val.StartsWith(";"))
+                for (int c = startCol; c <= lastCol; c++)
                 {
-                    headerRow = r;
-                    break;
+                    string val = sheet.Cells[r, c].Value2?.ToString();
+                    if (val != null && val.Trim().StartsWith(";"))
+                    {
+                        headerRow = r;
+                        break;
+                    }
                 }
+                if (headerRow != -1) break;
             }
 
-            if (headerRow == -1) headerRow = startRow; // 못찾으면 시작점을 헤더로 간주
+            if (headerRow == -1) headerRow = startRow;
 
-            // 2. 헤더 행 이전의 수직 셀들을 MetaInfo로 수집
+            // 테이블 데이터 시작 좌표 저장 (UsedRange의 왼쪽 끝 열을 기준으로 너비 전체 파싱)
+            data.DataOrigin.Row = headerRow;
+            data.DataOrigin.Col = startCol; 
+
+            // 3. 메타정보 수집 및 MetaOrigin 설정
+            bool metaOriginSet = false;
             for (int r = startRow; r < headerRow; r++)
             {
-                string val = sheet.Cells[r, startCol].Value2?.ToString();
-                if (!string.IsNullOrEmpty(val))
+                for (int c = startCol; c <= lastCol; c++)
                 {
-                    // "Key: Value" 형태면 파싱, 아니면 순번으로 저장
-                    if (val.Contains(":"))
+                    string val = sheet.Cells[r, c].Value2?.ToString();
+                    if (!string.IsNullOrEmpty(val))
                     {
-                        var split = val.Split(':');
-                        data.MetaInfo[split[0].Trim()] = split.Length > 1 ? split[1].Trim() : "";
-                    }
-                    else
-                    {
-                        data.MetaInfo[$"Meta_{r - startRow + 1}"] = val;
+                        if (!metaOriginSet)
+                        {
+                            data.MetaOrigin.Row = r;
+                            data.MetaOrigin.Col = c;
+                            metaOriginSet = true;
+                        }
+
+                        if (val.Contains(":"))
+                        {
+                            var split = val.Split(':');
+                            string k = split[0].Trim();
+                            if (!data.MetaInfo.ContainsKey(k))
+                                data.MetaInfo[k] = split.Length > 1 ? split[1].Trim() : "";
+                        }
+                        else
+                        {
+                            string key = $"#{data.MetaInfo.Count + 1}";
+                            data.MetaInfo[key] = val;
+                        }
                     }
                 }
             }
 
             data.PhotoCategory = data.MetaInfo.Count > 0 ? "key" : "info";
 
-            // 3. 헤더 및 Aliasing (Columns 리스트 생성)
-            int lastCol = sheet.Cells[headerRow, sheet.Columns.Count].End[MSExcel.XlDirection.xlToLeft].Column;
+            // 4. 컬럼 정의 (원본 이름 그대로 보존, empty 포함, ';' 포함)
             data.Columns.Clear();
             for (int j = startCol; j <= lastCol; j++)
             {
-                string header = sheet.Cells[headerRow, j].Value2?.ToString() ?? $"EMPTY_{j}";
-                string cleanHeader = header.StartsWith(";") ? header.Substring(1) : header;
+                string header = sheet.Cells[headerRow, j].Value2?.ToString() ?? "";
                 
+                // 억지로 이름을 지어내지 않고 원본 그대로(빈 문자열 포함) 저장
+                // ';' 도 지우지 않고 그대로 유지함.
                 data.Columns.Add(new ColumnDefinition 
                 { 
                     Key = $"col_{j - startCol}", 
-                    Name = cleanHeader, 
+                    Name = header, 
                     Index = j - startCol 
                 });
             }
 
-            // 4. 데이터 행 파싱
-            int lastRow = sheet.Cells[sheet.Rows.Count, startCol].End[MSExcel.XlDirection.xlUp].Row;
+            // 5. 데이터 파싱
             for (int i = headerRow + 1; i <= lastRow; i++)
             {
                 var row = new Dictionary<string, object>();
@@ -157,13 +171,7 @@ namespace RFGo.PhotoKey.Manager.Infrastructure.Excel
                     row[colDef.Key] = cellVal;
                     if (cellVal != null) hasData = true;
                 }
-                
-                if (hasData)
-                {
-                    if (data.TableData.Count == 0) 
-                        data.StyleBundle = _styleSerializer.SerializeStyle(sheet.Cells[i, startCol]);
-                    data.TableData.Add(row);
-                }
+                if (hasData) data.TableData.Add(row);
             }
         }
 
@@ -177,7 +185,6 @@ namespace RFGo.PhotoKey.Manager.Infrastructure.Excel
 
             try
             {
-                // Remove default sheet if necessary or use it as first
                 for (int i = 0; i < data.Worksheets.Count; i++)
                 {
                     var wsData = data.Worksheets[i];
@@ -206,28 +213,38 @@ namespace RFGo.PhotoKey.Manager.Infrastructure.Excel
 
         private void RestoreWorksheet(MSExcel.Worksheet sheet, WorksheetData data)
         {
-            int startRow = data.Origin.Row;
-            int startCol = data.Origin.Col;
-
-            // 1. Restore MetaInfo
-            int currentRow = startRow;
-            foreach (var meta in data.MetaInfo)
+            // 1. 전체 스타일 스냅샷 일괄 복원
+            if (!string.IsNullOrEmpty(data.StyleBundle))
             {
-                sheet.Cells[currentRow, startCol].Value2 = $"{meta.Key}: {meta.Value}";
-                currentRow++;
+                int lastDataRow = Math.Max(data.DataOrigin.Row + data.TableData.Count + 10, data.Origin.Row + 100);
+                int lastDataCol = data.DataOrigin.Col + data.Columns.Count + 5;
+                MSExcel.Range targetRange = sheet.Range[sheet.Cells[data.Origin.Row, data.Origin.Col], sheet.Cells[lastDataRow, lastDataCol]];
+                _styleSerializer.ApplyStyle(targetRange, data.StyleBundle);
             }
 
-            // 2. Restore Headers
-            int headerRow = currentRow;
+            // 2. MetaInfo 복원 (MetaOrigin 기준)
+            if (data.MetaOrigin.Row > 0 && data.MetaOrigin.Col > 0)
+            {
+                int r = data.MetaOrigin.Row;
+                int c = data.MetaOrigin.Col;
+                foreach (var meta in data.MetaInfo)
+                {
+                    string output = meta.Key.StartsWith("#") ? meta.Value : $"{meta.Key}: {meta.Value}";
+                    sheet.Cells[r, c].Value2 = output;
+                    r++; 
+                }
+            }
+
+            // 3. Data Table 복원 (DataOrigin 기준)
+            int headerRow = data.DataOrigin.Row;
+            int tableStartCol = data.DataOrigin.Col;
+
             for (int i = 0; i < data.Columns.Count; i++)
             {
                 var col = data.Columns[i];
-                string prefix = (i == 0 && data.PhotoCategory == "key") ? ";" : "";
-                sheet.Cells[headerRow, startCol + i].Value2 = prefix + col.Name;
-                sheet.Cells[headerRow, startCol + i].Font.Bold = true;
+                sheet.Cells[headerRow, tableStartCol + i].Value2 = col.Name;
             }
 
-            // 3. Restore Data
             int dataStartRow = headerRow + 1;
             for (int i = 0; i < data.TableData.Count; i++)
             {
@@ -237,16 +254,9 @@ namespace RFGo.PhotoKey.Manager.Infrastructure.Excel
                     var col = data.Columns[j];
                     if (rowData.ContainsKey(col.Key))
                     {
-                        sheet.Cells[dataStartRow + i, startCol + j].Value2 = rowData[col.Key];
+                        sheet.Cells[dataStartRow + i, tableStartCol + j].Value2 = rowData[col.Key];
                     }
                 }
-            }
-
-            // 4. Restore Styles (Simplified)
-            if (!string.IsNullOrEmpty(data.StyleBundle))
-            {
-                _styleSerializer.ApplyStyle(sheet.Range[sheet.Cells[dataStartRow, startCol], 
-                    sheet.Cells[dataStartRow + data.TableData.Count - 1, startCol + data.Columns.Count - 1]], data.StyleBundle);
             }
         }
     }

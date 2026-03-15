@@ -62,6 +62,31 @@ namespace RFGo.PhotoKey.Manager.Presentation.TaskPane
             catch (Exception ex) { return "Error: " + ex.Message; }
         }
 
+        public string ParseFiles(string jsonFilePaths)
+        {
+            try
+            {
+                var filePaths = JsonConvert.DeserializeObject<List<string>>(jsonFilePaths);
+                var results = new System.Collections.Concurrent.ConcurrentBag<WorkbookData>();
+                
+                // 최대 4개의 엑셀 프로세스를 동시에 사용 (메모리 사용량 고려)
+                System.Threading.Tasks.Parallel.ForEach(filePaths, 
+                    new System.Threading.Tasks.ParallelOptions { MaxDegreeOfParallelism = 4 }, 
+                    filePath => 
+                {
+                    try 
+                    {
+                        var data = _workbookService.ParseWorkbook(filePath);
+                        results.Add(data);
+                    }
+                    catch (Exception) { /* 개별 파일 오류는 무시 */ }
+                });
+
+                return JsonConvert.SerializeObject(results);
+            }
+            catch (Exception ex) { return "Error: " + ex.Message; }
+        }
+
         public void ShowPreview(string jsonWorkbooks, string jsonHierarchy)
         {
             var form = new WebViewPopupForm(jsonWorkbooks, jsonHierarchy);

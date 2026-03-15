@@ -23,14 +23,25 @@ namespace RFGo.PhotoKey.Manager.Domain.Models
         public string SheetName { get; set; }
         public string SheetType { get; set; } // HISTORY, DATA
         public string PhotoCategory { get; set; } // key, info
-        public OriginCoord Origin { get; set; } = new OriginCoord();
+        public OriginCoord Origin { get; set; } = new OriginCoord(); // UsedRange Origin
+        public OriginCoord MetaOrigin { get; set; } = new OriginCoord(); // Metadata start
+        public OriginCoord DataOrigin { get; set; } = new OriginCoord(); // Table start
         public Dictionary<string, string> MetaInfo { get; set; } = new Dictionary<string, string>();
         
-        // 컬럼 순서를 보장하기 위한 리스트 (키: alias_col_N, 값: 원본헤더명)
+        // 컬럼 순서를 보장하기 위한 리스트
         public List<ColumnDefinition> Columns { get; set; } = new List<ColumnDefinition>();
         
+        // 빠른 조회를 위해 단순 Object Dictionary로 복구
         public List<Dictionary<string, object>> TableData { get; set; } = new List<Dictionary<string, object>>();
+        
+        // 시트 전체의 스타일/포맷 정보를 담는 스냅샷 (Binary/Base64)
         public string StyleBundle { get; set; }
+    }
+
+    public class CellValue
+    {
+        public object Value { get; set; }
+        public string Style { get; set; }
     }
 
     public class ColumnDefinition

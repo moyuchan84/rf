@@ -100,20 +100,33 @@ createApp({
         const parseAndPreview = async () => {
             if (selectedFiles.value.length === 0) return;
             if (!hierarchy.partId) { alert('Hierarchy 정보를 입력하거나 선택해주세요.'); return; }
+            
             status.value = 'PARSING';
-            const results = [];
+            parsingProgress.value = `Processing ${selectedFiles.value.length} files in parallel...`;
+            
             try {
-                for (let i = 0; i < selectedFiles.value.length; i++) {
-                    const file = selectedFiles.value[i];
-                    parsingProgress.value = `(${i + 1}/${selectedFiles.value.length}) ${file.FileName}`;
-                    const result = await window.chrome.webview.hostObjects.bridge.loader.ParseFile(file.FullPath);
-                    if (!result.startsWith('Error')) { results.push(JSON.parse(result)); }
+                const filePaths = selectedFiles.value.map(f => f.FullPath);
+                const result = await window.chrome.webview.hostObjects.bridge.loader.ParseFiles(JSON.stringify(filePaths));
+                
+                if (result.startsWith('Error')) {
+                    status.value = 'ERROR';
+                    alert('파일 파싱 중 오류 발생: ' + result);
+                    return;
                 }
-                if (results.length > 0) {
+
+                const results = JSON.parse(result);
+                if (results && results.length > 0) {
                     await window.chrome.webview.hostObjects.bridge.loader.ShowPreview(JSON.stringify(results), JSON.stringify(hierarchy));
-                    status.value = 'READY'; parsingProgress.value = '';
-                } else { status.value = 'ERROR'; alert('파일 파싱에 실패했습니다.'); }
-            } catch (err) { status.value = 'ERROR'; console.error('Parsing failed:', err); }
+                    status.value = 'READY';
+                    parsingProgress.value = '';
+                } else {
+                    status.value = 'ERROR';
+                    alert('파싱된 결과가 없습니다.');
+                }
+            } catch (err) {
+                status.value = 'ERROR';
+                console.error('Batch parsing failed:', err);
+            }
         };
 
         const showContextMenu = (e) => { contextMenu.x = e.clientX; contextMenu.y = e.clientY; contextMenu.visible = true; };
