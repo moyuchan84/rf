@@ -1,0 +1,56 @@
+# === C# / Visual Studio ===
+*.swp
+*.*~
+project.lock.json
+.DS_Store
+*.pyc
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+build/
+bin/
+obj/
+
+# Visual Studio files
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# VSTO specific
+*.vsto
+*.manifest
+
+# === Python / uv ===
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+.uv/
+.python-version
+.pytest_cache/
+.coverage
+htmlcov/
+
+# === Backend Specific ===
+backend/.env
+backend/migrations/versions/*.pyc
+
+# === Docker ===
+.docker-ignore
+
+# === Excel / Data (Excluding xlsx per request) ===
+*.xlsx
+*.xls
+*.xlsm
+*.xlsb
+*.csv
+MockupFiles/
+
+# === System ===
+Thumbs.db
+desktop.ini

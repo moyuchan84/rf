@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui" onLoad="Ribbon_Load">
+  <ribbon>
+    <tabs>
+      <tab id="tabPhotoKey" label="PhotoKey">
+        <group id="groupManager" label="Data Loader">
+          <button id="btnOpenTaskPane" label="Folder Upload" 
+                  size="large" onAction="OnOpenTaskPane" 
+                  imageMso="FileOpen" />
+        </group>
+      </tab>
+    </tabs>
+  </ribbon>
+</customUI>

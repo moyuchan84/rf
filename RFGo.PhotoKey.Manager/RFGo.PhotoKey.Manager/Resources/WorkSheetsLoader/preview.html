@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Confirmation - PhotoKey Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <style>
+        body { background-color: #f1f5f9; font-family: 'Malgun Gothic', 'Inter', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        [v-cloak] { display: none; }
+    </style>
+</head>
+<body class="bg-slate-100" @click="closeContextMenu">
+    <div id="app" v-cloak class="h-screen flex flex-col overflow-hidden">
+        <!-- Header -->
+        <header class="px-6 py-4 border-b border-slate-200 flex items-center justify-between shrink-0 bg-white shadow-sm z-10">
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2 text-blue-600">
+                    <span class="material-symbols-outlined text-xl">preview</span>
+                    <h2 class="text-sm font-black uppercase tracking-tight">Data Confirmation</h2>
+                </div>
+                <div class="h-4 w-[1px] bg-slate-200"></div>
+                <nav v-if="hierarchy" class="flex items-center text-[10px] font-bold space-x-2 text-slate-400">
+                    <span>{{hierarchy.processPlan}}</span>
+                    <span class="material-symbols-outlined text-[10px]">chevron_right</span>
+                    <span>{{hierarchy.beolOption}}</span>
+                    <span class="material-symbols-outlined text-[10px]">chevron_right</span>
+                    <span class="text-blue-600 uppercase">{{hierarchy.partId}} / {{hierarchy.productName}}</span>
+                </nav>
+            </div>
+            <div class="flex items-center gap-2">
+                <span v-if="status" class="text-[9px] bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full font-black uppercase tracking-wider">{{status}}</span>
+            </div>
+        </header>
+
+        <div class="flex-1 flex overflow-hidden">
+            <!-- Left Sidebar -->
+            <aside class="w-72 border-r border-slate-200 flex flex-col bg-white">
+                <!-- Inventory Files -->
+                <div class="flex-1 flex flex-col min-h-0">
+                    <div class="px-4 py-3 border-b border-slate-50 flex justify-between items-center">
+                        <span class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Inventory Files</span>
+                        <button @click="toggleAllWorkbooks" class="text-[9px] font-black text-blue-600 uppercase hover:underline">Toggle All</button>
+                    </div>
+                    <div class="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1 bg-slate-50/20" @contextmenu.prevent="showWorkbookContextMenu">
+                        <div v-for="workbook in parsedWorkbooks" :key="workbook.Meta.FullPath"
+                             @click="selectWorkbook(workbook)"
+                             class="flex items-center gap-2 p-2.5 rounded-xl cursor-pointer transition-all border"
+                             :class="activeWorkbook === workbook ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-200' : 'hover:bg-slate-50 border-transparent text-slate-600'">
+                            <input type="checkbox" :value="workbook.Meta.FullPath" v-model="selectedWorkbooks" @click.stop
+                                   class="w-3.5 h-3.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500">
+                            <div class="flex-1 min-w-0">
+                                <div class="text-[11px] font-bold truncate">{{workbook.Meta.FileName}}</div>
+                                <div class="text-[8px] opacity-70 mt-0.5">{{workbook.Worksheets.length}} Sheets</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Worksheets List -->
+                <div v-if="activeWorkbook" class="flex-1 flex flex-col border-t border-slate-100 min-h-0 bg-slate-100/30">
+                    <div class="px-4 py-3 border-b border-slate-100 flex justify-between items-center">
+                        <span class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Worksheets</span>
+                        <button @click="toggleAllSheetsInActiveWorkbook" class="text-[9px] font-black text-blue-600 uppercase hover:underline">Toggle All</button>
+                    </div>
+                    <div class="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1" @contextmenu.prevent="showSheetContextMenu">
+                        <div v-for="sheet in activeWorkbook.Worksheets" :key="sheet.SheetName"
+                             @click="activeSheet = sheet"
+                             class="flex items-center gap-2 p-2.5 rounded-xl cursor-pointer transition-all border border-transparent"
+                             :class="activeSheet === sheet ? 'bg-white border-blue-200 shadow-sm text-blue-600 font-bold' : 'hover:bg-white/60 text-slate-500'">
+                            <input type="checkbox" :value="activeWorkbook.Meta.FullPath + '::' + sheet.SheetName" v-model="selectedSheets" @click.stop
+                                   class="w-3.5 h-3.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500">
+                            <span class="text-[11px] truncate flex-1">{{sheet.SheetName}}</span>
+                            <span class="text-[8px] px-1.5 py-0.5 rounded-full font-black uppercase shadow-sm"
+                                  :class="sheet.SheetType === 'DATA' ? 'bg-emerald-100 text-emerald-600 border border-emerald-200' : 'bg-slate-200 text-slate-500 border border-slate-300'">
+                                {{sheet.SheetType}}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="flex-1 flex flex-col min-w-0 bg-white">
+                <div v-if="activeSheet" class="flex-1 flex flex-col overflow-hidden">
+                    <!-- Sheet Info Bar -->
+                    <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                        <div class="flex items-center gap-4">
+                            <h3 class="text-xs font-black text-slate-900 uppercase tracking-widest">{{activeSheet.SheetName}}</h3>
+                            <div class="flex gap-2">
+                                <span class="px-2 py-0.5 rounded-full bg-white text-blue-600 border border-blue-100 text-[9px] font-black flex items-center gap-1 shadow-sm">
+                                    <span class="size-1 rounded-full bg-blue-600"></span> ORIGIN: {{activeSheet.Origin.Row}}, {{activeSheet.Origin.Col}}
+                                </span>
+                            </div>
+                        </div>
+                        <!-- Sheet Type Toggle -->
+                        <div class="flex items-center gap-3">
+                            <label class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Sheet Type:</label>
+                            <div class="flex bg-slate-200 p-0.5 rounded-lg">
+                                <button @click="activeSheet.SheetType = 'HISTORY'"
+                                        class="px-3 py-1 rounded text-[9px] font-black transition-all"
+                                        :class="activeSheet.SheetType === 'HISTORY' ? 'bg-white text-slate-700 shadow-sm' : 'text-slate-400 hover:text-slate-50'">HISTORY</button>
+                                <button @click="activeSheet.SheetType = 'DATA'"
+                                        class="px-3 py-1 rounded text-[9px] font-black transition-all"
+                                        :class="activeSheet.SheetType === 'DATA' ? 'bg-emerald-500 text-white shadow-sm' : 'text-slate-400 hover:text-slate-50'">DATA</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex-1 overflow-hidden flex flex-col">
+                        <div v-if="activeSheet.SheetType === 'DATA' && Object.keys(activeSheet.MetaInfo).length > 0" 
+                             class="p-4 bg-blue-50/30 border-b border-blue-100 shrink-0">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="material-symbols-outlined text-sm text-blue-500">info</span>
+                                <span class="text-[10px] font-black uppercase text-blue-700 tracking-wider">Meta Information</span>
+                            </div>
+                            <div class="grid grid-cols-4 gap-4">
+                                <div v-for="(val, key) in activeSheet.MetaInfo" :key="key" class="bg-white p-2 rounded-lg border border-blue-100 shadow-sm">
+                                    <div class="text-[8px] font-black text-slate-400 uppercase truncate mb-1">{{key}}</div>
+                                    <div class="text-[10px] font-bold text-slate-700 truncate">{{val}}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex-1 overflow-auto custom-scrollbar">
+                            <table class="w-full text-left border-collapse min-w-max">
+                                <thead class="sticky top-0 bg-slate-100 z-10 border-b border-slate-200">
+                                    <tr>
+                                        <th class="p-2.5 text-[10px] font-black text-slate-400 uppercase tracking-wider border-r border-slate-200 w-12 text-center">#</th>
+                                        <th v-for="col in activeSheet.Columns" :key="col.Key"
+                                            class="p-2.5 text-[10px] font-black text-slate-600 uppercase tracking-wider border-r border-slate-200 bg-slate-100/80">
+                                            {{col.Name}}
+                                            <div class="text-[8px] font-normal text-slate-400 leading-none mt-1">{{col.Key}}</div>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-[11px] divide-y divide-slate-100">
+                                    <tr v-for="(row, idx) in activeSheet.TableData.slice(0, 100)" :key="idx" class="hover:bg-blue-50/50 transition-colors">
+                                        <td class="p-2.5 text-center text-slate-400 border-r border-slate-100 bg-slate-50/30">{{idx + 1}}</td>
+                                        <td v-for="col in activeSheet.Columns" :key="col.Key" class="p-2.5 text-slate-600 border-r border-slate-100 font-medium">
+                                            {{row[col.Key]}}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div v-if="activeSheet.TableData.length > 100" class="p-6 text-center text-[10px] text-slate-400 font-bold uppercase italic bg-slate-50/30">
+                                Showing first 100 rows of {{activeSheet.TableData.length}}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div v-else class="flex-1 flex flex-col items-center justify-center p-12 text-center">
+                    <div class="size-20 bg-slate-50 rounded-[2.5rem] flex items-center justify-center mb-6 border border-slate-100">
+                        <span class="material-symbols-outlined text-slate-200 text-4xl">inventory_2</span>
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-900 mb-2">Ready for Validation</h3>
+                    <p class="text-xs text-slate-400 max-w-[240px]">Select a worksheet to review its content and metadata.</p>
+                </div>
+            </main>
+
+            <!-- Right Configuration Panel (Workbook-specific) -->
+            <aside class="w-72 border-l border-slate-200 bg-slate-50/30 flex flex-col">
+                <div class="px-4 py-4 border-b border-slate-200 bg-white">
+                    <span class="text-[10px] font-black uppercase text-slate-900 tracking-widest">Workbook Settings</span>
+                </div>
+                
+                <div v-if="activeWorkbook" class="p-5 space-y-6 overflow-y-auto custom-scrollbar">
+                    <div class="text-center p-3 bg-blue-50 border border-blue-100 rounded-2xl mb-2 shadow-sm">
+                        <div class="text-[10px] font-black text-blue-600 uppercase truncate">{{activeWorkbook.Meta.FileName}}</div>
+                    </div>
+
+                    <!-- RFG Category -->
+                    <div class="space-y-3">
+                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-wider ml-1">RFG Category</label>
+                        <div class="grid grid-cols-2 gap-1 bg-slate-200 p-1 rounded-2xl shadow-inner">
+                            <button @click="activeWorkbook.config.rfgCategory = 'common'"
+                                    class="text-[10px] font-black py-2.5 rounded-xl transition-all"
+                                    :class="activeWorkbook.config.rfgCategory === 'common' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'">COMMON</button>
+                            <button @click="activeWorkbook.config.rfgCategory = 'option'"
+                                    class="text-[10px] font-black py-2.5 rounded-xl transition-all"
+                                    :class="activeWorkbook.config.rfgCategory === 'option' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'">OPTION</button>
+                        </div>
+                    </div>
+
+                    <!-- Photo Category -->
+                    <div class="space-y-3">
+                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-wider ml-1">Photo Category</label>
+                        <div class="grid grid-cols-2 gap-1 bg-slate-200 p-1 rounded-2xl shadow-inner">
+                            <button @click="activeWorkbook.config.photoCategory = 'key'"
+                                    class="text-[10px] font-black py-2.5 rounded-xl transition-all"
+                                    :class="activeWorkbook.config.photoCategory === 'key' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'">KEY</button>
+                            <button @click="activeWorkbook.config.photoCategory = 'info'"
+                                    class="text-[10px] font-black py-2.5 rounded-xl transition-all"
+                                    :class="activeWorkbook.config.photoCategory === 'info' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'">INFO</button>
+                        </div>
+                    </div>
+
+                    <!-- Table Name -->
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-wider ml-1">Table Name</label>
+                        <input v-model="activeWorkbook.config.tableName" type="text" placeholder="Table Name" 
+                               class="w-full text-xs bg-white border border-slate-200 rounded-2xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500 shadow-sm font-medium">
+                    </div>
+
+                    <!-- Rev No Input -->
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-wider ml-1">Revision Number</label>
+                        <input v-model="activeWorkbook.config.revNo" type="number" 
+                               class="w-full text-xs bg-white border border-slate-200 rounded-2xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500 shadow-sm font-medium">
+                    </div>
+
+                    <!-- Reference Toggle -->
+                    <div class="pt-6 border-t border-slate-100">
+                        <div class="flex items-center justify-between">
+                            <div class="flex flex-col">
+                                <span class="text-xs font-black text-slate-700">Reference Mode</span>
+                                <span class="text-[9px] text-slate-400 font-bold uppercase mt-0.5 tracking-tighter">Sync with master keys</span>
+                            </div>
+                            <button @click="activeWorkbook.config.isReference = !activeWorkbook.config.isReference" 
+                                    class="w-10 h-5 rounded-full transition-all flex items-center px-1"
+                                    :class="activeWorkbook.config.isReference ? 'bg-blue-600' : 'bg-slate-300'">
+                                <div class="size-3.5 rounded-full bg-white transition-all shadow-sm" :class="activeWorkbook.config.isReference ? 'ml-auto' : ''"></div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div v-else class="flex-1 flex items-center justify-center p-12 text-center">
+                    <p class="text-[10px] text-slate-400 font-bold uppercase italic">Select a workbook to configure</p>
+                </div>
+
+                <!-- Action Footer -->
+                <div class="mt-auto p-5 border-t border-slate-200 space-y-3 bg-white">
+                    <button @click="saveAll"
+                            class="w-full bg-slate-900 hover:bg-black text-white py-4 rounded-[1.25rem] text-xs font-black tracking-[0.15em] shadow-xl transition-all active:scale-[0.98]">
+                        FINAL UPLOAD
+                    </button>
+                    <div class="flex items-center justify-center gap-2 text-[9px] text-slate-400 font-black uppercase">
+                        <span class="size-1 rounded-full bg-blue-500 animate-pulse"></span>
+                        {{selectedSheets.length}} sheets selected
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <!-- Global Context Menu for Preview -->
+        <div v-if="contextMenu.visible" 
+             :style="{ top: contextMenu.y + 'px', left: contextMenu.x + 'px' }"
+             class="fixed z-[300] bg-white border border-slate-200 shadow-2xl rounded-xl py-1 min-w-[140px] overflow-hidden">
+            <button @click="contextMenu.type === 'workbook' ? selectAllWorkbooks() : selectAllSheetsInActiveWorkbook()" 
+                    class="w-full text-left px-4 py-2.5 text-xs hover:bg-blue-50 text-slate-700 font-bold transition-colors flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm text-blue-600">done_all</span> Select All
+            </button>
+            <button @click="contextMenu.type === 'workbook' ? deselectAllWorkbooks() : deselectAllSheetsInActiveWorkbook()" 
+                    class="w-full text-left px-4 py-2.5 text-xs hover:bg-red-50 text-slate-700 font-bold transition-colors border-t border-slate-100 flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm text-red-500">close</span> Deselect All
+            </button>
+        </div>
+    </div>
+
+    <script src="api.js"></script>
+    <script src="preview.js"></script>
+</body>
+</html>

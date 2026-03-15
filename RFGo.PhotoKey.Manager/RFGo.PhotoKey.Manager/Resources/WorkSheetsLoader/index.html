@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhotoKey Manager - WorkSheetsLoader</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <style>
+        body { background-color: #f1f5f9; font-family: 'Malgun Gothic', 'Inter', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(8px); }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        [v-cloak] { display: none; }
+        
+        /* Spinner Animation */
+        .spinner {
+            animation: rotate 2s linear infinite;
+            width: 50px;
+            height: 50px;
+        }
+        .spinner .path {
+            stroke: #2563eb;
+            stroke-linecap: round;
+            animation: dash 1.5s ease-in-out infinite;
+        }
+        @keyframes rotate { 100% { transform: rotate(360deg); } }
+        @keyframes dash {
+            0% { stroke-dasharray: 1, 150; stroke-dashoffset: 0; }
+            50% { stroke-dasharray: 90, 150; stroke-dashoffset: -35; }
+            100% { stroke-dasharray: 90, 150; stroke-dashoffset: -124; }
+        }
+    </style>
+</head>
+<body class="p-3 text-slate-800" @click="closeContextMenu">
+    <div id="app" v-cloak class="relative h-screen flex flex-col overflow-hidden">
+        <!-- Loading Overlay -->
+        <div v-if="status === 'PARSING' || status === 'SCANNING'" 
+             class="fixed inset-0 z-[500] flex flex-col items-center justify-center bg-white/60 backdrop-blur-md">
+            <svg class="spinner" viewBox="0 0 50 50">
+                <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+            </svg>
+            <p class="mt-4 text-blue-600 font-black text-xs uppercase tracking-[0.2em] animate-pulse">{{ status }} IN PROGRESS...</p>
+            <p v-if="parsingProgress" class="mt-2 text-slate-400 text-[10px] font-bold">{{ parsingProgress }}</p>
+        </div>
+
+        <!-- Main Loader Screen -->
+        <div class="flex-1 overflow-y-auto custom-scrollbar pr-1 pb-20">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-blue-600">file_upload</span>
+                    <h1 class="text-xl font-black text-slate-900 tracking-tight">WorkSheets Loader</h1>
+                </div>
+                <span v-if="status" class="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">{{status}}</span>
+            </div>
+
+            <!-- 1. Hierarchy Info -->
+            <div class="glass p-4 rounded-2xl shadow-sm border border-slate-200 mb-4">
+                <h2 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Hierarchy Information</h2>
+                <div class="space-y-3">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Process Plan</label>
+                            <input v-model="hierarchy.processPlan" type="text" placeholder="Design Rule" 
+                                   class="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">BEOL Option</label>
+                            <input v-model="hierarchy.beolOption" type="text" placeholder="Option Name" 
+                                   class="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Part ID</label>
+                            <input v-model="hierarchy.partId" type="text" placeholder="Part ID" 
+                                   class="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Product Name</label>
+                            <input v-model="hierarchy.productName" type="text" placeholder="Product Name" 
+                                   class="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Folder Selection -->
+            <div class="glass p-4 rounded-2xl shadow-sm border border-slate-200 mb-4">
+                <div class="flex gap-2">
+                    <input v-model="folderPath" type="text" placeholder="Select Folder Path..." 
+                           class="flex-1 text-xs px-3 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none">
+                    <button @click="openFolderDialog" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-2.5 rounded-xl transition-all border border-slate-200">
+                        <span class="material-symbols-outlined text-sm">folder_open</span>
+                    </button>
+                    <button @click="scanFiles" class="bg-slate-900 hover:bg-black text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md">
+                        SCAN
+                    </button>
+                </div>
+            </div>
+
+            <!-- 3. File Selection List -->
+            <div v-if="files.length > 0" class="glass p-4 rounded-2xl shadow-sm border border-slate-200 mb-20" @contextmenu.prevent="showContextMenu">
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="text-xs font-black text-slate-500 uppercase tracking-widest">Excel Files ({{selectedFiles.length}}/{{files.length}})</h2>
+                    <span class="text-[9px] text-slate-400 font-bold uppercase italic tracking-tighter">Right click for bulk select</span>
+                </div>
+                <div class="max-h-72 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
+                    <div v-for="file in files" :key="file.FileName" 
+                         class="flex items-center gap-3 p-2 rounded-lg transition-all"
+                         :class="selectedFiles.some(f => f.FullPath === file.FullPath) ? 'bg-blue-50 border border-blue-100' : 'hover:bg-slate-50 border border-transparent'">
+                        <input type="checkbox" :value="file" v-model="selectedFiles" class="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500">
+                        <span class="text-xs truncate font-medium text-slate-700 flex-1">{{file.FileName}}</span>
+                        <span class="text-[9px] text-slate-400 font-mono">{{new Date(file.LastModified).toLocaleDateString()}}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fixed Bottom Action Bar -->
+        <div v-if="selectedFiles.length > 0" class="fixed bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-md border-t border-slate-200">
+            <button @click="parseAndPreview" 
+                    :disabled="status === 'PARSING'"
+                    class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-400 text-white py-3.5 rounded-2xl font-black text-sm tracking-widest shadow-xl transition-all active:scale-[0.98] flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined text-sm">{{ status === 'PARSING' ? 'sync' : 'science' }}</span>
+                {{ status === 'PARSING' ? 'PARSING...' : 'PARSE & PREVIEW' }}
+            </button>
+        </div>
+
+        <!-- Context Menu -->
+        <div v-if="contextMenu.visible" 
+             :style="{ top: contextMenu.y + 'px', left: contextMenu.x + 'px' }"
+             class="fixed z-[100] bg-white border border-slate-200 shadow-2xl rounded-xl py-1 min-w-[140px] overflow-hidden">
+            <button @click="selectAll" class="w-full text-left px-4 py-2.5 text-xs hover:bg-blue-50 text-slate-700 font-bold transition-colors flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm text-blue-600">done_all</span> Select All
+            </button>
+            <button @click="deselectAll" class="w-full text-left px-4 py-2.5 text-xs hover:bg-red-50 text-slate-700 font-bold transition-colors border-t border-slate-100 flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm text-red-500">close</span> Deselect All
+            </button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

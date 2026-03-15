@@ -1,0 +1,2 @@
+from app.infrastructure.repositories.product_repository import ProductRepository
+from app.infrastructure.repositories.photo_key_repository import PhotoKeyRepository
