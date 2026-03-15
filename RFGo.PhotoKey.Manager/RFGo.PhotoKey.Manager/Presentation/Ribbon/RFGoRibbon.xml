@@ -17,11 +17,14 @@
                   size="large" 
                   onAction="OnOpenInquiryTaskPane" 
                   imageMso="GetExternalDataFromAccess" />
+        </group>
+
+        <group id="groupMaster" label="Standard Info">
           <button id="btnManageMasterData" 
                   label="Master Data" 
                   size="large" 
                   onAction="OnManageMasterData" 
-                  imageMso="RelationshipReport" />
+                  imageMso="TableDesign" />
         </group>
       </tab>
     </tabs>
