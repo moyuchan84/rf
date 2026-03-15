@@ -9,5 +9,6 @@ namespace RFGo.PhotoKey.Manager.Application.Interfaces
         WorkbookData ParseWorkbook(string filePath);
         bool SaveToPreconfirmTable(WorkbookData data);
         bool RestoreToExcel(WorkbookData data, string targetFilePath);
+        void RestoreWorkbooks(List<WorkbookData> workbooks);
     }
 }

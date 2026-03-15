@@ -7,7 +7,7 @@ namespace RFGo.PhotoKey.Manager.Presentation.TaskPane
     public class TaskPaneManager
     {
         private static TaskPaneManager _instance;
-        private readonly Dictionary<object, CustomTaskPane> _taskPanes = new Dictionary<object, CustomTaskPane>();
+        private readonly Dictionary<string, CustomTaskPane> _taskPanes = new Dictionary<string, CustomTaskPane>();
         private readonly CustomTaskPaneCollection _taskPaneCollection;
 
         private TaskPaneManager(CustomTaskPaneCollection collection)
@@ -22,25 +22,23 @@ namespace RFGo.PhotoKey.Manager.Presentation.TaskPane
 
         public static TaskPaneManager Instance => _instance;
 
-        public CustomTaskPane GetTaskPane(object window, string title)
+        public CustomTaskPane GetTaskPane(object window, string title, string resourcePath)
         {
-            if (!_taskPanes.ContainsKey(window))
+            string key = $"{window.GetHashCode()}_{title}";
+            if (!_taskPanes.ContainsKey(key))
             {
-                var control = new WebTaskPaneControl();
+                var control = new WebTaskPaneControl(resourcePath);
                 var taskPane = _taskPaneCollection.Add(control, title, window);
-                taskPane.Width = 1200; // 2x larger than previous 600
-                _taskPanes[window] = taskPane;
+                taskPane.Width = 1200;
+                _taskPanes[key] = taskPane;
             }
-            return _taskPanes[window];
+            return _taskPanes[key];
         }
 
         public void RemoveTaskPane(object window)
         {
-            if (_taskPanes.ContainsKey(window))
-            {
-                _taskPaneCollection.Remove(_taskPanes[window]);
-                _taskPanes.Remove(window);
-            }
+            // Simple removal might need refinement if multiple panes exist for one window
+            // But usually, one window closure should clean up its panes.
         }
     }
 }

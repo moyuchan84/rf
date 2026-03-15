@@ -235,7 +235,7 @@
                 </div>
 
                 <!-- Action Footer -->
-                <div class="mt-auto p-5 border-t border-slate-200 space-y-3 bg-white">
+                <div v-if="!isDetail" class="mt-auto p-5 border-t border-slate-200 space-y-3 bg-white">
                     <button @click="saveAll"
                             class="w-full bg-slate-900 hover:bg-black text-white py-4 rounded-[1.25rem] text-xs font-black tracking-[0.15em] shadow-xl transition-all active:scale-[0.98]">
                         FINAL UPLOAD
@@ -244,6 +244,12 @@
                         <span class="size-1 rounded-full bg-blue-500 animate-pulse"></span>
                         {{selectedSheets.length}} sheets selected
                     </div>
+                </div>
+                <div v-else class="mt-auto p-5 border-t border-slate-200 space-y-3 bg-white">
+                    <button @click="restoreActive"
+                            class="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-[1.25rem] text-xs font-black tracking-[0.15em] shadow-xl transition-all active:scale-[0.98] flex items-center justify-center gap-2">
+                        <span class="material-symbols-outlined text-sm">settings_backup_restore</span> RESTORE TO EXCEL
+                    </button>
                 </div>
             </aside>
         </div>

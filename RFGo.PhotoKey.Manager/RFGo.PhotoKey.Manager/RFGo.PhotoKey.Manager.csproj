@@ -166,8 +166,8 @@
     <Compile Include="Presentation\TaskPane\TaskPaneManager.cs" />
     <Compile Include="Presentation\TaskPane\IBridgeModule.cs" />
     <Compile Include="Presentation\TaskPane\WorkSheetsLoaderModule.cs" />
-    <Compile Include="Presentation\TaskPane\WebViewPopupForm.cs">
-      <SubType>Form</SubType>
+    <Compile Include="Presentation\TaskPane\DataInquiryModule.cs" />
+    <Compile Include="Presentation\TaskPane\WebViewPopupForm.cs">      <SubType>Form</SubType>
     </Compile>
     <Compile Include="Presentation\TaskPane\WebTaskPaneControl.cs">
       <SubType>UserControl</SubType>
@@ -201,6 +201,15 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Resources\WorkSheetsLoader\preview.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\DataInquiry\index.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\DataInquiry\app.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\DataInquiry\api.js">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <EmbeddedResource Include="Presentation\Ribbon\RFGoRibbon.xml" />

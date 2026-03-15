@@ -8,6 +8,11 @@
                   size="large" onAction="OnOpenTaskPane" 
                   imageMso="FileOpen" />
         </group>
+        <group id="groupInquiry" label="Data Inquiry">
+          <button id="btnOpenInquiryTaskPane" label="DB Inquiry" 
+                  size="large" onAction="OnOpenInquiryTaskPane" 
+                  imageMso="DatabaseQuery" />
+        </group>
       </tab>
     </tabs>
   </ribbon>

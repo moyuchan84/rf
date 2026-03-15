@@ -168,6 +168,86 @@ namespace RFGo.PhotoKey.Manager.Infrastructure.Excel
         }
 
         public bool SaveToPreconfirmTable(WorkbookData data) => true;
-        public bool RestoreToExcel(WorkbookData data, string targetFilePath) => true;
+
+        public bool RestoreToExcel(WorkbookData data, string targetFilePath)
+        {
+            MSExcel.Application excelApp = new MSExcel.Application();
+            excelApp.Visible = true;
+            MSExcel.Workbook workbook = excelApp.Workbooks.Add();
+
+            try
+            {
+                // Remove default sheet if necessary or use it as first
+                for (int i = 0; i < data.Worksheets.Count; i++)
+                {
+                    var wsData = data.Worksheets[i];
+                    MSExcel.Worksheet sheet;
+                    if (i == 0) sheet = workbook.ActiveSheet as MSExcel.Worksheet;
+                    else sheet = workbook.Sheets.Add(After: workbook.Sheets[workbook.Sheets.Count]) as MSExcel.Worksheet;
+
+                    sheet.Name = wsData.SheetName;
+                    RestoreWorksheet(sheet, wsData);
+                }
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        public void RestoreWorkbooks(List<WorkbookData> workbooks)
+        {
+            foreach (var wb in workbooks)
+            {
+                RestoreToExcel(wb, null);
+            }
+        }
+
+        private void RestoreWorksheet(MSExcel.Worksheet sheet, WorksheetData data)
+        {
+            int startRow = data.Origin.Row;
+            int startCol = data.Origin.Col;
+
+            // 1. Restore MetaInfo
+            int currentRow = startRow;
+            foreach (var meta in data.MetaInfo)
+            {
+                sheet.Cells[currentRow, startCol].Value2 = $"{meta.Key}: {meta.Value}";
+                currentRow++;
+            }
+
+            // 2. Restore Headers
+            int headerRow = currentRow;
+            for (int i = 0; i < data.Columns.Count; i++)
+            {
+                var col = data.Columns[i];
+                string prefix = (i == 0 && data.PhotoCategory == "key") ? ";" : "";
+                sheet.Cells[headerRow, startCol + i].Value2 = prefix + col.Name;
+                sheet.Cells[headerRow, startCol + i].Font.Bold = true;
+            }
+
+            // 3. Restore Data
+            int dataStartRow = headerRow + 1;
+            for (int i = 0; i < data.TableData.Count; i++)
+            {
+                var rowData = data.TableData[i];
+                for (int j = 0; j < data.Columns.Count; j++)
+                {
+                    var col = data.Columns[j];
+                    if (rowData.ContainsKey(col.Key))
+                    {
+                        sheet.Cells[dataStartRow + i, startCol + j].Value2 = rowData[col.Key];
+                    }
+                }
+            }
+
+            // 4. Restore Styles (Simplified)
+            if (!string.IsNullOrEmpty(data.StyleBundle))
+            {
+                _styleSerializer.ApplyStyle(sheet.Range[sheet.Cells[dataStartRow, startCol], 
+                    sheet.Cells[dataStartRow + data.TableData.Count - 1, startCol + data.Columns.Count - 1]], data.StyleBundle);
+            }
+        }
     }
 }

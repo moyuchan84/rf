@@ -12,9 +12,11 @@ namespace RFGo.PhotoKey.Manager.Presentation.TaskPane
     {
         private Microsoft.Web.WebView2.WinForms.WebView2 webView;
         private readonly IWorkbookService _workbookService = new WorkbookService();
+        private readonly string _resourceSubPath;
 
-        public WebTaskPaneControl()
+        public WebTaskPaneControl(string resourceSubPath)
         {
+            _resourceSubPath = resourceSubPath;
             InitializeComponent();
             InitializeWebViewContainer();
             InitializeWebView();
@@ -47,10 +49,11 @@ namespace RFGo.PhotoKey.Manager.Presentation.TaskPane
                 
                 var bridge = new WebViewBridge();
                 bridge.RegisterModule(new WorkSheetsLoaderModule(_workbookService));
+                bridge.RegisterModule(new DataInquiryModule(_workbookService));
                 
                 webView.CoreWebView2.AddHostObjectToScript("bridge", bridge);
                 
-                string htmlPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "WorkSheetsLoader", "index.html");
+                string htmlPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", _resourceSubPath, "index.html");
                 if (File.Exists(htmlPath))
                 {
                     webView.CoreWebView2.Navigate("file:///" + htmlPath.Replace("\\", "/"));
@@ -74,5 +77,6 @@ namespace RFGo.PhotoKey.Manager.Presentation.TaskPane
         }
 
         public object loader => _modules.ContainsKey("loader") ? _modules["loader"] : null;
+        public object inquiry => _modules.ContainsKey("inquiry") ? _modules["inquiry"] : null;
     }
 }

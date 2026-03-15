@@ -29,9 +29,15 @@ namespace RFGo.PhotoKey.Manager.Presentation.Ribbon
             var window = control.Context as Microsoft.Office.Interop.Excel.Window;
             if (window != null)
             {
-                var tp = TaskPaneManager.Instance.GetTaskPane(window, "PhotoKey Manager");
+                var tp = TaskPaneManager.Instance.GetTaskPane(window, "WorkSheets Loader", "WorkSheetsLoader");
                 tp.Visible = !tp.Visible;
             }
+        }
+
+        public void OnOpenInquiryTaskPane(Office.IRibbonControl control)
+        {
+            var form = new WebViewPopupForm(null, null, false, "Data Inquiry", "DataInquiry/index.html");
+            form.Show();
         }
 
         private static string GetResourceText(string resourceName)

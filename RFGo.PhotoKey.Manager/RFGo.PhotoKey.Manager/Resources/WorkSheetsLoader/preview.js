@@ -7,12 +7,14 @@ const app = createApp({
         const activeWorkbook = ref(null);
         const activeSheet = ref(null);
         const status = ref('READY');
+        const isDetail = ref(false);
 
         const selectedWorkbooks = ref([]); 
         const selectedSheets = ref([]);    
 
         window.initPreview = (data) => {
-            const workbooks = JSON.parse(data.workbooks);
+            const workbooks = typeof data.workbooks === 'string' ? JSON.parse(data.workbooks) : data.workbooks;
+            isDetail.value = data.isDetail || false;
             
             workbooks.forEach(wb => {
                 const dataSheet = wb.Worksheets.find(s => s.SheetType === 'DATA') || wb.Worksheets[0];
@@ -152,12 +154,25 @@ const app = createApp({
             }
         };
 
+        const restoreActive = async () => {
+            if (!activeWorkbook.value) return;
+            try {
+                if (window.chrome?.webview?.hostObjects?.bridge?.inquiry) {
+                    await window.chrome.webview.hostObjects.bridge.inquiry.RestoreToExcel(
+                        JSON.stringify([activeWorkbook.value])
+                    );
+                }
+            } catch (err) {
+                alert('Restore failed: ' + err.message);
+            }
+        };
+
         return {
-            parsedWorkbooks, hierarchy, activeWorkbook, activeSheet, status,
+            parsedWorkbooks, hierarchy, activeWorkbook, activeSheet, status, isDetail,
             selectedWorkbooks, selectedSheets, contextMenu,
             selectWorkbook, toggleAllWorkbooks, selectAllWorkbooks, deselectAllWorkbooks,
             toggleAllSheetsInActiveWorkbook, selectAllSheetsInActiveWorkbook, deselectAllSheetsInActiveWorkbook,
-            showWorkbookContextMenu, showSheetContextMenu, closeContextMenu, saveAll
+            showWorkbookContextMenu, showSheetContextMenu, closeContextMenu, saveAll, restoreActive
         };
     }
 });
