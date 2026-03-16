@@ -1,4 +1,4 @@
-import { gql } from '@apollo/client';
+import { gql } from '../../../shared/api/generated';
 
 export const GET_PROCESS_PLANS = gql`
   query GetProcessPlans {

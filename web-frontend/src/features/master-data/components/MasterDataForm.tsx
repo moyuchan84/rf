@@ -1,36 +1,35 @@
 import React, { useState, useEffect } from 'react';
-import { useMutation } from '@apollo/client/react';
-import type { SelectedNode } from './types';
-import {
-  CREATE_PROCESS_PLAN,
-  CREATE_BEOL_OPTION,
-  CREATE_PRODUCT,
-  UPDATE_PRODUCT,
-  DELETE_PRODUCT,
-} from './queries';
 import { ChevronRight, Trash2 } from 'lucide-react';
+import { useMasterData } from '../hooks/useMasterData';
 
-interface Props {
-  node: SelectedNode;
-  mode: 'create' | 'edit';
-  onSuccess: () => void;
-  onCancel: () => void;
-}
+const MasterDataForm: React.FC = () => {
+  const { 
+    selectedNode, 
+    setSelectedNode, 
+    setIsFormOpen, 
+    createProcessPlan, 
+    createBeolOption, 
+    createProduct, 
+    updateProduct, 
+    deleteProduct 
+  } = useMasterData();
 
-const MasterDataForm: React.FC<Props> = ({ node, mode, onSuccess, onCancel }) => {
   const [formData, setFormData] = useState<any>({});
+  const mode = selectedNode?.id === -1 ? 'create' : 'edit';
 
   useEffect(() => {
+    if (!selectedNode) return;
+
     if (mode === 'edit') {
       setFormData({
-        designRule: node.data.designRule || '',
-        optionName: node.data.optionName || '',
-        partId: node.data.partId || '',
-        productName: node.data.productName || '',
+        designRule: selectedNode.data.designRule || '',
+        optionName: selectedNode.data.optionName || '',
+        partId: selectedNode.data.partId || '',
+        productName: selectedNode.data.productName || '',
         metaInfo: {
-          chip: node.data.metaInfo?.chip || '',
-          shot: node.data.metaInfo?.shot || '',
-          mto: node.data.metaInfo?.mto || '',
+          chip: selectedNode.data.metaInfo?.chip || '',
+          shot: selectedNode.data.metaInfo?.shot || '',
+          mto: selectedNode.data.metaInfo?.mto || '',
         },
       });
     } else {
@@ -42,51 +41,38 @@ const MasterDataForm: React.FC<Props> = ({ node, mode, onSuccess, onCancel }) =>
         metaInfo: { chip: '', shot: '', mto: '' },
       });
     }
-  }, [node, mode]);
+  }, [selectedNode, mode]);
 
-  const [createPlan] = useMutation(CREATE_PROCESS_PLAN);
-  const [createOption] = useMutation(CREATE_BEOL_OPTION);
-  const [createProduct] = useMutation(CREATE_PRODUCT);
-  const [updateProduct] = useMutation(UPDATE_PRODUCT);
-  const [deleteProduct] = useMutation(DELETE_PRODUCT);
+  if (!selectedNode) return null;
 
   const handleSave = async () => {
     try {
-      if (node.type === 'plan') {
+      if (selectedNode.type === 'plan') {
         if (mode === 'create') {
-          await createPlan({ variables: { input: { designRule: formData.designRule } } });
+          await createProcessPlan(formData.designRule);
         }
-      } else if (node.type === 'option') {
+      } else if (selectedNode.type === 'option') {
         if (mode === 'create') {
-          await createOption({
-            variables: { input: { optionName: formData.optionName, processPlanId: node.data.id } },
-          });
+          await createBeolOption(selectedNode.data.parentId, formData.optionName);
         }
-      } else if (node.type === 'product') {
+      } else if (selectedNode.type === 'product') {
         if (mode === 'create') {
-          await createProduct({
-            variables: {
-              input: {
-                partId: formData.partId,
-                productName: formData.productName,
-                beolOptionId: node.data.id,
-                metaInfo: formData.metaInfo,
-              },
-            },
-          });
+          await createProduct(
+            selectedNode.data.parentId, 
+            formData.partId, 
+            formData.productName, 
+            formData.metaInfo
+          );
         } else {
-          await updateProduct({
-            variables: {
-              id: node.id,
-              input: {
-                productName: formData.productName,
-                metaInfo: formData.metaInfo,
-              },
-            },
-          });
+          await updateProduct(
+            selectedNode.id, 
+            formData.productName, 
+            formData.metaInfo
+          );
         }
       }
-      onSuccess();
+      setIsFormOpen(false);
+      setSelectedNode(null);
     } catch (e) {
       alert('Error saving data: ' + e);
     }
@@ -95,11 +81,11 @@ const MasterDataForm: React.FC<Props> = ({ node, mode, onSuccess, onCancel }) =>
   const handleDelete = async () => {
     if (!window.confirm('Are you sure you want to delete this item?')) return;
     try {
-      if (node.type === 'product') {
-        await deleteProduct({ variables: { id: node.id } });
+      if (selectedNode.type === 'product') {
+        await deleteProduct(selectedNode.id);
       }
-      // Add delete for plan/option if needed
-      onSuccess();
+      setIsFormOpen(false);
+      setSelectedNode(null);
     } catch (e) {
       alert('Error deleting: ' + e);
     }
@@ -110,10 +96,10 @@ const MasterDataForm: React.FC<Props> = ({ node, mode, onSuccess, onCancel }) =>
       <header className="p-8 border-b border-slate-50 flex justify-between items-center bg-slate-50/20">
         <div className="flex items-center gap-4">
           <span className="text-[11px] font-black uppercase px-3 py-1.5 rounded-lg bg-indigo-100 text-indigo-600 tracking-[0.2em]">
-            {mode === 'create' ? 'Create' : 'Edit'} {node.type}
+            {mode === 'create' ? 'Create' : 'Edit'} {selectedNode.type}
           </span>
         </div>
-        {mode === 'edit' && node.type === 'product' && (
+        {mode === 'edit' && selectedNode.type === 'product' && (
           <button
             onClick={handleDelete}
             className="flex items-center gap-2 px-4 py-2 text-[11px] font-black text-red-500 hover:bg-red-50 rounded-xl transition-all uppercase tracking-widest"
@@ -127,17 +113,17 @@ const MasterDataForm: React.FC<Props> = ({ node, mode, onSuccess, onCancel }) =>
       <div className="flex-1 overflow-y-auto p-12 max-w-3xl mx-auto w-full space-y-10">
         {/* Breadcrumb Path */}
         <div className="flex items-center gap-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest">
-          {node.path.map((p, i) => (
+          {selectedNode.path.map((p, i) => (
             <React.Fragment key={i}>
               {i > 0 && <ChevronRight className="w-3 h-3" />}
-              <span className={i === node.path.length - 1 ? 'text-slate-600' : ''}>{p}</span>
+              <span className={i === selectedNode.path.length - 1 ? 'text-slate-600' : ''}>{p}</span>
             </React.Fragment>
           ))}
         </div>
 
         {/* Fields */}
         <div className="space-y-8">
-          {node.type === 'plan' && (
+          {selectedNode.type === 'plan' && (
             <div className="space-y-3">
               <label className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Design Rule</label>
               <input
@@ -149,7 +135,7 @@ const MasterDataForm: React.FC<Props> = ({ node, mode, onSuccess, onCancel }) =>
             </div>
           )}
 
-          {node.type === 'option' && (
+          {selectedNode.type === 'option' && (
             <div className="space-y-3">
               <label className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Option Name (BEOL)</label>
               <input
@@ -161,7 +147,7 @@ const MasterDataForm: React.FC<Props> = ({ node, mode, onSuccess, onCancel }) =>
             </div>
           )}
 
-          {node.type === 'product' && (
+          {selectedNode.type === 'product' && (
             <div className="space-y-10">
               <div className="grid grid-cols-2 gap-8">
                 <div className="space-y-3">
@@ -212,7 +198,10 @@ const MasterDataForm: React.FC<Props> = ({ node, mode, onSuccess, onCancel }) =>
 
       <footer className="p-8 border-t border-slate-50 flex gap-4 bg-white">
         <button
-          onClick={onCancel}
+          onClick={() => {
+            setIsFormOpen(false);
+            setSelectedNode(null);
+          }}
           className="px-8 py-5 text-xs font-black text-slate-400 hover:text-slate-600 transition-all uppercase tracking-[0.2em]"
         >
           Cancel

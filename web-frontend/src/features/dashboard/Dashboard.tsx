@@ -3,7 +3,7 @@ import React from 'react';
 const Dashboard: React.FC = () => {
   return (
     <div className="space-y-6">
-      <div class="flex items-center justify-between">
+      <div className="flex items-center justify-between">
         <h2 className="text-2xl font-black text-slate-900 tracking-tight uppercase">System Dashboard</h2>
       </div>
       

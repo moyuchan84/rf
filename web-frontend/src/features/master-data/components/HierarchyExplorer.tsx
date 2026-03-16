@@ -1,30 +1,31 @@
 import React, { useState } from 'react';
-import type { ProcessPlan, SelectedNode, BeolOption, Product } from './types';
+import type { SelectedNode } from '../types';
 import { ChevronRight, ChevronDown, FolderTree, FileSpreadsheet, Box } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { useMasterData } from '../hooks/useMasterData';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-interface Props {
-  data: ProcessPlan[];
-  selectedNode: SelectedNode | null;
-  onSelect: (node: SelectedNode) => void;
-  onCreateChild: (type: SelectedNode['type'], parentData: any, path: string[]) => void;
-}
-
-const HierarchyExplorer: React.FC<Props> = ({ data, selectedNode, onSelect, onCreateChild }) => {
+const HierarchyExplorer: React.FC = () => {
+  const { processPlans, selectedNode, setSelectedNode, setIsFormOpen } = useMasterData();
   const [expandedNodes, setExpandedNodes] = useState<Record<string, boolean>>({});
 
   const toggleExpand = (id: string) => {
     setExpandedNodes((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
+  const handleCreateChild = (type: SelectedNode['type'], parentData: any, path: string[]) => {
+    // This part logic can also be in hook if it gets complex
+    setSelectedNode({ type, id: -1, data: { parentId: parentData.id }, path });
+    setIsFormOpen(true);
+  };
+
   return (
     <div className="space-y-2">
-      {data.map((pp) => (
+      {processPlans.map((pp) => (
         <div key={pp.id} className="space-y-1">
           <div
             className={cn(
@@ -33,7 +34,7 @@ const HierarchyExplorer: React.FC<Props> = ({ data, selectedNode, onSelect, onCr
                 ? 'bg-indigo-50 text-indigo-700 shadow-sm ring-1 ring-indigo-200'
                 : 'hover:bg-slate-50 text-slate-600'
             )}
-            onClick={() => onSelect({ type: 'plan', id: pp.id, data: pp, path: [pp.designRule] })}
+            onClick={() => setSelectedNode({ type: 'plan', id: pp.id, data: pp, path: [pp.designRule] })}
           >
             <button
               onClick={(e) => {
@@ -49,7 +50,7 @@ const HierarchyExplorer: React.FC<Props> = ({ data, selectedNode, onSelect, onCr
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                onCreateChild('option', pp, [pp.designRule]);
+                handleCreateChild('option', pp, [pp.designRule]);
               }}
               className="opacity-0 group-hover:opacity-100 w-6 h-6 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center text-xs"
             >
@@ -68,7 +69,7 @@ const HierarchyExplorer: React.FC<Props> = ({ data, selectedNode, onSelect, onCr
                         ? 'bg-blue-50 text-blue-700 shadow-sm ring-1 ring-blue-100'
                         : 'hover:bg-slate-50 text-slate-500'
                     )}
-                    onClick={() => onSelect({ type: 'option', id: bo.id, data: bo, path: [pp.designRule, bo.optionName] })}
+                    onClick={() => setSelectedNode({ type: 'option', id: bo.id, data: bo, path: [pp.designRule, bo.optionName] })}
                   >
                     <button
                       onClick={(e) => {
@@ -84,7 +85,7 @@ const HierarchyExplorer: React.FC<Props> = ({ data, selectedNode, onSelect, onCr
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        onCreateChild('product', bo, [pp.designRule, bo.optionName]);
+                        handleCreateChild('product', bo, [pp.designRule, bo.optionName]);
                       }}
                       className="opacity-0 group-hover:opacity-100 w-5 h-5 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center text-xs"
                     >
@@ -103,7 +104,7 @@ const HierarchyExplorer: React.FC<Props> = ({ data, selectedNode, onSelect, onCr
                               ? 'bg-emerald-50 text-emerald-700 shadow-sm ring-1 ring-emerald-100'
                               : 'hover:bg-slate-50 text-slate-400'
                           )}
-                          onClick={() => onSelect({ type: 'product', id: prod.id, data: prod, path: [pp.designRule, bo.optionName, prod.partId] })}
+                          onClick={() => setSelectedNode({ type: 'product', id: prod.id, data: prod, path: [pp.designRule, bo.optionName, prod.partId] })}
                         >
                           <Box className="w-3.5 h-3.5 text-emerald-500" />
                           <div className="flex-1 min-w-0">

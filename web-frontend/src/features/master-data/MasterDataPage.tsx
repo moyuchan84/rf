@@ -1,24 +1,22 @@
-import React, { useState } from 'react';
-import { useQuery } from '@apollo/client/react';
-import { GET_PROCESS_PLANS } from './queries';
-import type { ProcessPlan, SelectedNode } from './types';
-import HierarchyExplorer from './HierarchyExplorer';
-import MasterDataForm from './MasterDataForm';
+import React from 'react';
 import { RefreshCcw, Database } from 'lucide-react';
+import HierarchyExplorer from './components/HierarchyExplorer';
+import MasterDataForm from './components/MasterDataForm';
+import { useMasterData } from './hooks/useMasterData';
 
 const MasterDataPage: React.FC = () => {
-  const { data, loading, refetch } = useQuery<{ processPlans: ProcessPlan[] }>(GET_PROCESS_PLANS);
-  const [selectedNode, setSelectedNode] = useState<SelectedNode | null>(null);
-  const [formMode, setFormMode] = useState<'create' | 'edit'>('edit');
+  const { 
+    loading, 
+    refetch, 
+    selectedNode, 
+    setSelectedNode, 
+    isFormOpen, 
+    setIsFormOpen 
+  } = useMasterData();
 
-  const handleSelectNode = (node: SelectedNode) => {
-    setSelectedNode(node);
-    setFormMode('edit');
-  };
-
-  const handleCreateNode = (type: SelectedNode['type'], parentData?: any, path: string[] = []) => {
-    setSelectedNode({ type, id: 0, data: parentData || {}, path });
-    setFormMode('create');
+  const handleCreateNode = (type: any, parentData?: any, path: string[] = []) => {
+    setSelectedNode({ type, id: -1, data: parentData || {}, path });
+    setIsFormOpen(true);
   };
 
   return (
@@ -55,27 +53,14 @@ const MasterDataPage: React.FC = () => {
             </button>
           </div>
           <div className="flex-1 overflow-y-auto p-4">
-            <HierarchyExplorer
-              data={data?.processPlans || []}
-              selectedNode={selectedNode}
-              onSelect={handleSelectNode}
-              onCreateChild={handleCreateNode}
-            />
+            <HierarchyExplorer />
           </div>
         </aside>
 
         {/* Main Content: Form */}
         <main className="flex-1 bg-white border border-slate-200 rounded-[2rem] shadow-sm flex flex-col overflow-hidden">
-          {selectedNode ? (
-            <MasterDataForm
-              node={selectedNode}
-              mode={formMode}
-              onSuccess={() => {
-                refetch();
-                setSelectedNode(null);
-              }}
-              onCancel={() => setSelectedNode(null)}
-            />
+          {selectedNode || isFormOpen ? (
+            <MasterDataForm />
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center p-12 text-center">
               <div className="w-24 h-24 bg-slate-50 rounded-[3rem] flex items-center justify-center mb-8 border border-slate-100">

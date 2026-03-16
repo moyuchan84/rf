@@ -11,8 +11,8 @@ const Requests: React.FC = () => {
       </div>
       
       <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-        <div class="p-12 text-center">
-          <p class="text-slate-400 font-bold italic">Requests list will be populated here.</p>
+        <div className="p-12 text-center">
+          <p className="text-slate-400 font-bold italic">Requests list will be populated here.</p>
         </div>
       </div>
     </div>
