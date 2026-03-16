@@ -87,6 +87,7 @@ const Requests: React.FC = () => {
                         <div>
                           <div className="flex items-center gap-3 mb-2">
                             <span className="text-[9px] font-black bg-indigo-500/10 text-indigo-400 px-2.5 py-1 rounded-lg uppercase tracking-widest border border-indigo-500/20">#REQ-{req.id}</span>
+                            <span className="text-[9px] font-black bg-emerald-500/10 text-emerald-400 px-2.5 py-1 rounded-lg uppercase tracking-widest border border-emerald-500/20">{req.requestType}</span>
                             <span className="text-[9px] font-black bg-slate-800 text-slate-400 px-2.5 py-1 rounded-lg uppercase tracking-widest border border-slate-700/50 flex items-center gap-1.5">
                               <Calendar className="w-3 h-3" /> {new Date(req.createdAt).toLocaleDateString()}
                             </span>

@@ -6,6 +6,9 @@ export class CreateRequestItemInput {
   productId: number;
 
   @Field()
+  requestType: string;
+
+  @Field()
   title: string;
 
   @Field()
@@ -23,6 +26,9 @@ export class CreateRequestItemInput {
 
 @InputType()
 export class UpdateRequestItemInput {
+  @Field({ nullable: true })
+  requestType?: string;
+
   @Field({ nullable: true })
   title?: string;
 

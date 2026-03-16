@@ -14,9 +14,10 @@ export const useRequestForm = () => {
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
 
   // Form state
+  const [requestType, setRequestType] = useState('');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [requesterId, setRequesterId] = useState('');
+  const [requesterId, setRequesterId] = useState('EMP_123456');
   const [edmList, setEdmList] = useState<string[]>([]);
   const [pkdVersions, setPkdVersions] = useState<string[]>([]);
   
@@ -64,11 +65,12 @@ export const useRequestForm = () => {
     setSelectedPlanId(null);
     setSelectedOptionId(null);
     setSelectedProductId(null);
+    setRequestType('');
     setTitle('');
     setDescription('');
     setEdmList([]);
     setPkdVersions([]);
-    setRequesterId('');
+    setRequesterId('EMP_123456');
     setIsSubmitted(false);
   };
 
@@ -80,6 +82,7 @@ export const useRequestForm = () => {
         variables: {
           input: {
             productId: selectedProductId,
+            requestType,
             title,
             description,
             edmList,
@@ -108,6 +111,7 @@ export const useRequestForm = () => {
     selectedProduct,
     
     // Form State
+    requestType,
     title,
     description,
     requesterId,
@@ -119,6 +123,7 @@ export const useRequestForm = () => {
     setSelectedPlanId,
     setSelectedOptionId,
     setSelectedProductId,
+    setRequestType,
     setTitle,
     setDescription,
     setRequesterId,

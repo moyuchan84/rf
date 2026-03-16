@@ -14,6 +14,7 @@ export interface ProductMeta {
 export interface RequestItem {
   id: number;
   productId: number;
+  requestType: string;
   title: string;
   description: string;
   edmList: string[];

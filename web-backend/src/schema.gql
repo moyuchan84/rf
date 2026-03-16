@@ -32,6 +32,7 @@ input CreateRequestItemInput {
   edmList: [String!]!
   pkdVersions: [String!]!
   productId: Int!
+  requestType: String!
   requesterId: String!
   title: String!
 }
@@ -111,6 +112,7 @@ type RequestItem {
   id: Int!
   pkdVersions: [String!]!
   productId: Int!
+  requestType: String!
   requesterId: String!
   title: String!
   updatedAt: DateTime!
@@ -125,6 +127,7 @@ input UpdateRequestItemInput {
   description: String
   edmList: [String!]
   pkdVersions: [String!]
+  requestType: String
   requesterId: String
   title: String
 }

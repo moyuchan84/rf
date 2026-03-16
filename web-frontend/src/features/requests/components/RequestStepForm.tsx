@@ -47,6 +47,7 @@ const RequestStepForm: React.FC = () => {
     selectedPlan,
     selectedOption,
     selectedProduct,
+    requestType,
     title,
     description,
     requesterId,
@@ -56,9 +57,9 @@ const RequestStepForm: React.FC = () => {
     setSelectedPlanId,
     setSelectedOptionId,
     setSelectedProductId,
+    setRequestType,
     setTitle,
     setDescription,
-    setRequesterId,
     handleAddEdm,
     handleRemoveEdm,
     handleAddPdk,
@@ -107,6 +108,14 @@ const RequestStepForm: React.FC = () => {
       </div>
     );
   }
+
+  const isFormValid = 
+    selectedProductId && 
+    requestType && 
+    title.trim() && 
+    description.replace(/<[^>]*>/g, '').trim() && 
+    edmList.length > 0 && 
+    pkdVersions.length > 0;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-12">
@@ -165,7 +174,7 @@ const RequestStepForm: React.FC = () => {
                     setSelectedOptionId(Number(e.target.value));
                     setSelectedProductId(null);
                   }}
-                  className="w-full px-5 py-4 bg-slate-950 border-2 border-slate-800 rounded-2xl text-white font-bold text-sm focus:border-indigo-500/50 outline-none transition-all appearance-none cursor-pointer group-hover:border-slate-700 shadow-xl"
+                  className="w-full px-5 py-4 bg-slate-950 border-2 border-slate-800 rounded-2xl text-white font-bold text-sm focus:border-indigo-500 outline-none transition-all appearance-none cursor-pointer group-hover:border-slate-700 shadow-xl"
                 >
                   <option value="">Select BEOL Option</option>
                   {selectedPlan?.beolOptions.map((option) => (
@@ -187,7 +196,7 @@ const RequestStepForm: React.FC = () => {
                 <select 
                   value={selectedProductId || ''} 
                   onChange={(e) => setSelectedProductId(Number(e.target.value))}
-                  className="w-full px-5 py-4 bg-slate-950 border-2 border-slate-800 rounded-2xl text-white font-bold text-sm focus:border-indigo-500/50 outline-none transition-all appearance-none cursor-pointer group-hover:border-slate-700 shadow-xl"
+                  className="w-full px-5 py-4 bg-slate-950 border-2 border-slate-800 rounded-2xl text-white font-bold text-sm focus:border-indigo-500 outline-none transition-all appearance-none cursor-pointer group-hover:border-slate-700 shadow-xl"
                 >
                   <option value="">Select Product</option>
                   {selectedOption?.products.map((product) => (
@@ -280,16 +289,24 @@ const RequestStepForm: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
               <div className="space-y-3">
                 <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest flex items-center gap-2 ml-1">
-                  <FileText className="w-3 h-3 text-indigo-400" /> Request Title
+                  <FileText className="w-3 h-3 text-indigo-400" /> Request Type
                 </label>
-                <input 
-                  type="text" 
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g., Photo-Key design for Product A Rev 2"
-                  className="w-full px-7 py-5 bg-slate-950 border-2 border-slate-800 rounded-2xl text-white font-bold text-sm focus:border-indigo-500 outline-none transition-all placeholder:text-slate-800 shadow-xl"
-                  required
-                />
+                <div className="relative group">
+                  <select 
+                    value={requestType} 
+                    onChange={(e) => setRequestType(e.target.value)}
+                    className="w-full px-7 py-5 bg-slate-950 border-2 border-slate-800 rounded-2xl text-white font-bold text-sm focus:border-indigo-500 outline-none transition-all appearance-none cursor-pointer group-hover:border-slate-700 shadow-xl"
+                    required
+                  >
+                    <option value="">Select Request Type</option>
+                    <option value="RFG(신규/변경) 의뢰">RFG(신규/변경) 의뢰</option>
+                    <option value="RFG 개별 제품 Revision 의뢰">RFG 개별 제품 Revision 의뢰</option>
+                    <option value="RFG 개별 제품 Revision 의뢰(Special)">RFG 개별 제품 Revision 의뢰(Special)</option>
+                  </select>
+                  <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-600 group-hover:text-indigo-400 transition-colors">
+                    <ArrowRight className="w-4 h-4 rotate-90" />
+                  </div>
+                </div>
               </div>
               <div className="space-y-3">
                 <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest flex items-center gap-2 ml-1">
@@ -298,12 +315,25 @@ const RequestStepForm: React.FC = () => {
                 <input 
                   type="text" 
                   value={requesterId}
-                  onChange={(e) => setRequesterId(e.target.value)}
-                  placeholder="User Name or Employee ID"
-                  className="w-full px-7 py-5 bg-slate-950 border-2 border-slate-800 rounded-2xl text-white font-bold text-sm focus:border-indigo-500 outline-none transition-all placeholder:text-slate-800 shadow-xl"
-                  required
+                  readOnly
+                  className="w-full px-7 py-5 bg-slate-900/50 border-2 border-slate-800 rounded-2xl text-slate-400 font-bold text-sm outline-none cursor-not-allowed shadow-xl"
+                  title="Auto-populated via SSO"
                 />
               </div>
+            </div>
+
+            <div className="space-y-3">
+              <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest flex items-center gap-2 ml-1">
+                <FileText className="w-3 h-3 text-indigo-400" /> Request Title
+              </label>
+              <input 
+                type="text" 
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="e.g., Photo-Key design for Product A Rev 2"
+                className="w-full px-7 py-5 bg-slate-950 border-2 border-slate-800 rounded-2xl text-white font-bold text-sm focus:border-indigo-500 outline-none transition-all placeholder:text-slate-800 shadow-xl"
+                required
+              />
             </div>
 
             <div className="space-y-3">
@@ -346,18 +376,23 @@ const RequestStepForm: React.FC = () => {
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         e.preventDefault();
-                        handleAddEdm(newEdm);
-                        setNewEdm('');
+                        if (newEdm.startsWith('http')) {
+                          handleAddEdm(newEdm);
+                          setNewEdm('');
+                        }
                       }
                     }}
                   />
                   <button 
                     type="button" 
                     onClick={() => {
-                      handleAddEdm(newEdm);
-                      setNewEdm('');
+                      if (newEdm.startsWith('http')) {
+                        handleAddEdm(newEdm);
+                        setNewEdm('');
+                      }
                     }}
-                    className="p-4 bg-slate-800 hover:bg-slate-700 text-indigo-400 rounded-xl transition-all active:scale-90 shadow-xl border border-slate-700/50"
+                    className="p-4 bg-slate-800 hover:bg-slate-700 text-indigo-400 rounded-xl transition-all active:scale-90 shadow-xl border border-slate-700/50 disabled:opacity-30 disabled:cursor-not-allowed"
+                    disabled={!newEdm.startsWith('http')}
                   >
                     <PlusCircle className="w-6 h-6" />
                   </button>
@@ -414,7 +449,7 @@ const RequestStepForm: React.FC = () => {
               <button 
                 type="submit"
                 className="group w-full py-7 bg-indigo-600 hover:bg-indigo-500 text-white rounded-[2.5rem] font-black text-sm uppercase tracking-[0.5em] transition-all shadow-[0_20px_60px_-15px_rgba(79,70,229,0.5)] flex items-center justify-center gap-6 active:scale-[0.99] disabled:opacity-30 disabled:grayscale disabled:pointer-events-none overflow-hidden relative"
-                disabled={!selectedProductId || !title || !requesterId}
+                disabled={!isFormValid}
               >
                 <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.1)_50%,transparent_75%)] -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
                 Submit Request <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />

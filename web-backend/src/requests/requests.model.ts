@@ -9,6 +9,9 @@ export class RequestItem {
   productId: number;
 
   @Field()
+  requestType: string;
+
+  @Field()
   title: string;
 
   @Field()
