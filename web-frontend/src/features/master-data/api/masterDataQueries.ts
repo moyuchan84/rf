@@ -1,4 +1,4 @@
-import { gql } from '@/shared/api/generated';
+import { gql } from '@apollo/client';
 
 export const GET_PROCESS_PLANS = gql`
   query GetProcessPlans {
@@ -14,9 +14,14 @@ export const GET_PROCESS_PLANS = gql`
           productName
           metaInfo {
             id
-            chip
-            shot
-            mto
+            processId
+            mtoDate
+            customer
+            application
+            chipSizeX
+            chipSizeY
+            slSizeX
+            slSizeY
           }
         }
       }
@@ -59,9 +64,14 @@ export const UPDATE_PRODUCT = gql`
       productName
       metaInfo {
         id
-        chip
-        shot
-        mto
+        processId
+        mtoDate
+        customer
+        application
+        chipSizeX
+        chipSizeY
+        slSizeX
+        slSizeY
       }
     }
   }

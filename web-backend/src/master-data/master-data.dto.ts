@@ -1,4 +1,4 @@
-import { Field, InputType, Int } from '@nestjs/graphql';
+import { Field, Float, InputType, Int } from '@nestjs/graphql';
 
 @InputType()
 export class CreateProcessPlanInput {
@@ -18,13 +18,28 @@ export class CreateBeolOptionInput {
 @InputType()
 export class ProductMetaInput {
   @Field({ nullable: true })
-  chip?: string;
+  processId?: string;
 
   @Field({ nullable: true })
-  shot?: string;
+  mtoDate?: Date;
 
   @Field({ nullable: true })
-  mto?: string;
+  customer?: string;
+
+  @Field({ nullable: true })
+  application?: string;
+
+  @Field(() => Float, { nullable: true })
+  chipSizeX?: number;
+
+  @Field(() => Float, { nullable: true })
+  chipSizeY?: number;
+
+  @Field(() => Float, { nullable: true })
+  slSizeX?: number;
+
+  @Field(() => Float, { nullable: true })
+  slSizeY?: number;
 }
 
 @InputType()

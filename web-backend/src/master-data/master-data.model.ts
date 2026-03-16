@@ -1,4 +1,5 @@
-import { Field, Int, ObjectType } from '@nestjs/graphql';
+import { Field, Float, Int, ObjectType } from '@nestjs/graphql';
+import { RequestItem } from '../requests/requests.model';
 
 @ObjectType()
 export class ProductMeta {
@@ -9,13 +10,28 @@ export class ProductMeta {
   productId: number;
 
   @Field({ nullable: true })
-  chip?: string;
+  processId?: string;
 
   @Field({ nullable: true })
-  shot?: string;
+  mtoDate?: Date;
 
   @Field({ nullable: true })
-  mto?: string;
+  customer?: string;
+
+  @Field({ nullable: true })
+  application?: string;
+
+  @Field(() => Float, { nullable: true })
+  chipSizeX?: number;
+
+  @Field(() => Float, { nullable: true })
+  chipSizeY?: number;
+
+  @Field(() => Float, { nullable: true })
+  slSizeX?: number;
+
+  @Field(() => Float, { nullable: true })
+  slSizeY?: number;
 
   @Field()
   createdAt: Date;
@@ -40,6 +56,9 @@ export class Product {
 
   @Field(() => ProductMeta, { nullable: true })
   metaInfo?: ProductMeta;
+
+  @Field(() => [RequestItem], { nullable: true })
+  requests?: RequestItem[];
 
   @Field()
   createdAt: Date;

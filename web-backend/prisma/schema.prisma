@@ -14,6 +14,9 @@ model ProcessPlan {
   designRule  String       @unique @map("design_rule")
   beolOptions BeolOption[]
 
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("update_time")
+
   @@map("process_plans")
 }
 
@@ -24,28 +27,61 @@ model BeolOption {
   processPlan   ProcessPlan @relation(fields: [processPlanId], references: [id], onDelete: Cascade)
   products      Product[]
 
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("update_time")
+
   @@unique([processPlanId, optionName])
   @@map("beol_options")
 }
 
 model Product {
-  id           Int          @id @default(autoincrement())
-  partId       String       @unique @map("partid")
-  productName  String       @map("product_name")
-  beolOptionId Int          @map("beol_option_id")
-  beolOption   BeolOption   @relation(fields: [beolOptionId], references: [id], onDelete: Cascade)
+  id           Int           @id @default(autoincrement())
+  partId       String        @unique @map("partid")
+  productName  String        @map("product_name")
+  beolOptionId Int           @map("beol_option_id")
+  beolOption   BeolOption    @relation(fields: [beolOptionId], references: [id], onDelete: Cascade)
   metaInfo     ProductMeta?
+  requests     RequestItem[]
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("update_time")
 
   @@map("products")
 }
 
 model ProductMeta {
-  id        Int     @id @default(autoincrement())
-  productId Int     @unique @map("product_id")
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  chip      String?
-  shot      String?
-  mto       String?
+  id          Int      @id @default(autoincrement())
+  productId   Int      @unique @map("product_id")
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  processId   String?  @map("process_id")
+  mtoDate     DateTime? @map("mto_date")
+  customer    String?
+  application String?
+  chipSizeX   Float?   @map("chip_size_x")
+  chipSizeY   Float?   @map("chip_size_y")
+  slSizeX     Float?   @map("sl_size_x")
+  slSizeY     Float?   @map("sl_size_y")
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("update_time")
 
   @@map("product_meta")
+}
+
+model RequestItem {
+  id          Int      @id @default(autoincrement())
+  productId   Int      @map("product_id")
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  title       String
+  description String   @db.Text
+  edmList     String[] @map("edm_list")
+  pkdVersions String[] @map("pkd_versions")
+  requesterId String   @map("requester_id")
+  
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("update_time")
+
+  @@map("request_items")
 }

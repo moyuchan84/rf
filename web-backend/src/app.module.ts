@@ -6,6 +6,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { MasterDataModule } from './master-data/master-data.module';
+import { RequestsModule } from './requests/requests.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { MasterDataModule } from './master-data/master-data.module';
       sortSchema: true,
     }),
     MasterDataModule,
+    RequestsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

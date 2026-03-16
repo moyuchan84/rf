@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Send, Sparkles, Database, History } from 'lucide-react';
+import { Send, Sparkles, Database, History } from 'lucide-react';
 
 const RagSearchPage: React.FC = () => {
   const [query, setQuery] = useState('');

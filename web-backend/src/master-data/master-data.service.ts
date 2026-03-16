@@ -18,7 +18,10 @@ export class MasterDataService {
         beolOptions: {
           include: {
             products: {
-              include: { metaInfo: true },
+              include: { 
+                metaInfo: true,
+                requests: true
+              },
             },
           },
         },

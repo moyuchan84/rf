@@ -1,5 +1,5 @@
 import React from 'react';
-import { Table2, Download, Search } from 'lucide-react';
+import { Download, Search } from 'lucide-react';
 
 const KeyTablePage: React.FC = () => {
   return (

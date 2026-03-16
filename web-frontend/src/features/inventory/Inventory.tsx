@@ -21,7 +21,7 @@ const Inventory: React.FC = () => {
         </aside>
         
         <main className="col-span-3 bg-white rounded-3xl shadow-sm border border-slate-200 p-12 text-center">
-          <p class="text-slate-400 font-bold italic">Master data and key tables will be listed here.</p>
+          <p className="text-slate-400 font-bold italic">Master data and key tables will be listed here.</p>
         </main>
       </div>
     </div>

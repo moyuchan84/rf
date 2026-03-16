@@ -8,7 +8,7 @@ import {
   DELETE_PRODUCT 
 } from '../api/masterDataQueries';
 import { useMasterDataStore } from '../store/useMasterDataStore';
-import type { ProcessPlan } from '../types';
+import type { ProcessPlan, ProductMeta } from '../types';
 
 export const useMasterData = () => {
   const { data, loading, error, refetch } = useQuery<{ processPlans: ProcessPlan[] }>(GET_PROCESS_PLANS);
@@ -30,7 +30,7 @@ export const useMasterData = () => {
     await refetch();
   };
 
-  const createProduct = async (beolOptionId: number, partId: string, productName: string, meta?: any) => {
+  const createProduct = async (beolOptionId: number, partId: string, productName: string, meta?: Partial<ProductMeta>) => {
     await createProductMutation({ 
       variables: { 
         input: { beolOptionId, partId, productName, metaInfo: meta } 
@@ -39,7 +39,7 @@ export const useMasterData = () => {
     await refetch();
   };
 
-  const updateProduct = async (id: number, productName: string, meta?: any) => {
+  const updateProduct = async (id: number, productName: string, meta?: Partial<ProductMeta>) => {
     await updateProductMutation({ 
       variables: { 
         id, 

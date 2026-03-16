@@ -27,6 +27,15 @@ input CreateProductInput {
   productName: String!
 }
 
+input CreateRequestItemInput {
+  description: String!
+  edmList: [String!]!
+  pkdVersions: [String!]!
+  productId: Int!
+  requesterId: String!
+  title: String!
+}
+
 """
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
@@ -36,10 +45,13 @@ type Mutation {
   createBeolOption(input: CreateBeolOptionInput!): BeolOption!
   createProcessPlan(input: CreateProcessPlanInput!): ProcessPlan!
   createProduct(input: CreateProductInput!): Product!
+  createRequestItem(input: CreateRequestItemInput!): RequestItem!
   deleteBeolOption(id: Int!): BeolOption!
   deleteProcessPlan(id: Int!): ProcessPlan!
   deleteProduct(id: Int!): Product!
+  deleteRequestItem(id: Int!): RequestItem!
   updateProduct(id: Int!, input: UpdateProductInput!): Product!
+  updateRequestItem(id: Int!, input: UpdateRequestItemInput!): RequestItem!
 }
 
 type ProcessPlan {
@@ -57,30 +69,62 @@ type Product {
   metaInfo: ProductMeta
   partId: String!
   productName: String!
+  requests: [RequestItem!]
   updatedAt: DateTime!
 }
 
 type ProductMeta {
-  chip: String
+  application: String
+  chipSizeX: Float
+  chipSizeY: Float
   createdAt: DateTime!
+  customer: String
   id: Int!
-  mto: String
+  mtoDate: DateTime
+  processId: String
   productId: Int!
-  shot: String
+  slSizeX: Float
+  slSizeY: Float
   updatedAt: DateTime!
 }
 
 input ProductMetaInput {
-  chip: String
-  mto: String
-  shot: String
+  application: String
+  chipSizeX: Float
+  chipSizeY: Float
+  customer: String
+  mtoDate: DateTime
+  processId: String
+  slSizeX: Float
+  slSizeY: Float
 }
 
 type Query {
   processPlans: [ProcessPlan!]!
+  requestItemsByProduct(productId: Int!): [RequestItem!]!
+}
+
+type RequestItem {
+  createdAt: DateTime!
+  description: String!
+  edmList: [String!]!
+  id: Int!
+  pkdVersions: [String!]!
+  productId: Int!
+  requesterId: String!
+  title: String!
+  updatedAt: DateTime!
 }
 
 input UpdateProductInput {
   metaInfo: ProductMetaInput
   productName: String
+}
+
+input UpdateRequestItemInput {
+  description: String
+  edmList: [String!]
+  pkdVersions: [String!]
+  requesterId: String
+  title: String
 }
