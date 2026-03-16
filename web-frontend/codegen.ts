@@ -9,6 +9,9 @@ const config: CodegenConfig = {
       plugins: [],
       presetConfig: {
         gqlTagName: 'gql',
+      },
+      config: {
+        useTypeImports: true,
       }
     }
   },

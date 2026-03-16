@@ -1,4 +1,4 @@
-import { gql } from '../../../shared/api/generated';
+import { gql } from '@/shared/api/generated';
 
 export const GET_PROCESS_PLANS = gql`
   query GetProcessPlans {

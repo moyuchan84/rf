@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from '@apollo/client';
+import { useQuery, useMutation } from '@apollo/client/react';
 import { 
   GET_PROCESS_PLANS, 
   CREATE_PROCESS_PLAN, 
@@ -8,7 +8,7 @@ import {
   DELETE_PRODUCT 
 } from '../api/masterDataQueries';
 import { useMasterDataStore } from '../store/useMasterDataStore';
-import { ProcessPlan } from '../types';
+import type { ProcessPlan } from '../types';
 
 export const useMasterData = () => {
   const { data, loading, error, refetch } = useQuery<{ processPlans: ProcessPlan[] }>(GET_PROCESS_PLANS);

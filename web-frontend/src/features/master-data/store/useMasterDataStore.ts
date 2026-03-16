@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { SelectedNode } from '../types';
+import type { SelectedNode } from '../types';
 
 interface MasterDataState {
   selectedNode: SelectedNode | null;

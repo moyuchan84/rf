@@ -38,14 +38,49 @@ photo key의 경우 크게 기준정보성 테이블과 실제 photo reticle 의
  - backend : fastapi 
  - 구조 : clean architecture
 
-4. VSTO 에 대한 요구사항
+4. 실제 시스템 시나리오
+ - web portal 에서 procesplan-beol_option-product 선택 후 photo key table 에 대한 작업을 요청한다.(신규. 수정, 수정(special))
+ - web 에서 작업 의뢰 승인을 한다.
+ - 작업 의뢰 시 rfg 파트에서 photo key table 작업을 위한 reference table 을 지정해준다(db에 저장되어있는 테이블 참조)
+ - rfg 파트에 지정해준 reference table 을 가지고 ovl 파트에서 엑셀에서 작업후 vsto 를 이용해서 db에 업데이트한다.
+ - ovl 파트가 vsto 로 작업후 web portal 에서 제품에 대한 최종 작업한 테이블 목록을 결정지어준다.
+ - 해당 결과를 토대로 최종 컨펌 결재를 상신한다.
+
+
+5. VSTO 에 대한 요구사항
  - photo key table 에 대한 crud는 권한을 가진 사람만 진행할 수 있다. (리본메뉴에 대한 기능 권한 부여)
- - 특정 폴더에 있는 엑셀 파일들의 목록을 가져올 수 있다
  - 엑셀 workbook로부터 history / data sheet 에 대한 데이터를 parsing 하고, 3단계 트리구조로 사용자는 데이터(엑셀파일-워크시트-데이터내용) 확인할수있다.
  - workbook에서 parsing 한 worksheets 데이터에서 사용자가 history sheet 인지 data sheet 인지 선택할 수 있다.
  - 각 workbook 에 대해서 사용자가 rfg_category. photo_category, table_name, rev_no, is_reference에 대해서 선택할수 있다.
- -parsing 및 사용자가 특정속성에 대한 정보를 선택하고, workbooks 중 원하는 workbooks 을 선택한후 db에 저장할 수 있다.(processplan-beol_option-product 에 종속)
+ -parsing 및 사용자가 특정속성에 대한 정보를 선택하고, workbooks 중 원하는 workbooks 을 선택한후 db에 저장할 수 있다.(processplan-beol_option-product 에 대한 내용 선택 / 입력 - 해당 기준정보에 종속)
+ - 저장을 할때 다른 담당자들의 crosscheck / confirm 을 할때 비로소 실제 db 테이블 중 사람들이 review 하는 테이블에 저장, 조회 가능하다
+ - 특정 폴더에 있는 엑셀 파일들의 목록을 가져올 수 있다
+ - 폴더에 있는 엑셀 파일 목록들 복수개를 선택후 위에서 말한 엑셀 workbook 에 대한 데이터 paring 을 통해 데이터를 확인 및 저장하기 위한 조건을 선택할 수 있다.
  - db에 저장된 product별  photo_key 목록(table 별 rev no가 여러개 있음) 을 불러올 수 있다.
  - db에 저장된 product 별 photo_key table 을 선택시 데이터(워크북 - 워크시트) 에 대한 데이터를 확인할 수 있다.
- - db에 product 별 photo_key table 목록을 복수개 선택해서 엑셀로 복원할 수 있다.
- - 
+ - db에 저장된 product 별 photo_key table 을 선택하여 삭제할 수 있다.
+ - db에 저장된 product 별 photo_key table 을 선택하여 업데이트 할 수 있다.(webview 또는 엑셀에서 작성한다음에 저장 눌러서)
+ - db에 product 별 photo_key table 목록을 복수개 선택해서 엑셀로 복원할 수 있다. 
+ - db에 제품정보등록(processplan-beol_option-product)을 할 수 있다.
+ - db에 제품정보를 수정할 수 있다.
+ - db에 제품정보를 삭제할 수 있다.
+ 
+
+6. 리본메뉴
+ - 제품정보 관련
+ - photo key 테이블 관련
+ - 제품 의뢰 관련 (제품 의뢰 base 로부터 데이터 가져오기)
+
+
+@요구사항.txt 에서 - db에 저장된 product별  photo_key 목록(table 별 rev no가 여러개 있음) 을 불러올 수 있다.      
+    - db에 저장된 product 별 photo_key table 을 선택시 데이터(워크북 - 워크시트) 에 대한 데이터를 확인할 수 있다.    
+    - db에 product 별 photo_key table 목록을 복수개 선택해서 엑셀로 복원할 수 있다. 에 대한 기능을
+   @RFGo.PhotoKey.Manager/RFGo.PhotoKey.Manager/Presentation/Ribbon/RFGoRibbon.xml 에 새로운 기능으로 분리
+   @RFGo.PhotoKey.Manager/RFGo.PhotoKey.Manager/Resources/에서도 폴더 추가로 생성하여서 기능을 생성하고 싶은데       
+   @RFGo.PhotoKey.Manager/RFGo.PhotoKey.Manager/Resources/WorkSheetsLoader/index.html에서 처럼  MANAUR/NEW 와        
+   폴더 스캔하는건 필요없고 정말 SELECT FROM DB 처럼 DB 로부터 hiearchy 데이터를 가져와서 product를 선택했을때       
+   해당 제품에 해당하는 db 에 있는 photo_keys 테이블에서 product_id 를 통해서 테이블 목록을 가져와서                 
+   @RFGo.PhotoKey.Manager/RFGo.PhotoKey.Manager/Resources/WorkSheetsLoader/preview.html 에서처럼 데이터를
+   보여주는 기능을 만들어줘                                                                                          
+▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+
