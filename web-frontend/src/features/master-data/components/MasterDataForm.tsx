@@ -53,19 +53,19 @@ const MasterDataForm: React.FC = () => {
         }
       } else if (selectedNode.type === 'option') {
         if (mode === 'create') {
-          await createBeolOption(selectedNode.data.parentId, formData.optionName);
+          await createBeolOption(Number(selectedNode.data.parentId), formData.optionName);
         }
       } else if (selectedNode.type === 'product') {
         if (mode === 'create') {
           await createProduct(
-            selectedNode.data.parentId, 
+            Number(selectedNode.data.parentId), 
             formData.partId, 
             formData.productName, 
             formData.metaInfo
           );
         } else {
           await updateProduct(
-            selectedNode.id, 
+            Number(selectedNode.id), 
             formData.productName, 
             formData.metaInfo
           );
@@ -82,7 +82,7 @@ const MasterDataForm: React.FC = () => {
     if (!window.confirm('Are you sure you want to delete this item?')) return;
     try {
       if (selectedNode.type === 'product') {
-        await deleteProduct(selectedNode.id);
+        await deleteProduct(Number(selectedNode.id));
       }
       setIsFormOpen(false);
       setSelectedNode(null);
