@@ -1,8 +1,8 @@
-import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
+import { Field, Int, ObjectType } from '@nestjs/graphql';
 
 @ObjectType()
 export class ProductMeta {
-  @Field(() => ID)
+  @Field(() => Int)
   id: number;
 
   @Field(() => Int)
@@ -26,7 +26,7 @@ export class ProductMeta {
 
 @ObjectType()
 export class Product {
-  @Field(() => ID)
+  @Field(() => Int)
   id: number;
 
   @Field()
@@ -50,7 +50,7 @@ export class Product {
 
 @ObjectType()
 export class BeolOption {
-  @Field(() => ID)
+  @Field(() => Int)
   id: number;
 
   @Field()
@@ -71,7 +71,7 @@ export class BeolOption {
 
 @ObjectType()
 export class ProcessPlan {
-  @Field(() => ID)
+  @Field(() => Int)
   id: number;
 
   @Field()

@@ -4,7 +4,7 @@
 
 type BeolOption {
   createdAt: DateTime!
-  id: ID!
+  id: Int!
   optionName: String!
   processPlanId: Int!
   products: [Product!]!
@@ -46,14 +46,14 @@ type ProcessPlan {
   beolOptions: [BeolOption!]!
   createdAt: DateTime!
   designRule: String!
-  id: ID!
+  id: Int!
   updatedAt: DateTime!
 }
 
 type Product {
   beolOptionId: Int!
   createdAt: DateTime!
-  id: ID!
+  id: Int!
   metaInfo: ProductMeta
   partId: String!
   productName: String!
@@ -63,7 +63,7 @@ type Product {
 type ProductMeta {
   chip: String
   createdAt: DateTime!
-  id: ID!
+  id: Int!
   mto: String
   productId: Int!
   shot: String
