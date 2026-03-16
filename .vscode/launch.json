@@ -1,0 +1,40 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug Web Backend (NestJS)",
+      "type": "pwa-node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/web-backend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "start:debug"],
+      "sourceMaps": true,
+      "restart": true,
+      "protocol": "inspector",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "name": "Launch Web Frontend (Vite/Chrome)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/web-frontend",
+      "preLaunchTask": "web-frontend: dev",
+      "sourceMapPathOverrides": {
+        "webpack:///src/*": "${webRoot}/src/*",
+        "vite:///src/*": "${webRoot}/src/*"
+      }
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Debug Full Stack",
+      "configurations": [
+        "Debug Web Backend (NestJS)",
+        "Launch Web Frontend (Vite/Chrome)"
+      ],
+      "stopAll": true
+    }
+  ]
+}
