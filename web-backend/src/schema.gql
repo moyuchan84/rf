@@ -1,0 +1,86 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type BeolOption {
+  createdAt: DateTime!
+  id: ID!
+  optionName: String!
+  processPlanId: Int!
+  products: [Product!]!
+  updatedAt: DateTime!
+}
+
+input CreateBeolOptionInput {
+  optionName: String!
+  processPlanId: Int!
+}
+
+input CreateProcessPlanInput {
+  designRule: String!
+}
+
+input CreateProductInput {
+  beolOptionId: Int!
+  metaInfo: ProductMetaInput
+  partId: String!
+  productName: String!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Mutation {
+  createBeolOption(input: CreateBeolOptionInput!): BeolOption!
+  createProcessPlan(input: CreateProcessPlanInput!): ProcessPlan!
+  createProduct(input: CreateProductInput!): Product!
+  deleteBeolOption(id: Int!): BeolOption!
+  deleteProcessPlan(id: Int!): ProcessPlan!
+  deleteProduct(id: Int!): Product!
+  updateProduct(id: Int!, input: UpdateProductInput!): Product!
+}
+
+type ProcessPlan {
+  beolOptions: [BeolOption!]!
+  createdAt: DateTime!
+  designRule: String!
+  id: ID!
+  updatedAt: DateTime!
+}
+
+type Product {
+  beolOptionId: Int!
+  createdAt: DateTime!
+  id: ID!
+  metaInfo: ProductMeta
+  partId: String!
+  productName: String!
+  updatedAt: DateTime!
+}
+
+type ProductMeta {
+  chip: String
+  createdAt: DateTime!
+  id: ID!
+  mto: String
+  productId: Int!
+  shot: String
+  updatedAt: DateTime!
+}
+
+input ProductMetaInput {
+  chip: String
+  mto: String
+  shot: String
+}
+
+type Query {
+  processPlans: [ProcessPlan!]!
+}
+
+input UpdateProductInput {
+  metaInfo: ProductMetaInput
+  productName: String
+}
