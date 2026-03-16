@@ -11,42 +11,41 @@ datasource db {
 
 model ProcessPlan {
   id          Int          @id @default(autoincrement())
-  designRule  String       @unique
+  designRule  String       @unique @map("design_rule")
   beolOptions BeolOption[]
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+
+  @@map("process_plans")
 }
 
 model BeolOption {
   id            Int         @id @default(autoincrement())
-  optionName    String
-  processPlanId Int
+  optionName    String      @map("option_name")
+  processPlanId Int         @map("process_plan_id")
   processPlan   ProcessPlan @relation(fields: [processPlanId], references: [id], onDelete: Cascade)
   products      Product[]
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
 
   @@unique([processPlanId, optionName])
+  @@map("beol_options")
 }
 
 model Product {
   id           Int          @id @default(autoincrement())
-  partId       String       @unique
-  productName  String
-  beolOptionId Int
+  partId       String       @unique @map("partid")
+  productName  String       @map("product_name")
+  beolOptionId Int          @map("beol_option_id")
   beolOption   BeolOption   @relation(fields: [beolOptionId], references: [id], onDelete: Cascade)
   metaInfo     ProductMeta?
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+
+  @@map("products")
 }
 
 model ProductMeta {
-  id        Int      @id @default(autoincrement())
-  productId Int      @unique
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  id        Int     @id @default(autoincrement())
+  productId Int     @unique @map("product_id")
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   chip      String?
   shot      String?
   mto       String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+
+  @@map("product_meta")
 }
