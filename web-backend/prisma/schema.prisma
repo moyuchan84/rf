@@ -42,6 +42,7 @@ model Product {
   beolOption   BeolOption    @relation(fields: [beolOptionId], references: [id], onDelete: Cascade)
   metaInfo     ProductMeta?
   requests     RequestItem[]
+  photoKeys    PhotoKey[]
 
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("update_time")
@@ -81,8 +82,72 @@ model RequestItem {
   pkdVersions String[] @map("pkd_versions")
   requesterId String   @map("requester_id")
   
+  assignees   RequestAssignee[]
+  steps       RequestStep[]
+  tables      RequestTableMap[]
+
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("update_time")
 
   @@map("request_items")
+}
+
+model PhotoKey {
+  id            Int      @id @default(autoincrement())
+  productId     Int      @map("product_id")
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  rfgCategory   String?  @map("rfg_category")   // common, option
+  photoCategory String?  @map("photo_category") // info, key
+  isReference   Boolean  @default(false)        @map("is_reference")
+  tableName     String   @map("table_name")
+  revNo         Int      @map("rev_no")
+  workbookData  Json?    @map("workbook_data")
+  filename      String?
+  updater       String?
+  updateDate    DateTime @default(now()) @map("update_date")
+
+  requestMaps   RequestTableMap[]
+
+  @@map("photo_keys")
+}
+
+model RequestAssignee {
+  id          Int         @id @default(autoincrement())
+  requestId   Int         @map("request_id")
+  request     RequestItem @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  
+  category    String      // RFG_TASK, KEY_TABLE_TASK, etc.
+  userId      String      @map("user_id")
+  userName    String      @map("user_name")
+
+  @@map("request_assignees")
+}
+
+model RequestStep {
+  id          Int         @id @default(autoincrement())
+  requestId   Int         @map("request_id")
+  request     RequestItem @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  
+  stepOrder   Int         @map("step_order")
+  stepName    String      @map("step_name") // ReferenceTable, KeyTableSetup, Submission, GDS
+  status      String      @default("TODO")  // TODO, IN_PROGRESS, DONE
+  workContent String?     @map("work_content") @db.Text
+  workerId    String?     @map("worker_id")
+  completedAt DateTime?   @map("completed_at")
+
+  @@map("request_steps")
+}
+
+model RequestTableMap {
+  id          Int         @id @default(autoincrement())
+  requestId   Int         @map("request_id")
+  request     RequestItem @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  
+  photoKeyId  Int         @map("photo_key_id")
+  photoKey    PhotoKey    @relation(fields: [photoKeyId], references: [id], onDelete: Cascade)
+  
+  type        String      // REFERENCE, SETUP
+
+  @@map("request_tables_map")
 }

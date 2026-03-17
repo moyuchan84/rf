@@ -2,6 +2,13 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+input AssignUserInput {
+  category: String!
+  requestId: Int!
+  userId: String!
+  userName: String!
+}
+
 type BeolOption {
   createdAt: DateTime!
   id: Int!
@@ -43,6 +50,7 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 scalar DateTime
 
 type Mutation {
+  assignUser(input: AssignUserInput!): RequestAssignee!
   createBeolOption(input: CreateBeolOptionInput!): BeolOption!
   createProcessPlan(input: CreateProcessPlanInput!): ProcessPlan!
   createProduct(input: CreateProductInput!): Product!
@@ -51,8 +59,10 @@ type Mutation {
   deleteProcessPlan(id: Int!): ProcessPlan!
   deleteProduct(id: Int!): Product!
   deleteRequestItem(id: Int!): RequestItem!
+  removeAssignee(id: Int!): RequestAssignee!
   updateProduct(id: Int!, input: UpdateProductInput!): Product!
   updateRequestItem(id: Int!, input: UpdateRequestItemInput!): RequestItem!
+  updateRequestStep(input: UpdateStepInput!): RequestStep!
 }
 
 type ProcessPlan {
@@ -102,11 +112,21 @@ input ProductMetaInput {
 
 type Query {
   processPlans: [ProcessPlan!]!
+  requestItem(id: Int!): RequestItem
   requestItems: [RequestItem!]!
   requestItemsByProduct(productId: Int!): [RequestItem!]!
 }
 
+type RequestAssignee {
+  category: String!
+  id: Int!
+  requestId: Int!
+  userId: String!
+  userName: String!
+}
+
 type RequestItem {
+  assignees: [RequestAssignee!]
   createdAt: DateTime!
   description: String!
   edmList: [String!]!
@@ -115,8 +135,20 @@ type RequestItem {
   productId: Int!
   requestType: String!
   requesterId: String!
+  steps: [RequestStep!]
   title: String!
   updatedAt: DateTime!
+}
+
+type RequestStep {
+  completedAt: DateTime
+  id: Int!
+  requestId: Int!
+  status: String!
+  stepName: String!
+  stepOrder: Int!
+  workContent: String
+  workerId: String
 }
 
 input UpdateProductInput {
@@ -132,4 +164,11 @@ input UpdateRequestItemInput {
   requestType: String
   requesterId: String
   title: String
+}
+
+input UpdateStepInput {
+  status: String!
+  stepId: Int!
+  workContent: String
+  workerId: String
 }

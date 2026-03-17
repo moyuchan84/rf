@@ -1,4 +1,5 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
+import { RequestAssignee, RequestStep } from './workflow.model';
 
 @ObjectType()
 export class RequestItem {
@@ -25,6 +26,12 @@ export class RequestItem {
 
   @Field()
   requesterId: string;
+
+  @Field(() => [RequestAssignee], { nullable: true })
+  assignees?: RequestAssignee[];
+
+  @Field(() => [RequestStep], { nullable: true })
+  steps?: RequestStep[];
 
   @Field()
   createdAt: Date;
