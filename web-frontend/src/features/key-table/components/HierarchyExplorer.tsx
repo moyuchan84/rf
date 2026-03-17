@@ -22,7 +22,7 @@ export const HierarchyExplorer: React.FC<HierarchyExplorerProps> = ({
   } = useKeyTableStore();
 
   return (
-    <aside className="w-80 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] flex flex-col overflow-hidden shrink-0 shadow-sm dark:shadow-2xl transition-all">
+    <aside className="w-80 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-md flex flex-col overflow-hidden shrink-0 shadow-sm dark:shadow-2xl transition-all">
       <div className="p-6 border-b border-slate-200/60 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-950/30 transition-colors">
         <div className="flex items-center gap-2">
           <Database className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
