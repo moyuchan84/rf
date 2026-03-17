@@ -1,12 +1,14 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation } from '@apollo/client/react';
 import { GET_PROCESS_PLANS } from '../../master-data/api/masterDataQueries';
-import { CREATE_REQUEST_ITEM } from '../api/requestQueries';
-import { type ProcessPlan } from '../../master-data/types';
+import { CREATE_REQUEST_ITEM, UPDATE_REQUEST_ITEM } from '../api/requestQueries';
+import { type ProcessPlan, type RequestItem } from '../../master-data/types';
+import toast from 'react-hot-toast';
 
-export const useRequestForm = () => {
+export const useRequestForm = (initialData?: RequestItem | null) => {
   const { data, loading, error } = useQuery<{ processPlans: ProcessPlan[] }>(GET_PROCESS_PLANS);
   const [createRequestMutation] = useMutation(CREATE_REQUEST_ITEM);
+  const [updateRequestMutation] = useMutation(UPDATE_REQUEST_ITEM);
 
   // Selection state
   const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null);
@@ -25,6 +27,37 @@ export const useRequestForm = () => {
 
   // Derived data
   const processPlans = useMemo(() => data?.processPlans || [], [data]);
+
+  // Initialize form with initialData if editing
+  useEffect(() => {
+    if (initialData && processPlans.length > 0) {
+      setRequestType(initialData.requestType);
+      setTitle(initialData.title);
+      setDescription(initialData.description);
+      setRequesterId(initialData.requesterId);
+      setEdmList(initialData.edmList);
+      setPkdVersions(initialData.pkdVersions);
+      
+      // Find parent IDs based on productId
+      let foundPlanId: number | null = null;
+      let foundOptionId: number | null = null;
+
+      for (const plan of processPlans) {
+        for (const option of plan.beolOptions) {
+          if (option.products.some(p => p.id === initialData.productId)) {
+            foundPlanId = plan.id;
+            foundOptionId = option.id;
+            break;
+          }
+        }
+        if (foundPlanId) break;
+      }
+
+      setSelectedPlanId(foundPlanId);
+      setSelectedOptionId(foundOptionId);
+      setSelectedProductId(initialData.productId);
+    }
+  }, [initialData, processPlans]);
   
   const selectedPlan = useMemo(() => 
     processPlans.find((p) => p.id === selectedPlanId), 
@@ -75,25 +108,42 @@ export const useRequestForm = () => {
   };
 
   const submitRequest = async () => {
-    if (!selectedProductId) return;
+    if (!selectedProductId) {
+      toast.error("Please select a product");
+      return;
+    }
+
+    const input = {
+      productId: selectedProductId,
+      requestType,
+      title,
+      description,
+      edmList,
+      pkdVersions,
+      requesterId
+    };
 
     try {
-      await createRequestMutation({
-        variables: {
-          input: {
-            productId: selectedProductId,
-            requestType,
-            title,
-            description,
-            edmList,
-            pkdVersions,
-            requesterId
+      if (initialData?.id) {
+        await updateRequestMutation({
+          variables: {
+            id: initialData.id,
+            input
           }
-        }
-      });
+        });
+        toast.success("Request updated successfully");
+      } else {
+        await createRequestMutation({
+          variables: {
+            input
+          }
+        });
+        toast.success("Request created successfully");
+      }
       setIsSubmitted(true);
     } catch (err) {
-      console.error("Failed to create request", err);
+      console.error("Failed to submit request", err);
+      toast.error("Failed to submit request");
       throw err;
     }
   };
