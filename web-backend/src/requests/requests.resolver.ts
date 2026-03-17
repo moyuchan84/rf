@@ -4,6 +4,8 @@ import { RequestItem } from './requests.model';
 import { CreateRequestItemInput, UpdateRequestItemInput } from './requests.dto';
 import { RequestAssignee, RequestStep, PhotoKey } from './workflow.model';
 import { AssignUserInput, UpdateStepInput } from './workflow.dto';
+import { StreamInfo, RequestTableMap } from './step-data.model';
+import { CreateStreamInfoInput, SaveRequestTablesInput } from './step-data.dto';
 
 @Resolver(() => RequestItem)
 export class RequestsResolver {
@@ -65,5 +67,34 @@ export class RequestsResolver {
     @Args('processPlanId', { type: () => Int, nullable: true }) processPlanId?: number,
   ) {
     return this.service.findPhotoKeys({ productId, beolOptionId, processPlanId });
+  }
+
+  // Step Data
+  @Mutation(() => StreamInfo)
+  async createStreamInfo(@Args('input') input: CreateStreamInfoInput) {
+    return this.service.createStreamInfo(input);
+  }
+
+  @Query(() => [StreamInfo])
+  async streamInfosByProduct(@Args('productId', { type: () => Int }) productId: number) {
+    return this.service.findStreamInfosByProduct(productId);
+  }
+
+  @Query(() => [StreamInfo])
+  async streamInfoByRequest(@Args('requestId', { type: () => Int }) requestId: number) {
+    return this.service.findStreamInfoByRequest(requestId);
+  }
+
+  @Mutation(() => [RequestTableMap])
+  async saveRequestTables(@Args('input') input: SaveRequestTablesInput) {
+    return this.service.saveRequestTables(input);
+  }
+
+  @Query(() => [RequestTableMap])
+  async requestTables(
+    @Args('requestId', { type: () => Int }) requestId: number,
+    @Args('type') type: string,
+  ) {
+    return this.service.findRequestTables(requestId, type);
   }
 }

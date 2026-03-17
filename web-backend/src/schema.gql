@@ -44,6 +44,16 @@ input CreateRequestItemInput {
   title: String!
 }
 
+input CreateStreamInfoInput {
+  beolOptionId: Int!
+  processPlanId: Int!
+  productId: Int!
+  requestId: Int!
+  streamInput: [String!]!
+  streamOutput: [String!]!
+  streamPath: String!
+}
+
 """
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
@@ -60,11 +70,13 @@ type Mutation {
   createProcessPlan(input: CreateProcessPlanInput!): ProcessPlan!
   createProduct(input: CreateProductInput!): Product!
   createRequestItem(input: CreateRequestItemInput!): RequestItem!
+  createStreamInfo(input: CreateStreamInfoInput!): StreamInfo!
   deleteBeolOption(id: Int!): BeolOption!
   deleteProcessPlan(id: Int!): ProcessPlan!
   deleteProduct(id: Int!): Product!
   deleteRequestItem(id: Int!): RequestItem!
   removeAssignee(id: Int!): RequestAssignee!
+  saveRequestTables(input: SaveRequestTablesInput!): [RequestTableMap!]!
   updateProduct(id: Int!, input: UpdateProductInput!): Product!
   updateRequestItem(id: Int!, input: UpdateRequestItemInput!): RequestItem!
   updateRequestStep(input: UpdateStepInput!): RequestStep!
@@ -137,6 +149,9 @@ type Query {
   requestItem(id: Int!): RequestItem
   requestItems: [RequestItem!]!
   requestItemsByProduct(productId: Int!): [RequestItem!]!
+  requestTables(requestId: Int!, type: String!): [RequestTableMap!]!
+  streamInfoByRequest(requestId: Int!): [StreamInfo!]!
+  streamInfosByProduct(productId: Int!): [StreamInfo!]!
 }
 
 type RequestAssignee {
@@ -171,6 +186,40 @@ type RequestStep {
   stepOrder: Int!
   workContent: String
   workerId: String
+}
+
+type RequestTableMap {
+  beolOptionId: Int
+  id: Int!
+  photoKey: PhotoKey
+  photoKeyId: Int!
+  processPlanId: Int
+  productId: Int
+  requestId: Int!
+  type: String!
+}
+
+input SaveRequestTablesInput {
+  beolOptionId: Int!
+  photoKeyIds: [Int!]!
+  processPlanId: Int!
+  productId: Int!
+  requestId: Int!
+  type: String!
+}
+
+type StreamInfo {
+  beolOptionId: Int!
+  createdAt: DateTime!
+  id: Int!
+  processPlanId: Int!
+  productId: Int!
+  request: RequestItem
+  requestId: Int!
+  streamInput: [String!]!
+  streamOutput: [String!]!
+  streamPath: String!
+  updatedAt: DateTime!
 }
 
 input UpdateProductInput {

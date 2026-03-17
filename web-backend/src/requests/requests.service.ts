@@ -2,10 +2,69 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { CreateRequestItemInput, UpdateRequestItemInput } from './requests.dto';
 import { AssignUserInput, UpdateStepInput } from './workflow.dto';
+import { CreateStreamInfoInput, SaveRequestTablesInput } from './step-data.dto';
 
 @Injectable()
 export class RequestsService {
   constructor(private prisma: PrismaService) {}
+
+  // Step Data Management
+  async createStreamInfo(input: CreateStreamInfoInput) {
+    return this.prisma.streamInfo.create({
+      data: input,
+    });
+  }
+
+  async findStreamInfosByProduct(productId: number) {
+    return this.prisma.streamInfo.findMany({
+      where: { productId },
+      include: { request: true },
+      orderBy: { updatedAt: 'desc' },
+    });
+  }
+
+  async findStreamInfoByRequest(requestId: number) {
+    return this.prisma.streamInfo.findMany({
+      where: { requestId },
+    });
+  }
+
+  async saveRequestTables(input: SaveRequestTablesInput) {
+    const { requestId, photoKeyIds, type, productId, processPlanId, beolOptionId } = input;
+    
+    return this.prisma.$transaction(async (tx) => {
+      // Delete existing mappings of this type for this request
+      await tx.requestTableMap.deleteMany({
+        where: { requestId, type },
+      });
+
+      // Create new mappings
+      if (photoKeyIds.length > 0) {
+        await tx.requestTableMap.createMany({
+          data: photoKeyIds.map((photoKeyId) => ({
+            requestId,
+            photoKeyId,
+            type,
+            productId,
+            processPlanId,
+            beolOptionId,
+          })),
+        });
+      }
+
+      return tx.requestTableMap.findMany({
+        where: { requestId, type },
+        include: { photoKey: true },
+      });
+    });
+  }
+
+  async findRequestTables(requestId: number, type: string) {
+    return this.prisma.requestTableMap.findMany({
+      where: { requestId, type },
+      include: { photoKey: true },
+    });
+  }
 
   async createRequestItem(input: CreateRequestItemInput) {
     return this.prisma.$transaction(async (tx) => {
@@ -13,7 +72,7 @@ export class RequestsService {
         data: input,
       });
 
-      // Initialize default 4 steps
+      // Initialize default 5 steps
       const steps = [
         { stepOrder: 1, stepName: 'ReferenceTable' },
         { stepOrder: 2, stepName: 'KeyTableSetup' },
