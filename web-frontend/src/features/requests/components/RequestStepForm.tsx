@@ -21,6 +21,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { useRequestForm } from '../hooks/useRequestForm';
+import { type RequestItem } from '../../master-data/types';
 
 const Chip: React.FC<{ label: string; onRemove: () => void }> = ({ label, onRemove }) => (
   <div className="flex items-center gap-2 bg-slate-800/80 border border-slate-700/50 px-3 py-1.5 rounded-xl shadow-lg animate-in fade-in zoom-in duration-300">
@@ -35,7 +36,12 @@ const Chip: React.FC<{ label: string; onRemove: () => void }> = ({ label, onRemo
   </div>
 );
 
-const RequestStepForm: React.FC = () => {
+interface RequestStepFormProps {
+  initialData?: RequestItem | null;
+  onSuccess?: () => void;
+}
+
+const RequestStepForm: React.FC<RequestStepFormProps> = ({ initialData, onSuccess }) => {
   const navigate = useNavigate();
   const {
     processPlans,
@@ -66,7 +72,7 @@ const RequestStepForm: React.FC = () => {
     handleRemovePdk,
     submitRequest,
     resetForm
-  } = useRequestForm();
+  } = useRequestForm(initialData);
 
   const [newEdm, setNewEdm] = useState('');
   const [newPdk, setNewPdk] = useState('');
@@ -74,6 +80,7 @@ const RequestStepForm: React.FC = () => {
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await submitRequest();
+    if (onSuccess) onSuccess();
   };
 
   if (loading) return (
