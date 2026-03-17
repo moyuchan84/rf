@@ -18,7 +18,17 @@ createApp({
             design_rule: '',
             option_name: '',
             partid: '',
-            product_name: ''
+            product_name: '',
+            meta_info: {
+                process_id: '',
+                mto_date: '',
+                customer: '',
+                application: '',
+                chip_size_x: 0,
+                chip_size_y: 0,
+                sl_size_x: 0,
+                sl_size_y: 0
+            }
         });
 
         const fetchHierarchy = async () => {
@@ -55,13 +65,21 @@ createApp({
                 design_rule: data.design_rule || '',
                 option_name: data.option_name || '',
                 partid: data.partid || '',
-                product_name: data.product_name || ''
+                product_name: data.product_name || '',
+                meta_info: {
+                    process_id: data.meta_info?.process_id || '',
+                    mto_date: data.meta_info?.mto_date ? data.meta_info.mto_date.split('T')[0] : '',
+                    customer: data.meta_info?.customer || '',
+                    application: data.meta_info?.application || '',
+                    chip_size_x: data.meta_info?.chip_size_x || 0,
+                    chip_size_y: data.meta_info?.chip_size_y || 0,
+                    sl_size_x: data.meta_info?.sl_size_x || 0,
+                    sl_size_y: data.meta_info?.sl_size_y || 0
+                }
             });
         };
 
         const startCreate = (type, parentNode) => {
-            const modeBefore = formState.mode;
-            const typeBefore = formState.type;
             const pathBefore = formState.path ? [...formState.path] : [];
 
             formState.active = true;
@@ -75,7 +93,6 @@ createApp({
             } else if (type === 'option') {
                 formState.path = [parentNode.design_rule, 'New Option'];
             } else if (type === 'product') {
-                // 상위 plan rule이 path[0]에 있는 것을 활용하거나 명시적으로 전달받은 부모 정보 활용
                 formState.path = [pathBefore[0], parentNode.option_name, 'New Product'];
             }
 
@@ -85,7 +102,17 @@ createApp({
                 design_rule: '',
                 option_name: '',
                 partid: '',
-                product_name: ''
+                product_name: '',
+                meta_info: {
+                    process_id: '',
+                    mto_date: '',
+                    customer: '',
+                    application: '',
+                    chip_size_x: 0,
+                    chip_size_y: 0,
+                    sl_size_x: 0,
+                    sl_size_y: 0
+                }
             });
         };
 
@@ -99,14 +126,37 @@ createApp({
 
         const saveForm = async () => {
             try {
+                // Process Meta Info numbers
+                const processedMeta = {
+                    ...formModel.meta_info,
+                    chip_size_x: parseFloat(formModel.meta_info.chip_size_x) || 0,
+                    chip_size_y: parseFloat(formModel.meta_info.chip_size_y) || 0,
+                    sl_size_x: parseFloat(formModel.meta_info.sl_size_x) || 0,
+                    sl_size_y: parseFloat(formModel.meta_info.sl_size_y) || 0,
+                    mto_date: formModel.meta_info.mto_date ? new Date(formModel.meta_info.mto_date).toISOString() : null
+                };
+
                 if (formState.mode === 'create') {
                     if (formState.type === 'plan') await masterDataApi.createProcessPlan({ design_rule: formModel.design_rule });
                     if (formState.type === 'option') await masterDataApi.createBEOLOption({ process_plan_id: formState.parentId, option_name: formModel.option_name });
-                    if (formState.type === 'product') await masterDataApi.createProduct({ beol_option_id: formState.parentId, partid: formModel.partid, product_name: formModel.product_name });
+                    if (formState.type === 'product') {
+                        await masterDataApi.createProduct({ 
+                            beol_option_id: formState.parentId, 
+                            partid: formModel.partid, 
+                            product_name: formModel.product_name,
+                            meta_info: processedMeta
+                        });
+                    }
                 } else {
                     if (formState.type === 'plan') await masterDataApi.updateProcessPlan(formModel.id, { design_rule: formModel.design_rule });
                     if (formState.type === 'option') await masterDataApi.updateBEOLOption(formModel.id, { option_name: formModel.option_name });
-                    if (formState.type === 'product') await masterDataApi.updateProduct(formModel.id, { partid: formModel.partid, product_name: formModel.product_name });
+                    if (formState.type === 'product') {
+                        await masterDataApi.updateProduct(formModel.id, { 
+                            partid: formModel.partid, 
+                            product_name: formModel.product_name,
+                            meta_info: processedMeta
+                        });
+                    }
                 }
                 
                 await fetchHierarchy();

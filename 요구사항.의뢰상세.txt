@@ -1,0 +1,56 @@
+이하 요구사항에 대해서 photo-key table 의뢰, 조회, 삭제, 업데이트까지 구현을 했는데, 
+의뢰자로부터 의뢰가 왔을때 해야하는 일들이 몇가지가 있어. 이부분에 대해서 db schema를 어떻게 구성하면 좋을지
+그리고 ui 에 대한 layout / page 구성을 어떻게 하면 좋을지에 대해서 브레인스토밍해줘
+그리고 해당 시스템에서 사내 시스템에 연계해야하는게 메일링(restapi), 인명검색(restapi), 메모결재(restapi) 로 호출할수있는데
+이걸 frotnend 에서 호출하는게 좋은건지, backend 에서 호출하는게 좋은건지에 대해서도 아이디어 및 나중에 GEMINI.md 파일 만들때 가이드좀해줘
+
+시나리오
+1) 의뢰자가 photo-key 작업의뢰 요청 (의뢰 관련 ddl 은 이하 참조)
+CREATE TABLE public.request_items (
+	id serial4 NOT NULL,
+	product_id int4 NOT NULL,
+	title text NOT NULL,
+	description text NOT NULL,
+	edm_list _text NULL,
+	pkd_versions _text NULL,
+	requester_id text NOT NULL,
+	created_at timestamp(3) DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	update_time timestamp(3) NOT NULL
+);
+(추가필요) 2) 의뢰 했을시 회사 메일링 시스템을 이용해서 담당자들에게 메일 발송
+ -> 의뢰자가 관리하는 메일 수신 목록 리스트 + 담당자 메일 리스트  <- 해당 시스템에 db schema 구성 필요)
+(추가필요) 3) 시스템 담당자가 의뢰서에 대해서 의뢰 담당자 지정(의뢰담당자 카테고리, 의뢰담당자 인적정보(user_id)) 를 사내 인명검색 서비스(restapi) 이용해서 검색 받아서 추가(복수인원, 담당카테고리는 기본적으로 RFG담당자, KeyTable담당자 2개인데 추가 가능하게, 즉 담당카테고리별 복수 인원에 대해서 검색해서 추가할수있게)
+(추가필요) 4) 의뢰서에 대해서 총 4개의 작업해야하는 step이 존재, 각 4개 step 모두 권한있는 담당자가 작업하고, progress 에 대해서 todo/in-progress/done 및 작업 내용에 대해서 richtextboxx로 작업 내용 작성 할수있어야함. 해당 step 을 stepper 와 같은 형태로 해서 단계별 내용을 확인할 수 있게. 그리고 1->4step 이 각 단계가 done 이어야지 다음단계로 넘어갈수있게
+ a) Reference Table 지정 : 
+ - 작업자는 RFG 파트로 RFG 권한이나 Admin 권한 있는사람이 작업 가능.
+ -  photo-key table (VSTO)에서 작업하기 위해서 기준이 되는 table 목록을 db에 저장되어있는 table 로부터 지정 (photo-key table 을 참조, fk 로 복수개 지정, photo key 에 대한 schema 는 이하 참조)
+ - processplan-beoloption-product 선택
+ - 의뢰서 기준에서 2번째 step 인 KeyTableSetup 에서 지정한 photo-key table 목록을 불러올지
+ - 의뢰서 정보를 사용안하는 경우, 단순히 product선택한 정보 기준으로 이하 schema 에서 rfg_category 별로 나눠서 table 목록을 보여주고, table 목록 중에 선택해서 reference table 을 지정할 수 있게(db schema 가 필요할것 같은데 어떻게 구성해야할지?>) 이하내용은 모두 request_items 의 fk 로 연결되어야할거같아 
+class PhotoKey(Base):
+    __tablename__ = "photo_keys"
+    id = Column(Integer, primary_key=True, index=True)
+    product_id = Column(Integer, ForeignKey("products.id"))
+    rfg_category = Column(String)  # common, option
+    photo_category = Column(String) # info, key
+    is_reference = Column(Boolean, default=False)
+    table_name = Column(String)
+    rev_no = Column(Integer)
+    workbook_data = Column(JSON)
+    filename = Column(String)
+    updater = Column(String)
+    update_date = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    
+    product = relationship("Product", back_populates="photo_keys")
+b) KeyTableSetup : 
+ - 작업자는 Innov 권한 또는 ADMIN 이 작업가능
+ - a)에서 지정해준 Reference Table을 가지고 VSTO에서 불러와서 실제 photo-keys table 에 VSTO 에서 DB 에 저장
+ - 해당 step에서도 a)와 마찬가지지만 해당 의뢰서(id)기준의 제품 기준으로 photo_keys table 에 저장된 테이블 목록 불러와서 listup 해주면 해당 테이블들에서 작업 테이블 선택 (dbschema 가 필요할 것 같은데 이덗도 어떻게 구성할지??) 
+
+ c) RequestSubmission
+ - 작업자는 innov 권한 또는 ADMIN 이 작업가능 
+ - 회사 메모결재 api를 호출해서 결과에 대해서 사내 메모결재 상신(추후 요구사항 정리)
+
+ d) GDSPath
+ - 작업자는 Inno 권한 또는 ADMIN 이 작업가능
+ - 이것도 정보 입력하는걸로 추후 요구사항 정리

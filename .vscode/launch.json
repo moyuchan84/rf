@@ -2,6 +2,22 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Debug Python Backend (FastAPI)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": [
+        "app.main:app",
+        "--reload",
+        "--port",
+        "8080"
+      ],
+      "cwd": "${workspaceFolder}/backend",
+      "jinja": true,
+      "justMyCode": true,
+      "python": "${workspaceFolder}/backend/.venv/Scripts/python.exe"
+    },
+    {
       "name": "Debug Web Backend (NestJS)",
       "type": "pwa-node",
       "request": "launch",
@@ -31,6 +47,7 @@
     {
       "name": "Debug Full Stack",
       "configurations": [
+        "Debug Python Backend (FastAPI)",
         "Debug Web Backend (NestJS)",
         "Launch Web Frontend (Vite/Chrome)"
       ],

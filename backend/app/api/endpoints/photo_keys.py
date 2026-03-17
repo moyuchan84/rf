@@ -9,11 +9,25 @@ router = APIRouter()
 
 @router.post("/", response_model=schemas.PhotoKey)
 def create_photo_key(data: schemas.PhotoKeyCreate, db: Session = Depends(get_db)):
+    """Create a new photo key entry (used by VSTO)."""
     service = PhotoKeyService(db)
     return service.upload_photo_key(data)
 
+@router.post("/upload-batch", response_model=schemas.PhotoKey)
+def upload_data_batch(data: schemas.PhotoKeyCreate, db: Session = Depends(get_db)):
+    """Upload multiple photo keys (alias for legacy upload)."""
+    service = PhotoKeyService(db)
+    return service.upload_photo_keys(data)
+
+@router.get("/products", response_model=List[schemas.ProductWithKeys])
+def get_products_with_keys(db: Session = Depends(get_db)):
+    """List products that have photo keys."""
+    service = PhotoKeyService(db)
+    return service.list_products()
+
 @router.get("/{key_id}", response_model=schemas.PhotoKey)
 def get_photo_key(key_id: int, db: Session = Depends(get_db)):
+    """Get a single photo key entry."""
     service = PhotoKeyService(db)
     key = service.get_photo_key(key_id)
     if not key:
@@ -22,5 +36,15 @@ def get_photo_key(key_id: int, db: Session = Depends(get_db)):
 
 @router.get("/product/{product_id}", response_model=List[schemas.PhotoKey])
 def list_keys_by_product(product_id: int, db: Session = Depends(get_db)):
+    """List all photo keys for a specific product."""
     service = PhotoKeyService(db)
     return service.get_keys_by_product(product_id)
+
+@router.get("/restore/{key_id}")
+def get_restore_data(key_id: int, db: Session = Depends(get_db)):
+    """Get workbook data for Excel restoration."""
+    service = PhotoKeyService(db)
+    data = service.get_workbook_for_restore(key_id)
+    if not data:
+        raise HTTPException(status_code=404, detail="PhotoKey not found")
+    return data

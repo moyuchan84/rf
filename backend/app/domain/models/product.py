@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Float, DateTime, Text, ARRAY
+from sqlalchemy import Column, Integer, String, ForeignKey, Float, DateTime, Text, ARRAY, JSON, Boolean
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.domain.models.base import Base
@@ -27,7 +27,7 @@ class Product(Base):
     
     meta_info = relationship("ProductMeta", back_populates="product", uselist=False, cascade="all, delete-orphan")
     requests = relationship("RequestItem", back_populates="product", cascade="all, delete-orphan")
-    photo_keys = relationship("PhotoKey", back_populates="product")
+    photo_keys = relationship("PhotoKey", back_populates="product", cascade="all, delete-orphan")
 
 class ProductMeta(Base):
     __tablename__ = "product_meta"
@@ -58,3 +58,19 @@ class RequestItem(Base):
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     update_time = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
+
+class PhotoKey(Base):
+    __tablename__ = "photo_keys"
+    id = Column(Integer, primary_key=True, index=True)
+    product_id = Column(Integer, ForeignKey("products.id", ondelete="CASCADE"))
+    rfg_category = Column(String)  # common, option
+    photo_category = Column(String) # info, key
+    is_reference = Column(Boolean, default=False)
+    table_name = Column(String)
+    rev_no = Column(Integer)
+    workbook_data = Column(JSON)
+    filename = Column(String)
+    updater = Column(String)
+    update_date = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    
+    product = relationship("Product", back_populates="photo_keys")

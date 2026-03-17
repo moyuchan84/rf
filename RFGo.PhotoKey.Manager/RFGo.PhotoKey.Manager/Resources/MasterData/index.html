@@ -79,7 +79,7 @@
             </aside>
 
             <!-- Right: CRUD Form Area -->
-            <main class="flex-1 bg-white border border-slate-200 rounded-3xl shadow-sm flex flex-col overflow-hidden">
+            <main class="flex-1 bg-white border border-slate-200 rounded-3xl shadow-sm flex flex-col overflow-hidden text-slate-900">
                 <!-- Empty State -->
                 <div v-if="!formState.active" class="flex-1 flex flex-col items-center justify-center p-12 text-center">
                     <div class="size-20 bg-slate-50 rounded-[2.5rem] flex items-center justify-center mb-6 border border-slate-100">
@@ -103,7 +103,7 @@
                         </div>
                     </header>
 
-                    <div class="flex-1 overflow-y-auto p-8 max-w-2xl mx-auto w-full space-y-8">
+                    <div class="flex-1 overflow-y-auto p-8 max-w-2xl mx-auto w-full space-y-8 custom-scrollbar">
                         <!-- Breadcrumb Path -->
                         <div v-if="formState.path" class="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
                             <span v-for="(p, i) in formState.path" :key="i" class="flex items-center gap-2">
@@ -123,19 +123,62 @@
                             <input v-model="formModel.option_name" type="text" placeholder="e.g. OPT_A, OPT_B" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-sm outline-none focus:ring-4 focus:ring-blue-100 transition-all font-bold">
                         </div>
 
-                        <div v-if="formState.type === 'product'" class="space-y-6">
-                            <div class="space-y-2">
-                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Part ID</label>
-                                <input v-model="formModel.partid" type="text" placeholder="e.g. S5E9925" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-sm outline-none focus:ring-4 focus:ring-blue-100 transition-all font-bold">
+                        <div v-if="formState.type === 'product'" class="space-y-8">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Part ID</label>
+                                    <input v-model="formModel.partid" :disabled="formState.mode === 'edit'" type="text" placeholder="e.g. S5E9925" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-sm outline-none focus:ring-4 focus:ring-blue-100 transition-all font-bold disabled:opacity-50">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Product Name</label>
+                                    <input v-model="formModel.product_name" type="text" placeholder="e.g. Exynos 2200" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-sm outline-none focus:ring-4 focus:ring-blue-100 transition-all font-bold">
+                                </div>
                             </div>
-                            <div class="space-y-2">
-                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Product Name</label>
-                                <input v-model="formModel.product_name" type="text" placeholder="e.g. Exynos 2200" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-sm outline-none focus:ring-4 focus:ring-blue-100 transition-all font-bold">
+
+                            <div class="p-6 border border-slate-100 rounded-3xl bg-slate-50/50 space-y-6">
+                                <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Detailed Metadata</h4>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="space-y-2">
+                                        <label class="text-[9px] font-black text-slate-500 uppercase tracking-wider ml-1">Process ID</label>
+                                        <input v-model="formModel.meta_info.process_id" type="text" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs outline-none focus:border-blue-400 font-bold">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-[9px] font-black text-slate-500 uppercase tracking-wider ml-1">MTO Date</label>
+                                        <input v-model="formModel.meta_info.mto_date" type="date" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs outline-none focus:border-blue-400 font-bold">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-[9px] font-black text-slate-500 uppercase tracking-wider ml-1">Customer</label>
+                                        <input v-model="formModel.meta_info.customer" type="text" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs outline-none focus:border-blue-400 font-bold">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-[9px] font-black text-slate-500 uppercase tracking-wider ml-1">Application</label>
+                                        <input v-model="formModel.meta_info.application" type="text" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs outline-none focus:border-blue-400 font-bold">
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-4 gap-3 pt-2">
+                                    <div class="space-y-2">
+                                        <label class="text-[9px] font-black text-slate-500 uppercase tracking-wider ml-1">Chip X</label>
+                                        <input v-model="formModel.meta_info.chip_size_x" type="number" step="0.01" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs outline-none focus:border-blue-400 font-bold">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-[9px] font-black text-slate-500 uppercase tracking-wider ml-1">Chip Y</label>
+                                        <input v-model="formModel.meta_info.chip_size_y" type="number" step="0.01" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs outline-none focus:border-blue-400 font-bold">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-[9px] font-black text-slate-500 uppercase tracking-wider ml-1">SL X</label>
+                                        <input v-model="formModel.meta_info.sl_size_x" type="number" step="0.01" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs outline-none focus:border-blue-400 font-bold">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-[9px] font-black text-slate-500 uppercase tracking-wider ml-1">SL Y</label>
+                                        <input v-model="formModel.meta_info.sl_size_y" type="number" step="0.01" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs outline-none focus:border-blue-400 font-bold">
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <footer class="p-6 border-t border-slate-50 flex gap-3 bg-white">
+                    <footer class="p-6 border-t border-slate-50 flex gap-3 bg-white shrink-0">
                         <button @click="formState.active = false" class="px-6 py-4 text-xs font-black text-slate-400 hover:text-slate-600 transition-all uppercase tracking-widest">Cancel</button>
                         <button @click="saveForm" class="flex-1 bg-slate-900 hover:bg-black text-white py-4 rounded-2xl text-xs font-black tracking-[0.2em] shadow-xl transition-all active:scale-[0.98] uppercase">
                             {{ formState.mode === 'create' ? 'Create' : 'Save Changes' }}
