@@ -10,6 +10,7 @@ import {
   Trash2 
 } from 'lucide-react';
 import { type RequestItem } from '../../master-data/types';
+import { REQUEST_TYPE_LABELS, RequestType } from '../types';
 
 interface RequestItemCardProps {
   request: RequestItem;
@@ -37,7 +38,9 @@ export const RequestItemCard: React.FC<RequestItemCardProps> = ({
           <div>
             <div className="flex items-center gap-2 mb-1.5">
               <span className="text-[8px] font-black bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded-sm uppercase tracking-widest border border-indigo-500/20">#REQ-{request.id}</span>
-              <span className="text-[8px] font-black bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-sm uppercase tracking-widest border border-emerald-500/20">{request.requestType}</span>
+              <span className="text-[8px] font-black bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-sm uppercase tracking-widest border border-emerald-500/20">
+                {REQUEST_TYPE_LABELS[request.requestType as RequestType] || request.requestType}
+              </span>
               <span className="text-[8px] font-black bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-2 py-0.5 rounded-sm uppercase tracking-widest border border-slate-200 dark:border-slate-700/50 flex items-center gap-1.5 transition-colors">
                 <Calendar className="w-2.5 h-2.5" /> {new Date(request.createdAt).toLocaleDateString()}
               </span>

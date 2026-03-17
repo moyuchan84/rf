@@ -58,15 +58,15 @@ export interface Product {
 export interface PhotoKey {
   id: number;
   productId: number;
-  processPlanId: number;
-  beolOptionId: number;
-  rfgCategory?: string;
-  photoCategory?: string;
+  processPlanId?: number | null;
+  beolOptionId?: number | null;
+  rfgCategory?: string | null;
+  photoCategory?: string | null;
   isReference: boolean;
   tableName: string;
   revNo: number;
-  filename?: string;
-  updater?: string;
+  filename?: string | null;
+  updater?: string | null;
   workbookData?: any;
   updateDate: string;
 }

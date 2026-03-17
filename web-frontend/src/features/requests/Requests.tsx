@@ -91,7 +91,7 @@ const Requests: React.FC = () => {
         ) : view === 'detail' && selectedRequest ? (
           <RequestDetail 
             request={selectedRequest}
-            onEdit={req => setView('edit')}
+            onEdit={() => setView('edit')}
             onDelete={id => handleDeleteClick(null, id)}
             onUpdate={refetch}
           />

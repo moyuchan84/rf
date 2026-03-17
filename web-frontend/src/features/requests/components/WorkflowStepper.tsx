@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle2, Circle, Clock, ArrowRight } from 'lucide-react';
+import { CheckCircle2, Clock } from 'lucide-react';
 import { type RequestStep } from '../../master-data/types';
 import { cn } from '@/shared/utils/cn';
 
@@ -23,7 +23,6 @@ export const WorkflowStepper: React.FC<WorkflowStepperProps> = ({
         {steps.map((step, index) => {
           const isActive = index === currentStepIndex;
           const isDone = step.status === 'DONE';
-          const isPending = step.status === 'TODO';
           const isLocked = index > 0 && steps[index - 1].status !== 'DONE';
 
           return (

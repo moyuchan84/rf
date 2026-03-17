@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { 
-  Info, 
   ExternalLink, 
   Globe, 
   Settings, 
@@ -14,7 +13,8 @@ import {
 import { type RequestItem } from '../../master-data/types';
 import { WorkflowStepper } from './WorkflowStepper';
 import { AssigneeManager } from './AssigneeManager';
-import { StepWorkArea } from './StepWorkArea';
+import { StepWorkArea } from './StepWorkArea/index';
+import { REQUEST_TYPE_LABELS, RequestType } from '../types';
 
 interface RequestDetailProps {
   request: RequestItem;
@@ -45,7 +45,10 @@ export const RequestDetail: React.FC<RequestDetailProps> = ({
           <div className="space-y-3">
             <div className="flex items-center gap-3">
               <span className="text-[8px] font-black bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 px-3 py-1 rounded-md uppercase tracking-widest border border-indigo-500/20 transition-colors">#REQ-{request.id}</span>
-              <span className="text-[8px] font-black bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-3 py-1 rounded-md uppercase tracking-widest border border-emerald-500/20 transition-colors">{request.requestType}</span>
+              <span className="text-[8px] font-black bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-3 py-1 rounded-md uppercase tracking-widest border border-emerald-500/20 transition-colors">
+                {REQUEST_TYPE_LABELS[request.requestType as RequestType] || request.requestType}
+              </span>
+
               <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-50 dark:bg-slate-800/50 rounded-md border border-slate-200 dark:border-slate-700/50 transition-colors">
                 <div className="w-20 h-1 bg-slate-200 dark:bg-slate-900 rounded-full overflow-hidden transition-colors">
                   <div 
@@ -110,57 +113,47 @@ export const RequestDetail: React.FC<RequestDetailProps> = ({
       />
 
 
-      {/* 4. Main Grid (Work Area & Sidebar) */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <div className="lg:col-span-3 space-y-6">
-          {/* Active Step Content */}
-          {steps[activeStepIndex] && (
-            <StepWorkArea 
-              step={steps[activeStepIndex]} 
-              onUpdate={onUpdate}
-            />
-          )}
-
-          {/* Technical Info Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <section className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-md p-6 space-y-3.5 shadow-sm dark:shadow-xl transition-all">
-              <h3 className="text-[8px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-[0.3em] flex items-center gap-1.5 transition-colors">
-                <ExternalLink className="w-3.5 h-3.5" /> EDM Links
-              </h3>
-              <div className="space-y-1.5">
-                {request.edmList.map((link, i) => (
-                  <a 
-                    key={i} 
-                    href={link} 
-                    target="_blank" 
-                    rel="noreferrer"
-                    className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-md hover:border-indigo-500/50 transition-all group shadow-sm"
-                  >
-                    <span className="text-[8px] font-bold text-slate-500 dark:text-slate-400 truncate max-w-[160px] transition-colors">{link}</span>
-                    <Globe className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors" />
-                  </a>
-                ))}
-                {request.edmList.length === 0 && <p className="text-[8px] text-slate-400 dark:text-slate-600 italic px-1.5 transition-colors">No links provided</p>}
-              </div>
-            </section>
-            <section className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-md p-6 space-y-3.5 shadow-sm dark:shadow-xl transition-all">
-              <h3 className="text-[8px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-[0.3em] flex items-center gap-1.5 transition-colors">
-                <Settings className="w-3.5 h-3.5" /> PDK Versions
-              </h3>
-              <div className="flex flex-wrap gap-1.5">
-                {request.pkdVersions.map((v, i) => (
-                  <span key={i} className="px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md text-[8px] font-black text-slate-600 dark:text-slate-200 transition-colors shadow-sm">
-                    {v}
-                  </span>
-                ))}
-                {request.pkdVersions.length === 0 && <p className="text-[8px] text-slate-400 dark:text-slate-600 italic px-1.5 transition-colors">No versions provided</p>}
-              </div>
-            </section>
+      {/* 4. Technical Info & Sidebar Row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* EDM Links */}
+        <section className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-md p-6 space-y-3.5 shadow-sm dark:shadow-xl transition-all">
+          <h3 className="text-[8px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-[0.3em] flex items-center gap-1.5 transition-colors">
+            <ExternalLink className="w-3.5 h-3.5" /> EDM Links
+          </h3>
+          <div className="space-y-1.5">
+            {request.edmList.map((link, i) => (
+              <a 
+                key={i} 
+                href={link} 
+                target="_blank" 
+                rel="noreferrer"
+                className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-md hover:border-indigo-500/50 transition-all group shadow-sm"
+              >
+                <span className="text-[8px] font-bold text-slate-500 dark:text-slate-400 truncate max-w-[160px] transition-colors">{link}</span>
+                <Globe className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors" />
+              </a>
+            ))}
+            {request.edmList.length === 0 && <p className="text-[8px] text-slate-400 dark:text-slate-600 italic px-1.5 transition-colors">No links provided</p>}
           </div>
-        </div>
+        </section>
 
-        {/* Sidebar */}
-        <div className="lg:col-span-1 space-y-6">
+        {/* PDK Versions */}
+        <section className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-md p-6 space-y-3.5 shadow-sm dark:shadow-xl transition-all">
+          <h3 className="text-[8px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-[0.3em] flex items-center gap-1.5 transition-colors">
+            <Settings className="w-3.5 h-3.5" /> PDK Versions
+          </h3>
+          <div className="flex flex-wrap gap-1.5">
+            {request.pkdVersions.map((v, i) => (
+              <span key={i} className="px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md text-[8px] font-black text-slate-600 dark:text-slate-200 transition-colors shadow-sm">
+                {v}
+              </span>
+            ))}
+            {request.pkdVersions.length === 0 && <p className="text-[8px] text-slate-400 dark:text-slate-600 italic px-1.5 transition-colors">No versions provided</p>}
+          </div>
+        </section>
+
+        {/* Sidebar Content (Assignee + Insights) */}
+        <div className="space-y-6">
           <AssigneeManager 
             requestId={request.id} 
             assignees={request.assignees || []} 
@@ -182,6 +175,16 @@ export const RequestDetail: React.FC<RequestDetailProps> = ({
             </div>
           </div>
         </div>
+      </div>
+
+      {/* 5. Active Step Work Area (Full Width) */}
+      <div className="w-full">
+        {steps[activeStepIndex] && (
+          <StepWorkArea 
+            step={steps[activeStepIndex]} 
+            onUpdate={onUpdate}
+          />
+        )}
       </div>
     </div>
   );

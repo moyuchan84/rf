@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { type PhotoKey } from '../../master-data/types';
 import { cn } from '@/shared/utils/cn';
 import { Database, FileSpreadsheet, Download, ArrowLeft, Layers } from 'lucide-react';
 import { ExcelRestoreService } from '../services/ExcelRestoreService';
