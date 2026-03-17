@@ -37,7 +37,7 @@ const RootLayout: React.FC = () => {
         {/* Content Area */}
         <div className="flex-1 overflow-y-auto relative scrollbar-hide">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(79,70,229,0.05),transparent)] dark:bg-[radial-gradient(circle_at_50%_0%,rgba(79,70,229,0.05),transparent)] pointer-events-none"></div>
-          <div className="p-10 max-w-[1600px] mx-auto w-full min-h-full flex flex-col">
+          <div className="p-6 max-w-[1600px] mx-auto w-full min-h-full flex flex-col">
             <Outlet />
           </div>
         </div>
