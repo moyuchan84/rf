@@ -33,8 +33,13 @@ namespace RFGo.PhotoKey.Manager.Infrastructure.Excel
             try
             {
                 workbook = excelApp.Workbooks.Open(filePath);
-                workbookData.Meta.FileName = Path.GetFileName(filePath);
+                string fileName = Path.GetFileName(filePath);
+                workbookData.Meta.FileName = fileName;
                 workbookData.Meta.FullPath = filePath;
+
+                // 1. Parse Revision Number from filename using Regex: _R{rev}_
+                var match = System.Text.RegularExpressions.Regex.Match(fileName, @"_R(\d+)_", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                workbookData.Meta.Revision = match.Success ? int.Parse(match.Groups[1].Value) : 1;
 
                 for (int i = 1; i <= workbook.Sheets.Count; i++)
                 {
@@ -43,6 +48,12 @@ namespace RFGo.PhotoKey.Manager.Infrastructure.Excel
                     {
                         workbookData.Worksheets.Add(ParseWorksheet(sheet, i));
                     }
+                }
+
+                // 2. Set default table name from 2nd worksheet if exists
+                if (workbookData.Worksheets.Count >= 2)
+                {
+                    workbookData.Meta.SuggestedTableName = workbookData.Worksheets[1].SheetName;
                 }
             }
             finally

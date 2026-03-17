@@ -40,6 +40,18 @@ def list_keys_by_product(product_id: int, db: Session = Depends(get_db)):
     service = PhotoKeyService(db)
     return service.get_keys_by_product(product_id)
 
+@router.get("/next-rev/{partid}/{table_name}")
+def get_next_rev(partid: str, table_name: str, db: Session = Depends(get_db)):
+    """Get the next revision number for a product and table."""
+    service = PhotoKeyService(db)
+    return {"next_rev": service.get_next_revision("", "", partid, table_name)}
+
+@router.get("/exists/{partid}/{table_name}/{rev_no}")
+def check_existence(partid: str, table_name: str, rev_no: int, db: Session = Depends(get_db)):
+    """Check if a specific revision of a table already exists."""
+    service = PhotoKeyService(db)
+    return {"exists": service.check_exists(partid, table_name, rev_no)}
+
 @router.get("/restore/{key_id}")
 def get_restore_data(key_id: int, db: Session = Depends(get_db)):
     """Get workbook data for Excel restoration."""

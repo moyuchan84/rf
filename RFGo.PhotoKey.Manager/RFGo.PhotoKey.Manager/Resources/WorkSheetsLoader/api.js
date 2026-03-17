@@ -54,6 +54,18 @@ const apiClient = {
     async getRestoreData(keyId) {
         const response = await fetch(`${BASE_URL}/photo-keys/${keyId}`);
         return await response.json();
+    },
+
+    async getNextRevision(partid, tableName) {
+        const response = await fetch(`${BASE_URL}/photo-keys/next-rev/${partid}/${encodeURIComponent(tableName)}`);
+        if (!response.ok) return { next_rev: 1 };
+        return await response.json();
+    },
+
+    async checkExistence(partid, tableName, revNo) {
+        const response = await fetch(`${BASE_URL}/photo-keys/exists/${partid}/${encodeURIComponent(tableName)}/${revNo}`);
+        if (!response.ok) return { exists: false };
+        return await response.json();
     }
 };
 

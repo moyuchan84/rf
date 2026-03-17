@@ -12,26 +12,46 @@ const app = createApp({
         const selectedWorkbooks = ref([]); 
         const selectedSheets = ref([]);    
 
-        window.initPreview = (data) => {
+        window.initPreview = async (data) => {
             const workbooks = typeof data.workbooks === 'string' ? JSON.parse(data.workbooks) : data.workbooks;
             isDetail.value = data.isDetail || false;
+            hierarchy.value = JSON.parse(data.hierarchy);
             
-            workbooks.forEach(wb => {
-                const dataSheet = wb.Worksheets.find(s => s.SheetType === 'DATA') || wb.Worksheets[0];
-                const defaultTableName = dataSheet ? dataSheet.SheetName : wb.Meta.FileName;
+            for (const wb of workbooks) {
+                // 1. C#에서 파싱해온 제안된 테이블명 (2번째 시트) 사용
+                const suggestedName = wb.Meta.SuggestedTableName || wb.Meta.FileName;
+                
+                // 2. C#에서 파싱한 Revision 사용, 없으면 1
+                let rev = wb.Meta.Revision || 1;
 
-                // Workbook별 설정 객체 초기화
+                // 3. DB에서 현재 productId + tableName 기준 가장 큰 rev_no 확인하여 제안
+                try {
+                    const dbResult = await window.apiClient.getNextRevision(hierarchy.value.partId, suggestedName);
+                    if (dbResult && dbResult.next_rev > 1) {
+                        rev = dbResult.next_rev;
+                    }
+                } catch (e) {
+                    console.warn('Failed to fetch next revision from DB:', e);
+                }
+
                 wb.config = reactive({
                     rfgCategory: 'common',
                     photoCategory: 'key',
-                    tableName: defaultTableName,
-                    revNo: 1,
+                    tableName: suggestedName,
+                    revNo: rev,
                     isReference: false
                 });
-            });
+
+                // 테이블명 변경 시 rev_no 자동 업데이트 감시
+                watch(() => wb.config.tableName, async (newName) => {
+                    try {
+                        const res = await window.apiClient.getNextRevision(hierarchy.value.partId, newName);
+                        wb.config.revNo = res.next_rev;
+                    } catch (e) {}
+                });
+            }
 
             parsedWorkbooks.value = workbooks;
-            hierarchy.value = JSON.parse(data.hierarchy);
             
             selectedWorkbooks.value = workbooks.map(w => w.Meta.FullPath);
             selectedSheets.value = [];
@@ -113,7 +133,7 @@ const app = createApp({
             if (!activeWorkbook.value) return;
             const path = activeWorkbook.value.Meta.FullPath;
             const sheetKeys = activeWorkbook.value.Worksheets.map(s => `${path}::${s.SheetName}`);
-            selectedSheets.value = selectedSheets.value.filter(k => !sheetKeys.includes(k));
+            selectedSheets.value = selectedSheets.value.filter(k => k !== key);
             closeContextMenu();
         };
 
@@ -123,15 +143,38 @@ const app = createApp({
                 return;
             }
 
+            status.value = 'CHECKING';
+            
+            // 중복 체크 (Existing Table & Rev)
+            for (const wb of parsedWorkbooks.value) {
+                if (selectedWorkbooks.value.includes(wb.Meta.FullPath)) {
+                    try {
+                        const existsRes = await window.apiClient.checkExistence(
+                            hierarchy.value.partId, 
+                            wb.config.tableName, 
+                            wb.config.revNo
+                        );
+                        if (existsRes.exists) {
+                            const proceed = confirm(`경고: [${wb.config.tableName}] Rev.${wb.config.revNo} 테이블이 이미 DB에 존재합니다. 무시하고 덮어쓰시겠습니까?`);
+                            if (!proceed) {
+                                status.value = 'READY';
+                                return;
+                            }
+                        }
+                    } catch (e) {
+                        console.error('Existence check failed:', e);
+                    }
+                }
+            }
+
             status.value = 'UPLOADING';
             try {
-                // 중복 제거 및 데이터 구조 정제
                 const filteredData = parsedWorkbooks.value
                     .filter(w => selectedWorkbooks.value.includes(w.Meta.FullPath))
                     .map(w => {
                         return {
                             Meta: w.Meta,
-                            Config: w.config, // 'Config'로 통일 (C# 모델과 매칭)
+                            Config: w.config,
                             Worksheets: w.Worksheets.filter(s => 
                                 selectedSheets.value.includes(`${w.Meta.FullPath}::${s.SheetName}`)
                             )
@@ -146,7 +189,7 @@ const app = createApp({
                 
                 const results = await window.apiClient.uploadPhotoKey(payload);
                 status.value = 'READY';
-                alert(`${results.length}개 파일 업로드 완료.`);
+                alert(`업로드 완료.`);
 
             } catch (err) {
                 status.value = 'ERROR';

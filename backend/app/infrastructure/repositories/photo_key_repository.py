@@ -27,3 +27,11 @@ class PhotoKeyRepository:
 
     def list_keys_by_product(self, product_id: int):
         return self.db.query(models.PhotoKey).filter(models.PhotoKey.product_id == product_id).all()
+
+    def get_max_revision(self, product_id: int, table_name: str) -> int:
+        from sqlalchemy import func
+        result = self.db.query(func.max(models.PhotoKey.rev_no)).filter(
+            models.PhotoKey.product_id == product_id,
+            models.PhotoKey.table_name == table_name
+        ).scalar()
+        return result if result is not None else 0
