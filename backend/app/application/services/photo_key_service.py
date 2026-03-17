@@ -13,8 +13,8 @@ class PhotoKeyService:
         bo = self.product_repo.get_or_create_beol_option(data.beol_option, pp.id)
         prod = self.product_repo.get_or_create_product(data.partid, data.product_name, bo.id)
         
-        # Create PhotoKey
-        return self.photo_key_repo.create_photo_key(prod.id, data)
+        # Create PhotoKey with linked hierarchy
+        return self.photo_key_repo.create_photo_key(prod.id, pp.id, bo.id, data)
 
     def get_photo_key(self, key_id: int):
         return self.photo_key_repo.get_photo_key_by_id(key_id)

@@ -21,6 +21,8 @@ class PhotoKeyCreate(PhotoKeyBase):
 class PhotoKey(PhotoKeyBase):
     id: int
     product_id: int
+    process_plan_id: int
+    beol_option_id: int
     update_date: datetime
 
     class Config:

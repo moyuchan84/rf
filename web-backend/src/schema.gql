@@ -49,6 +49,11 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+"""
+The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSON
+
 type Mutation {
   assignUser(input: AssignUserInput!): RequestAssignee!
   createBeolOption(input: CreateBeolOptionInput!): BeolOption!
@@ -63,6 +68,22 @@ type Mutation {
   updateProduct(id: Int!, input: UpdateProductInput!): Product!
   updateRequestItem(id: Int!, input: UpdateRequestItemInput!): RequestItem!
   updateRequestStep(input: UpdateStepInput!): RequestStep!
+}
+
+type PhotoKey {
+  beolOptionId: Int
+  filename: String!
+  id: Int!
+  isReference: Boolean!
+  photoCategory: String
+  processPlanId: Int
+  productId: Int!
+  revNo: Int!
+  rfgCategory: String
+  tableName: String!
+  updateDate: DateTime!
+  updater: String
+  workbookData: JSON
 }
 
 type ProcessPlan {
@@ -111,6 +132,7 @@ input ProductMetaInput {
 }
 
 type Query {
+  photoKeys(beolOptionId: Int, processPlanId: Int, productId: Int): [PhotoKey!]!
   processPlans: [ProcessPlan!]!
   requestItem(id: Int!): RequestItem
   requestItems: [RequestItem!]!

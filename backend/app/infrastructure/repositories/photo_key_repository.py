@@ -5,9 +5,11 @@ class PhotoKeyRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def create_photo_key(self, product_id: int, obj_in: schemas.PhotoKeyCreate):
+    def create_photo_key(self, product_id: int, process_plan_id: int, beol_option_id: int, obj_in: schemas.PhotoKeyCreate):
         db_obj = models.PhotoKey(
             product_id=product_id,
+            process_plan_id=process_plan_id,
+            beol_option_id=beol_option_id,
             rfg_category=obj_in.rfg_category,
             photo_category=obj_in.photo_category,
             is_reference=obj_in.is_reference,

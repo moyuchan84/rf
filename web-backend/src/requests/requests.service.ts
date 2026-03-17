@@ -96,4 +96,26 @@ export class RequestsService {
       },
     });
   }
+
+  async findPhotoKeys(filters: { productId?: number; beolOptionId?: number; processPlanId?: number }) {
+    return this.prisma.photoKey.findMany({
+      where: {
+        productId: filters.productId,
+        beolOptionId: filters.beolOptionId,
+        processPlanId: filters.processPlanId,
+      },
+      include: {
+        product: true,
+        processPlan: true,
+        beolOption: true,
+      },
+      orderBy: { updateDate: 'desc' },
+    });
+  }
+
+  async findPhotoKeyById(id: number) {
+    return this.prisma.photoKey.findUnique({
+      where: { id },
+    });
+  }
 }

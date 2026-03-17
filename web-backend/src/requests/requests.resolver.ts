@@ -2,7 +2,7 @@ import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { RequestsService } from './requests.service';
 import { RequestItem } from './requests.model';
 import { CreateRequestItemInput, UpdateRequestItemInput } from './requests.dto';
-import { RequestAssignee, RequestStep } from './workflow.model';
+import { RequestAssignee, RequestStep, PhotoKey } from './workflow.model';
 import { AssignUserInput, UpdateStepInput } from './workflow.dto';
 
 @Resolver(() => RequestItem)
@@ -56,5 +56,14 @@ export class RequestsResolver {
   @Mutation(() => RequestStep)
   async updateRequestStep(@Args('input') input: UpdateStepInput) {
     return this.service.updateStep(input);
+  }
+
+  @Query(() => [PhotoKey])
+  async photoKeys(
+    @Args('productId', { type: () => Int, nullable: true }) productId?: number,
+    @Args('beolOptionId', { type: () => Int, nullable: true }) beolOptionId?: number,
+    @Args('processPlanId', { type: () => Int, nullable: true }) processPlanId?: number,
+  ) {
+    return this.service.findPhotoKeys({ productId, beolOptionId, processPlanId });
   }
 }

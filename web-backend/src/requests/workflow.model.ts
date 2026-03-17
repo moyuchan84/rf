@@ -1,4 +1,5 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
+import GraphQLJSON from 'graphql-type-json';
 
 @ObjectType()
 export class RequestAssignee {
@@ -53,6 +54,12 @@ export class PhotoKey {
   @Field(() => Int)
   productId: number;
 
+  @Field(() => Int, { nullable: true })
+  processPlanId?: number;
+
+  @Field(() => Int, { nullable: true })
+  beolOptionId?: number;
+
   @Field({ nullable: true })
   rfgCategory?: string;
 
@@ -73,6 +80,9 @@ export class PhotoKey {
 
   @Field({ nullable: true })
   updater?: string;
+
+  @Field(() => GraphQLJSON, { nullable: true })
+  workbookData?: any;
 
   @Field()
   updateDate: Date;

@@ -63,6 +63,13 @@ class PhotoKey(Base):
     __tablename__ = "photo_keys"
     id = Column(Integer, primary_key=True, index=True)
     product_id = Column(Integer, ForeignKey("products.id", ondelete="CASCADE"))
+    process_plan_id = Column(Integer, ForeignKey("process_plans.id", ondelete="CASCADE"))
+    beol_option_id = Column(Integer, ForeignKey("beol_options.id", ondelete="CASCADE"))
+    
+    product = relationship("Product", back_populates="photo_keys")
+    process_plan = relationship("ProcessPlan")
+    beol_option = relationship("BeolOption")
+    
     rfg_category = Column(String)  # common, option
     photo_category = Column(String) # info, key
     is_reference = Column(Boolean, default=False)
@@ -72,5 +79,3 @@ class PhotoKey(Base):
     filename = Column(String)
     updater = Column(String)
     update_date = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
-    
-    product = relationship("Product", back_populates="photo_keys")
