@@ -58,6 +58,7 @@ export const GET_REQUESTS_BY_PRODUCT = gql`
       }
       steps {
         id
+        requestId
         stepOrder
         stepName
         status
@@ -90,6 +91,7 @@ export const GET_ALL_REQUESTS = gql`
       }
       steps {
         id
+        requestId
         stepOrder
         stepName
         status
@@ -122,6 +124,7 @@ export const GET_REQUEST_ITEM = gql`
       }
       steps {
         id
+        requestId
         stepOrder
         stepName
         status
@@ -179,6 +182,60 @@ export const GET_PHOTO_KEYS = gql`
       processPlanId
       beolOptionId
       workbookData
+    }
+  }
+`;
+
+export const CREATE_STREAM_INFO = gql`
+  mutation CreateStreamInfo($input: CreateStreamInfoInput!) {
+    createStreamInfo(input: $input) {
+      id
+      streamPath
+      streamInput
+      streamOutput
+    }
+  }
+`;
+
+export const GET_STREAM_INFOS_BY_PRODUCT = gql`
+  query GetStreamInfosByProduct($productId: Int!) {
+    streamInfosByProduct(productId: $productId) {
+      id
+      requestId
+      streamPath
+      streamInput
+      streamOutput
+    }
+  }
+`;
+
+export const GET_STREAM_INFO_BY_REQUEST = gql`
+  query GetStreamInfoByRequest($requestId: Int!) {
+    streamInfoByRequest(requestId: $requestId) {
+      id
+      streamPath
+      streamInput
+      streamOutput
+    }
+  }
+`;
+
+export const SAVE_REQUEST_TABLES = gql`
+  mutation SaveRequestTables($input: SaveRequestTablesInput!) {
+    saveRequestTables(input: $input) {
+      id
+      photoKeyId
+      type
+    }
+  }
+`;
+
+export const GET_REQUEST_TABLES = gql`
+  query GetRequestTables($requestId: Int!, $type: String!) {
+    requestTables(requestId: $requestId, type: $type) {
+      id
+      photoKeyId
+      type
     }
   }
 `;
