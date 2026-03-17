@@ -13,6 +13,7 @@ model ProcessPlan {
   id          Int          @id @default(autoincrement())
   designRule  String       @unique @map("design_rule")
   beolOptions BeolOption[]
+  photoKeys   PhotoKey[]
 
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("update_time")
@@ -26,6 +27,7 @@ model BeolOption {
   processPlanId Int         @map("process_plan_id")
   processPlan   ProcessPlan @relation(fields: [processPlanId], references: [id], onDelete: Cascade)
   products      Product[]
+  photoKeys     PhotoKey[]
 
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("update_time")
@@ -97,6 +99,12 @@ model PhotoKey {
   productId     Int      @map("product_id")
   product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   
+  processPlanId Int?     @map("process_plan_id")
+  processPlan   ProcessPlan? @relation(fields: [processPlanId], references: [id], onDelete: Cascade)
+  
+  beolOptionId  Int?     @map("beol_option_id")
+  beolOption    BeolOption? @relation(fields: [beolOptionId], references: [id], onDelete: Cascade)
+
   rfgCategory   String?  @map("rfg_category")   // common, option
   photoCategory String?  @map("photo_category") // info, key
   isReference   Boolean  @default(false)        @map("is_reference")
