@@ -52,6 +52,23 @@ export interface Product {
   beolOptionId: number;
   metaInfo?: ProductMeta;
   requests?: RequestItem[];
+  photoKeys?: PhotoKey[];
+}
+
+export interface PhotoKey {
+  id: number;
+  productId: number;
+  processPlanId: number;
+  beolOptionId: number;
+  rfgCategory?: string;
+  photoCategory?: string;
+  isReference: boolean;
+  tableName: string;
+  revNo: number;
+  filename?: string;
+  updater?: string;
+  workbookData?: any;
+  updateDate: string;
 }
 
 export interface BeolOption {
