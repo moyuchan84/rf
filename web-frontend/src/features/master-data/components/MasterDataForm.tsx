@@ -75,7 +75,7 @@ const MasterDataForm: React.FC = () => {
         chipSizeY: typeof formData.metaInfo.chipSizeY === 'string' ? parseFloat(formData.metaInfo.chipSizeY) : formData.metaInfo.chipSizeY,
         slSizeX: typeof formData.metaInfo.slSizeX === 'string' ? parseFloat(formData.metaInfo.slSizeX) : formData.metaInfo.slSizeX,
         slSizeY: typeof formData.metaInfo.slSizeY === 'string' ? parseFloat(formData.metaInfo.slSizeY) : formData.metaInfo.slSizeY,
-        mtoDate: formData.metaInfo.mtoDate ? new Date(formData.metaInfo.mtoDate as string) : undefined,
+        mtoDate: formData.metaInfo.mtoDate ? new Date(formData.metaInfo.mtoDate).toISOString() : undefined,
       };
 
       if (selectedNode.type === 'plan') {

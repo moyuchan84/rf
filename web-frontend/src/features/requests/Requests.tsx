@@ -11,25 +11,27 @@ import { type RequestItem } from '../master-data/types';
 
 const Requests: React.FC = () => {
   const [view, setView] = useState<'list' | 'create' | 'detail' | 'edit'>('list');
-  const [selectedRequest, setSelectedRequest] = useState<RequestItem | null>(null);
+  const [selectedRequestId, setSelectedRequestId] = useState<number | null>(null);
   const { requests, loading, deleteRequest, refetch } = useRequestsList(null);
 
+  const selectedRequest = requests.find(r => r.id === selectedRequestId);
+
   const handleRequestClick = (req: RequestItem) => {
-    setSelectedRequest(req);
+    setSelectedRequestId(req.id);
     setView('detail');
   };
 
   const handleEditClick = (e: React.MouseEvent | null, req: RequestItem) => {
     if (e) e.stopPropagation();
-    setSelectedRequest(req);
+    setSelectedRequestId(req.id);
     setView('edit');
   };
 
   const handleDeleteClick = async (e: React.MouseEvent | null, id: number) => {
     if (e) e.stopPropagation();
     await deleteRequest(id);
-    if (selectedRequest?.id === id) {
-      setSelectedRequest(null);
+    if (selectedRequestId === id) {
+      setSelectedRequestId(null);
       setView('list');
     }
   };
@@ -37,7 +39,7 @@ const Requests: React.FC = () => {
   const handleSuccess = () => {
     refetch();
     setView('list');
-    setSelectedRequest(null);
+    setSelectedRequestId(null);
   };
 
   return (
@@ -61,7 +63,7 @@ const Requests: React.FC = () => {
             <button
               onClick={() => {
                 setView('list');
-                setSelectedRequest(null);
+                setSelectedRequestId(null);
               }}
               className="group flex items-center gap-3 px-8 py-4 bg-slate-900 hover:bg-slate-800 border-2 border-slate-800 rounded-2xl transition-all shadow-2xl text-xs font-black text-slate-400 uppercase tracking-widest active:scale-95"
             >
@@ -94,6 +96,7 @@ const Requests: React.FC = () => {
             request={selectedRequest}
             onEdit={req => setView('edit')}
             onDelete={id => handleDeleteClick(null, id)}
+            onUpdate={refetch}
           />
         ) : (
           <RequestList 
