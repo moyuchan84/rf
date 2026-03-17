@@ -12,6 +12,11 @@ export class RequestsResolver {
     return this.service.findRequestItemsByProduct(productId);
   }
 
+  @Query(() => [RequestItem])
+  async requestItems() {
+    return this.service.findAll();
+  }
+
   @Mutation(() => RequestItem)
   async createRequestItem(@Args('input') input: CreateRequestItemInput) {
     return this.service.createRequestItem(input);

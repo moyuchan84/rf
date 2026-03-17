@@ -26,6 +26,9 @@ export class CreateRequestItemInput {
 
 @InputType()
 export class UpdateRequestItemInput {
+  @Field(() => Int, { nullable: true })
+  productId?: number;
+
   @Field({ nullable: true })
   requestType?: string;
 

@@ -29,4 +29,10 @@ export class RequestsService {
       orderBy: { createdAt: 'desc' },
     });
   }
+
+  async findAll() {
+    return this.prisma.requestItem.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+  }
 }
