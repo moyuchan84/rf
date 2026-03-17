@@ -2,13 +2,32 @@ export interface ProductMeta {
   id: number;
   productId: number;
   processId?: string;
-  mtoDate?: string | Date;
+  mtoDate?: string;
   customer?: string;
   application?: string;
   chipSizeX?: number;
   chipSizeY?: number;
   slSizeX?: number;
   slSizeY?: number;
+}
+
+export interface RequestAssignee {
+  id: number;
+  requestId: number;
+  category: string;
+  userId: string;
+  userName: string;
+}
+
+export interface RequestStep {
+  id: number;
+  requestId: number;
+  stepOrder: number;
+  stepName: string;
+  status: string;
+  workContent?: string;
+  workerId?: string;
+  completedAt?: string;
 }
 
 export interface RequestItem {
@@ -20,8 +39,10 @@ export interface RequestItem {
   edmList: string[];
   pkdVersions: string[];
   requesterId: string;
-  createdAt: string | Date;
-  updatedAt: string | Date;
+  createdAt: string;
+  updatedAt: string;
+  assignees?: RequestAssignee[];
+  steps?: RequestStep[];
 }
 
 export interface Product {
