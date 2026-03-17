@@ -19,6 +19,7 @@ export class RequestsService {
         { stepOrder: 2, stepName: 'KeyTableSetup' },
         { stepOrder: 3, stepName: 'RequestSubmission' },
         { stepOrder: 4, stepName: 'GDSPath' },
+        { stepOrder: 5, stepName: 'StreamInfo' },
       ];
 
       await tx.requestStep.createMany({
