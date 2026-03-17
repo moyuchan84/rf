@@ -124,11 +124,11 @@ const MasterDataForm: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
-      <header className="p-8 border-b border-slate-800/50 flex justify-between items-center bg-slate-950/30">
+      <header className="p-8 border-b border-slate-200/60 dark:border-slate-800/50 flex justify-between items-center bg-slate-50/50 dark:bg-slate-950/30 transition-colors">
         <div className="flex items-center gap-4">
           <span className={cn(
-            "text-[10px] font-black uppercase px-3 py-1.5 rounded-lg tracking-[0.2em] shadow-lg",
-            mode === 'create' ? "bg-indigo-600 text-white shadow-indigo-600/20" : "bg-slate-800 text-slate-300 shadow-black/20"
+            "text-[10px] font-black uppercase px-3 py-1.5 rounded-lg tracking-[0.2em] shadow-sm transition-all",
+            mode === 'create' ? "bg-indigo-600 text-white shadow-indigo-600/20" : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 shadow-sm border border-slate-200 dark:border-slate-700"
           )}>
             {mode === 'create' ? 'Create' : 'Edit'} {selectedNode.type}
           </span>
@@ -136,7 +136,7 @@ const MasterDataForm: React.FC = () => {
         {mode === 'edit' && selectedNode.type === 'product' && (
           <button
             onClick={handleDelete}
-            className="flex items-center gap-2 px-5 py-2.5 text-[10px] font-black text-red-400 hover:bg-red-500/10 rounded-xl transition-all uppercase tracking-[0.2em] active:scale-95"
+            className="flex items-center gap-2 px-5 py-2.5 text-[10px] font-black text-red-500 hover:bg-red-500/10 rounded-xl transition-all uppercase tracking-[0.2em] active:scale-95"
           >
             <Trash2 className="w-3.5 h-3.5" />
             Delete
@@ -146,11 +146,11 @@ const MasterDataForm: React.FC = () => {
 
       <div className="flex-1 overflow-y-auto p-12 max-w-4xl mx-auto w-full space-y-12 scrollbar-hide">
         {/* Breadcrumb Path */}
-        <div className="flex items-center gap-3 text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">
+        <div className="flex items-center gap-3 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em] transition-colors">
           {selectedNode.path.map((p, i) => (
             <React.Fragment key={i}>
-              {i > 0 && <ChevronRight className="w-3 h-3 text-slate-700" />}
-              <span className={cn(i === selectedNode.path.length - 1 ? 'text-indigo-400' : 'text-slate-500')}>{p}</span>
+              {i > 0 && <ChevronRight className="w-3 h-3 text-slate-200 dark:text-slate-700" />}
+              <span className={cn(i === selectedNode.path.length - 1 ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-500')}>{p}</span>
             </React.Fragment>
           ))}
         </div>
@@ -163,7 +163,7 @@ const MasterDataForm: React.FC = () => {
               <input
                 value={formData.designRule}
                 onChange={(e) => setFormData({ ...formData, designRule: e.target.value })}
-                className="w-full bg-slate-950 border-2 border-slate-800 rounded-[2rem] px-8 py-6 text-lg text-white outline-none focus:border-indigo-600/50 transition-all font-bold placeholder:text-slate-800 shadow-2xl"
+                className="w-full bg-slate-50 dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 rounded-[2rem] px-8 py-6 text-lg text-slate-900 dark:text-white outline-none focus:border-indigo-600/50 transition-all font-bold placeholder:text-slate-300 dark:placeholder:text-slate-800 shadow-sm dark:shadow-2xl"
                 placeholder="e.g. 14nm"
               />
             </div>
@@ -175,7 +175,7 @@ const MasterDataForm: React.FC = () => {
               <input
                 value={formData.optionName}
                 onChange={(e) => setFormData({ ...formData, optionName: e.target.value })}
-                className="w-full bg-slate-950 border-2 border-slate-800 rounded-[2rem] px-8 py-6 text-lg text-white outline-none focus:border-indigo-600/50 transition-all font-bold placeholder:text-slate-800 shadow-2xl"
+                className="w-full bg-slate-50 dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 rounded-[2rem] px-8 py-6 text-lg text-slate-900 dark:text-white outline-none focus:border-indigo-600/50 transition-all font-bold placeholder:text-slate-300 dark:placeholder:text-slate-800 shadow-sm dark:shadow-2xl"
                 placeholder="e.g. OPT_A"
               />
             </div>
@@ -190,7 +190,7 @@ const MasterDataForm: React.FC = () => {
                     value={formData.partId}
                     disabled={mode === 'edit'}
                     onChange={(e) => setFormData({ ...formData, partId: e.target.value })}
-                    className="w-full bg-slate-950 border-2 border-slate-800 rounded-[2rem] px-8 py-6 text-lg text-white outline-none focus:border-indigo-600/50 transition-all font-bold disabled:opacity-30 placeholder:text-slate-800 shadow-2xl"
+                    className="w-full bg-slate-50 dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 rounded-[2rem] px-8 py-6 text-lg text-slate-900 dark:text-white outline-none focus:border-indigo-600/50 transition-all font-bold disabled:opacity-30 placeholder:text-slate-300 dark:placeholder:text-slate-800 shadow-sm dark:shadow-2xl"
                     placeholder="e.g. S5E9925"
                   />
                 </div>
@@ -199,14 +199,14 @@ const MasterDataForm: React.FC = () => {
                   <input
                     value={formData.productName}
                     onChange={(e) => setFormData({ ...formData, productName: e.target.value })}
-                    className="w-full bg-slate-950 border-2 border-slate-800 rounded-[2rem] px-8 py-6 text-lg text-white outline-none focus:border-indigo-600/50 transition-all font-bold placeholder:text-slate-800 shadow-2xl"
+                    className="w-full bg-slate-50 dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 rounded-[2rem] px-8 py-6 text-lg text-slate-900 dark:text-white outline-none focus:border-indigo-600/50 transition-all font-bold placeholder:text-slate-300 dark:placeholder:text-slate-800 shadow-sm dark:shadow-2xl"
                     placeholder="e.g. Exynos 2200"
                   />
                 </div>
               </div>
 
-              <div className="p-10 border border-slate-800 rounded-[3rem] bg-slate-950/40 space-y-10 shadow-inner">
-                <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em]">Detailed Metadata</h4>
+              <div className="p-10 border border-slate-200 dark:border-slate-800 rounded-[3rem] bg-slate-50/50 dark:bg-slate-950/40 space-y-10 shadow-sm transition-all">
+                <h4 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.4em] transition-colors">Detailed Metadata</h4>
                 <div className="grid grid-cols-2 gap-8">
                   {[
                     { key: 'processId', label: 'Process ID', type: 'text' },
@@ -215,7 +215,7 @@ const MasterDataForm: React.FC = () => {
                     { key: 'mtoDate', label: 'MTO Date', type: 'date' },
                   ].map((field) => (
                     <div key={field.key} className="space-y-4">
-                      <label className="text-[9px] font-black text-slate-600 uppercase tracking-[0.2em] ml-1">{field.label}</label>
+                      <label className="text-[9px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-[0.2em] ml-1 transition-colors">{field.label}</label>
                       <input
                         type={field.type}
                         value={formData.metaInfo?.[field.key as keyof ProductMeta] as string || ''}
@@ -225,7 +225,7 @@ const MasterDataForm: React.FC = () => {
                             metaInfo: { ...formData.metaInfo, [field.key as keyof ProductMeta]: e.target.value },
                           })
                         }
-                        className="w-full bg-slate-950 border-2 border-slate-800 rounded-2xl px-6 py-4 text-base text-white outline-none focus:border-indigo-600/50 transition-all font-bold placeholder:text-slate-800"
+                        className="w-full bg-white dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 rounded-2xl px-6 py-4 text-base text-slate-900 dark:text-white outline-none focus:border-indigo-600/50 transition-all font-bold placeholder:text-slate-200 dark:placeholder:text-slate-800 shadow-sm"
                       />
                     </div>
                   ))}
@@ -239,7 +239,7 @@ const MasterDataForm: React.FC = () => {
                     { key: 'slSizeY', label: 'SL Size Y' },
                   ].map((field) => (
                     <div key={field.key} className="space-y-4">
-                      <label className="text-[9px] font-black text-slate-600 uppercase tracking-[0.2em] ml-1">{field.label}</label>
+                      <label className="text-[9px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-[0.2em] ml-1 transition-colors">{field.label}</label>
                       <input
                         type="number"
                         step="0.01"
@@ -250,7 +250,7 @@ const MasterDataForm: React.FC = () => {
                             metaInfo: { ...formData.metaInfo, [field.key as keyof ProductMeta]: e.target.value },
                           })
                         }
-                        className="w-full bg-slate-950 border-2 border-slate-800 rounded-2xl px-6 py-4 text-base text-white outline-none focus:border-indigo-600/50 transition-all font-bold placeholder:text-slate-800"
+                        className="w-full bg-white dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 rounded-2xl px-6 py-4 text-base text-slate-900 dark:text-white outline-none focus:border-indigo-600/50 transition-all font-bold placeholder:text-slate-200 dark:placeholder:text-slate-800 shadow-sm"
                       />
                     </div>
                   ))}
@@ -261,19 +261,19 @@ const MasterDataForm: React.FC = () => {
         </div>
       </div>
 
-      <footer className="p-8 border-t border-slate-800/50 flex gap-6 bg-slate-950/20 backdrop-blur-sm">
+      <footer className="p-8 border-t border-slate-200/60 dark:border-slate-800/50 flex gap-6 bg-slate-50/80 dark:bg-slate-950/20 backdrop-blur-sm transition-colors">
         <button
           onClick={() => {
             setIsFormOpen(false);
             setSelectedNode(null);
           }}
-          className="px-8 py-5 text-[10px] font-black text-slate-500 hover:text-slate-300 transition-all uppercase tracking-[0.3em]"
+          className="px-8 py-5 text-[10px] font-black text-slate-400 hover:text-slate-900 dark:text-slate-500 dark:hover:text-slate-300 transition-all uppercase tracking-[0.3em]"
         >
           Cancel
         </button>
         <button
           onClick={handleSave}
-          className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white py-5 rounded-[2rem] text-[10px] font-black tracking-[0.4em] shadow-2xl shadow-indigo-600/20 transition-all active:scale-[0.98] uppercase"
+          className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white py-5 rounded-[2rem] text-[10px] font-black tracking-[0.4em] shadow-lg shadow-indigo-600/20 transition-all active:scale-[0.98] uppercase"
         >
           {mode === 'create' ? 'Create' : 'Save Changes'}
         </button>

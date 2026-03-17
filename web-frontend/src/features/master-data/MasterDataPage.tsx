@@ -25,18 +25,18 @@ const MasterDataPage: React.FC = () => {
     <div className="flex-1 flex flex-col gap-8 min-h-0 h-full">
       <header className="flex items-center justify-between shrink-0">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-xl shadow-indigo-600/20">
+          <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-xl shadow-indigo-600/20 transition-all">
             <Database className="text-white w-7 h-7" />
           </div>
           <div>
-            <h1 className="text-3xl font-black text-white tracking-tight">Master Data</h1>
+            <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight transition-colors">Master Data</h1>
             <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">Hierarchy Management</p>
           </div>
         </div>
         <button
           onClick={() => refetch()}
           disabled={loading}
-          className="flex items-center gap-2 px-6 py-3 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-2xl transition-all shadow-xl text-sm font-black text-slate-400 uppercase tracking-widest active:scale-95 disabled:opacity-50"
+          className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-2xl transition-all shadow-sm dark:shadow-xl text-sm font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest active:scale-95 disabled:opacity-50"
         >
           <RefreshCcw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           Refresh
@@ -44,10 +44,10 @@ const MasterDataPage: React.FC = () => {
       </header>
 
       {error ? (
-        <div className="flex-1 flex flex-col items-center justify-center bg-red-500/5 border border-red-500/20 rounded-[3rem] p-12 text-center">
+        <div className="flex-1 flex flex-col items-center justify-center bg-red-500/5 border border-red-500/20 rounded-[3rem] p-12 text-center transition-all">
           <AlertCircle className="w-16 h-16 text-red-500 mb-6" />
-          <h3 className="text-xl font-black text-white mb-2 uppercase tracking-tight">Data Loading Failed</h3>
-          <p className="text-slate-400 max-w-md mb-8 font-bold leading-relaxed">
+          <h3 className="text-xl font-black text-slate-900 dark:text-white mb-2 uppercase tracking-tight transition-colors">Data Loading Failed</h3>
+          <p className="text-slate-500 dark:text-slate-400 max-w-md mb-8 font-bold leading-relaxed transition-colors">
             There was an error connecting to the server. Please check if the backend is running on port 9999.
           </p>
           <button 
@@ -60,8 +60,8 @@ const MasterDataPage: React.FC = () => {
       ) : (
         <div className="flex-1 flex gap-8 min-h-0 overflow-hidden">
           {/* Left Sidebar: Explorer */}
-          <aside className="w-96 bg-slate-900/50 border border-slate-800 rounded-[3rem] shadow-2xl flex flex-col overflow-hidden shrink-0">
-            <div className="p-8 border-b border-slate-800/50 flex justify-between items-center bg-slate-950/30">
+          <aside className="w-96 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-[3rem] shadow-sm dark:shadow-2xl flex flex-col overflow-hidden shrink-0 transition-all">
+            <div className="p-8 border-b border-slate-200/60 dark:border-slate-800/50 flex justify-between items-center bg-slate-50/50 dark:bg-slate-950/30 transition-colors">
               <span className="text-[10px] font-black uppercase text-slate-500 tracking-[0.3em]">Explorer</span>
               <button
                 onClick={() => handleCreateNode('plan', {}, ['ROOT'])}
@@ -72,7 +72,7 @@ const MasterDataPage: React.FC = () => {
             </div>
             <div className="flex-1 overflow-y-auto p-6 scrollbar-hide relative">
               {loading && (
-                <div className="absolute inset-0 bg-slate-950/20 backdrop-blur-sm z-10 flex items-center justify-center">
+                <div className="absolute inset-0 bg-white/20 dark:bg-slate-950/20 backdrop-blur-sm z-10 flex items-center justify-center">
                   <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
                 </div>
               )}
@@ -81,17 +81,17 @@ const MasterDataPage: React.FC = () => {
           </aside>
 
           {/* Main Content: Form */}
-          <main className="flex-1 bg-slate-900/50 border border-slate-800 rounded-[3rem] shadow-2xl flex flex-col overflow-hidden">
+          <main className="flex-1 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-[3rem] shadow-sm dark:shadow-2xl flex flex-col overflow-hidden transition-all">
             {selectedNode || isFormOpen ? (
               <MasterDataForm key={selectedNode ? `${selectedNode.type}-${selectedNode.id}` : 'form'} />
             ) : (
-              <div className="flex-1 flex flex-col items-center justify-center p-12 text-center relative overflow-hidden">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(79,70,229,0.05),transparent)] pointer-events-none"></div>
-                <div className="w-32 h-32 bg-slate-950 rounded-[3rem] flex items-center justify-center mb-10 border border-slate-800 shadow-2xl">
-                  <Database className="text-slate-800 w-16 h-16" />
+              <div className="flex-1 flex flex-col items-center justify-center p-12 text-center relative overflow-hidden transition-all">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(79,70,229,0.03),transparent)] dark:bg-[radial-gradient(circle_at_50%_50%,rgba(79,70,229,0.05),transparent)] pointer-events-none transition-all"></div>
+                <div className="w-32 h-32 bg-slate-50 dark:bg-slate-950 rounded-[3rem] flex items-center justify-center mb-10 border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-2xl transition-all">
+                  <Database className="text-slate-300 dark:text-slate-800 w-16 h-16 transition-colors" />
                 </div>
-                <h3 className="text-sm font-black text-white mb-3 uppercase tracking-[0.4em]">Select an Item</h3>
-                <p className="text-sm text-slate-500 max-w-xs leading-relaxed font-bold">
+                <h3 className="text-sm font-black text-slate-400 dark:text-white mb-3 uppercase tracking-[0.4em] transition-colors">Select an Item</h3>
+                <p className="text-sm text-slate-400 dark:text-slate-500 max-w-xs leading-relaxed font-bold transition-colors">
                   Choose a process plan, BEOL option, or product from the explorer to manage its information.
                 </p>
               </div>

@@ -46,12 +46,12 @@ const Requests: React.FC = () => {
     <div className="flex-1 flex flex-col gap-8 min-h-0 h-full overflow-hidden">
       <header className="flex items-center justify-between shrink-0 animate-in slide-in-from-top-4 duration-500">
         <div className="flex items-center gap-6">
-          <div className="w-16 h-16 bg-indigo-600 rounded-[2rem] flex items-center justify-center shadow-[0_0_50px_rgba(79,70,229,0.3)]">
+          <div className="w-16 h-16 bg-indigo-600 rounded-[2rem] flex items-center justify-center shadow-lg shadow-indigo-600/20">
             <Plus className="text-white w-9 h-9" />
           </div>
           <div>
-            <h1 className="text-4xl font-black text-white tracking-tighter uppercase">Requests Hub</h1>
-            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.4em] mt-2 flex items-center gap-2">
+            <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter uppercase transition-colors">Requests Hub</h1>
+            <p className="text-[10px] text-slate-500 dark:text-slate-500 font-bold uppercase tracking-[0.4em] mt-2 flex items-center gap-2 transition-colors">
               <span className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></span>
               Photo-Key Design & Technical Submission
             </p>
@@ -65,7 +65,7 @@ const Requests: React.FC = () => {
                 setView('list');
                 setSelectedRequestId(null);
               }}
-              className="group flex items-center gap-3 px-8 py-4 bg-slate-900 hover:bg-slate-800 border-2 border-slate-800 rounded-2xl transition-all shadow-2xl text-xs font-black text-slate-400 uppercase tracking-widest active:scale-95"
+              className="group flex items-center gap-3 px-8 py-4 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border-2 border-slate-200 dark:border-slate-800 rounded-2xl transition-all shadow-sm dark:shadow-2xl text-xs font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest active:scale-95"
             >
               <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
               Back to List
@@ -73,7 +73,7 @@ const Requests: React.FC = () => {
           ) : (
             <button
               onClick={() => setView('create')}
-              className="group flex items-center gap-3 px-8 py-4 bg-indigo-600 hover:bg-indigo-500 rounded-2xl transition-all shadow-[0_0_40px_rgba(79,70,229,0.3)] text-xs font-black text-white uppercase tracking-widest active:scale-95 overflow-hidden relative"
+              className="group flex items-center gap-3 px-8 py-4 bg-indigo-600 hover:bg-indigo-500 rounded-2xl transition-all shadow-lg shadow-indigo-600/20 text-xs font-black text-white uppercase tracking-widest active:scale-95 overflow-hidden relative"
             >
               <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.1)_50%,transparent_75%)] -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
               <Plus className="w-4 h-4" />

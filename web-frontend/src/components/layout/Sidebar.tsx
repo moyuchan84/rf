@@ -13,7 +13,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
 
   return (
     <aside className={cn(
-      "bg-slate-950 border-r border-slate-900 flex flex-col shrink-0 transition-all duration-300 ease-in-out relative",
+      "bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-900 flex flex-col shrink-0 transition-all duration-300 ease-in-out relative",
       isCollapsed ? "w-20" : "w-72"
     )}>
       {/* Sidebar Branding */}
@@ -24,7 +24,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
           </div>
           {!isCollapsed && (
             <div className="animate-in fade-in duration-500">
-              <h1 className="text-xl font-black text-white tracking-tighter">RFGo</h1>
+              <h1 className="text-xl font-black text-slate-900 dark:text-white tracking-tighter">RFGo</h1>
               <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]">Semiconductor</p>
             </div>
           )}
@@ -44,11 +44,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
                 'flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all group relative',
                 isActive 
                   ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-600/20' 
-                  : 'text-slate-500 hover:bg-slate-900 hover:text-slate-200',
+                  : 'text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-900 hover:text-indigo-600 dark:hover:text-slate-200',
                 isCollapsed && "justify-center px-0"
               )}
             >
-              <item.icon className={cn('w-5 h-5 transition-transform group-hover:scale-110 shrink-0', isActive ? 'text-white' : 'text-slate-500 group-hover:text-indigo-400')} />
+              <item.icon className={cn('w-5 h-5 transition-transform group-hover:scale-110 shrink-0', isActive ? 'text-white' : 'text-slate-400 dark:text-slate-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400')} />
               {!isCollapsed && (
                 <span className="text-sm font-bold tracking-tight animate-in fade-in slide-in-from-left-2 duration-300">
                   {item.label}
@@ -60,18 +60,18 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
       </nav>
 
       {/* Sidebar User Profile */}
-      <div className={cn("p-4 border-t border-slate-900 transition-all", isCollapsed ? "p-2" : "p-6")}>
+      <div className={cn("p-4 border-t border-slate-200/60 dark:border-slate-900 transition-all", isCollapsed ? "p-2" : "p-6")}>
         <div className={cn(
-          "bg-slate-900/50 rounded-2xl border border-slate-800 flex items-center gap-4 transition-all",
+          "bg-white dark:bg-slate-900/50 rounded-2xl border border-slate-200/60 dark:border-slate-800 flex items-center gap-4 transition-all shadow-sm",
           isCollapsed ? "p-2 justify-center" : "p-4"
         )}>
-          <div className="w-10 h-10 bg-indigo-500/10 rounded-xl flex items-center justify-center border border-indigo-500/20 text-indigo-400 font-black text-xs shrink-0">
+          <div className="w-10 h-10 bg-indigo-500/10 rounded-xl flex items-center justify-center border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-black text-xs shrink-0">
             AD
           </div>
           {!isCollapsed && (
             <div className="flex-1 min-w-0 animate-in fade-in duration-300">
-              <p className="text-xs font-black text-slate-200 truncate uppercase tracking-widest">Admin User</p>
-              <p className="text-[10px] text-slate-500 font-bold truncate">admin@samsung.com</p>
+              <p className="text-xs font-black text-slate-900 dark:text-slate-200 truncate uppercase tracking-widest">Admin User</p>
+              <p className="text-[10px] text-slate-600 font-bold truncate">admin@samsung.com</p>
             </div>
           )}
         </div>
