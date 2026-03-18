@@ -69,25 +69,35 @@ const KeyDesignForm: React.FC = () => {
     }
   }, [modalType, selectedDesign]);
 
-  const handlePaste = useCallback((e: React.ClipboardEvent) => {
-    const items = e.clipboardData?.items;
-    if (!items) return;
+  const handlePasteFromClipboard = async () => {
+    try {
+      const clipboardItems = await navigator.clipboard.read();
+      let foundImage = false;
 
-    for (let i = 0; i < items.length; i++) {
-      if (items[i].type.indexOf('image') !== -1) {
-        const file = items[i].getAsFile();
-        if (file) {
+      for (const item of clipboardItems) {
+        const imageTypes = item.types.filter(type => type.startsWith('image/'));
+        if (imageTypes.length > 0) {
+          const blob = await item.getType(imageTypes[0]);
           const reader = new FileReader();
           reader.onload = (event) => {
             const base64 = event.target?.result as string;
             setImages(prev => [...prev, base64]);
-            toast.success('Image pasted from clipboard');
+            toast.success('Image added from clipboard');
           };
-          reader.readAsDataURL(file);
+          reader.readAsDataURL(blob);
+          foundImage = true;
+          break;
         }
       }
+
+      if (!foundImage) {
+        toast.error('No image found in clipboard');
+      }
+    } catch (err) {
+      console.error('Clipboard error:', err);
+      toast.error('Failed to read clipboard. Please check browser permissions.');
     }
-  }, []);
+  };
 
   if (!isModalOpen) return null;
 
@@ -151,9 +161,9 @@ const KeyDesignForm: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm" onPaste={handlePaste}>
-      <div className="bg-white dark:bg-slate-900 w-full max-w-5xl max-h-[90vh] rounded-xl shadow-2xl overflow-hidden flex flex-col border border-slate-200 dark:border-slate-800">
-        <div className="flex justify-between items-center p-6 border-b border-slate-100 dark:border-slate-800">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm">
+      <div className="bg-white dark:bg-slate-900 w-full max-w-5xl max-h-[95vh] rounded-xl shadow-2xl overflow-hidden flex flex-col border border-slate-200 dark:border-slate-800">
+        <div className="flex justify-between items-center p-6 border-b border-slate-100 dark:border-slate-800 shrink-0">
           <div>
             <h2 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">
               {modalType === 'CREATE' ? 'New Key Design' : 'Update Key Design'}
@@ -165,7 +175,7 @@ const KeyDesignForm: React.FC = () => {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-8 space-y-10">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-8 space-y-10 custom-scrollbar pb-24">
           {/* Section 1: Basic Info */}
           <section className="space-y-6">
             <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-2">
@@ -281,10 +291,14 @@ const KeyDesignForm: React.FC = () => {
                   </button>
                 </div>
               ))}
-              <div className="aspect-square rounded-lg border-2 border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center gap-2 text-slate-300 dark:text-slate-700">
-                <ImageIcon className="w-6 h-6" />
-                <span className="text-[8px] font-black uppercase">Paste here</span>
-              </div>
+              <button 
+                type="button"
+                onClick={handlePasteFromClipboard}
+                className="aspect-square rounded-lg border-2 border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center gap-2 text-slate-400 dark:text-slate-600 hover:border-indigo-500 hover:text-indigo-600 hover:bg-indigo-50/30 dark:hover:bg-indigo-900/20 transition-all outline-none group"
+              >
+                <Plus className="w-6 h-6 group-hover:scale-110 transition-transform" />
+                <span className="text-[8px] font-black uppercase tracking-tighter">Add from Clipboard</span>
+              </button>
             </div>
           </section>
 
@@ -432,8 +446,13 @@ const KeyDesignForm: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-4">
                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Description (Rich Text)</label>
-                <div className="bg-white dark:bg-slate-950 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800 h-48">
-                  <ReactQuill theme="snow" value={description} onChange={setDescription} className="h-full bg-white dark:bg-slate-950 dark:text-white" />
+                <div className="bg-white dark:bg-slate-950 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800 flex flex-col h-64 shadow-inner">
+                  <ReactQuill 
+                    theme="snow" 
+                    value={description} 
+                    onChange={setDescription} 
+                    className="flex-1 bg-white dark:bg-slate-950 dark:text-white [&>.ql-container]:border-none [&>.ql-toolbar]:border-none [&>.ql-toolbar]:border-b [&>.ql-toolbar]:border-slate-100 dark:[&>.ql-toolbar]:border-slate-800 [&>.ql-container>.ql-editor]:text-sm" 
+                  />
                 </div>
               </div>
               <div className="space-y-4">
