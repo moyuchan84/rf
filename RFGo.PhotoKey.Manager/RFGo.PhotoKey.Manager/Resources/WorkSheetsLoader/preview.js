@@ -9,6 +9,33 @@ const app = createApp({
         const status = ref('READY');
         const isDetail = ref(false);
 
+        const sidebarWidth = ref(288); // Default 72 * 4 = 288px
+        const isResizing = ref(false);
+
+        const startResizing = (e) => {
+            isResizing.value = true;
+            document.addEventListener('mousemove', handleResizing);
+            document.addEventListener('mouseup', stopResizing);
+            document.body.style.cursor = 'col-resize';
+            document.body.style.userSelect = 'none';
+        };
+
+        const handleResizing = (e) => {
+            if (!isResizing.value) return;
+            const newWidth = e.clientX;
+            if (newWidth > 200 && newWidth < 600) {
+                sidebarWidth.value = newWidth;
+            }
+        };
+
+        const stopResizing = () => {
+            isResizing.value = false;
+            document.removeEventListener('mousemove', handleResizing);
+            document.removeEventListener('mouseup', stopResizing);
+            document.body.style.cursor = 'default';
+            document.body.style.userSelect = 'auto';
+        };
+
         const selectedWorkbooks = ref([]); 
         const selectedSheets = ref([]);    
 
@@ -214,6 +241,7 @@ const app = createApp({
         return {
             parsedWorkbooks, hierarchy, activeWorkbook, activeSheet, status, isDetail,
             selectedWorkbooks, selectedSheets, contextMenu,
+            sidebarWidth, startResizing,
             selectWorkbook, toggleAllWorkbooks, selectAllWorkbooks, deselectAllWorkbooks,
             toggleAllSheetsInActiveWorkbook, selectAllSheetsInActiveWorkbook, deselectAllSheetsInActiveWorkbook,
             showWorkbookContextMenu, showSheetContextMenu, closeContextMenu, saveAll, restoreActive

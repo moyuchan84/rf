@@ -13,7 +13,7 @@ createApp({
         const detailWorkbook = ref(null);
         const activeSheet = ref(null);
         const status = ref('READY');
-        const selectedLogKey = ref(null);
+        const activeLog = ref(null);
 
         // Folder selection & Persistence
         const targetFolderPath = ref(localStorage.getItem('rfgo_target_path') || '');
@@ -77,9 +77,12 @@ createApp({
                 detailWorkbook.value = detail.workbook_data;
                 // detail object id mapping for detail mode restore
                 detailWorkbook.value._photoKeyId = key.id; 
+                detailWorkbook.value._log = detail.log; // Store log in detail object
                 
                 if (detailWorkbook.value.Worksheets && detailWorkbook.value.Worksheets.length > 0) {
                     activeSheet.value = detailWorkbook.value.Worksheets[0];
+                } else {
+                    activeSheet.value = null;
                 }
                 
                 viewMode.value = 'detail';
@@ -91,7 +94,7 @@ createApp({
         };
 
         const showLog = (key) => {
-            selectedLogKey.value = key;
+            activeLog.value = key;
         };
 
         const restoreToExcel = async () => {
@@ -201,7 +204,7 @@ createApp({
             allSelected,
             pickFolder,
             showLog,
-            selectedLogKey
+            activeLog
         };
     }
 }).mount('#app');

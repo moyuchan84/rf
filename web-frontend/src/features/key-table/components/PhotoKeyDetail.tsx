@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { cn } from '@/shared/utils/cn';
-import { Database, FileSpreadsheet, Download, ArrowLeft, Layers, History } from 'lucide-react';
+import { Database, FileSpreadsheet, Download, ArrowLeft, Layers, History, User, Calendar, Info } from 'lucide-react';
 import { ExcelRestoreService } from '../services/ExcelRestoreService';
 import { useKeyTableStore } from '../store/useKeyTableStore';
 
 export const PhotoKeyDetail: React.FC = () => {
   const { selectedKey, setSelectedKey } = useKeyTableStore();
   const workbook = selectedKey?.workbookData;
-  const [activeSheet, setActiveSheet] = useState(workbook?.Worksheets?.[0]);
+  // null represents "Version Info / Log" view
+  const [activeSheet, setActiveSheet] = useState<any | null>(null);
 
   const handleDownload = async () => {
     if (!selectedKey) return;
@@ -42,76 +43,153 @@ export const PhotoKeyDetail: React.FC = () => {
             <ArrowLeft className="w-4 h-4" />
           </button>
           <div>
-            <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight uppercase tracking-tighter transition-colors">{selectedKey.tableName}</h2>
-            <div className="flex items-center gap-1.5 mt-1">
-              <span className="text-[8px] text-slate-500 dark:text-slate-500 font-bold uppercase tracking-[0.3em] transition-colors">Revision v{selectedKey.revNo} / {selectedKey.rfgCategory}</span>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-[8px] font-black uppercase tracking-widest border border-indigo-200/50 dark:border-indigo-800/50">
+                {selectedKey.rfgCategory}
+              </span>
+              <span className="text-[8px] text-slate-400 font-bold uppercase tracking-widest transition-colors">
+                {selectedKey.photoCategory}
+              </span>
             </div>
+            <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight uppercase tracking-tighter transition-colors">
+              {selectedKey.tableName}
+              <span className="ml-2 text-indigo-500 font-mono text-lg">v{selectedKey.revNo}</span>
+            </h2>
           </div>
         </div>
-        <button 
-          onClick={handleDownload}
-          className="flex items-center gap-1.5 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-md transition-all shadow-lg shadow-indigo-600/20 active:scale-95 group"
-        >
-          <Download className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
-          <span className="text-[10px] font-black uppercase tracking-widest">Restore Excel</span>
-        </button>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={handleDownload}
+            className="flex items-center gap-1.5 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-md transition-all shadow-lg shadow-indigo-600/20 active:scale-95 group"
+          >
+            <Download className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+            <span className="text-[10px] font-black uppercase tracking-widest">Restore Excel</span>
+          </button>
+        </div>
       </header>
 
       <div className="flex-1 flex gap-5 overflow-hidden">
-        {/* Worksheets Navigation & Log */}
+        {/* Navigation Sidebar */}
         <aside className="w-56 flex flex-col gap-5 shrink-0 overflow-hidden">
           <div className="flex-1 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-md flex flex-col overflow-hidden shadow-sm dark:shadow-xl transition-all">
             <div className="p-4 border-b border-slate-200/60 dark:border-slate-800 flex items-center gap-1.5 bg-slate-50/50 dark:bg-slate-950/30 transition-colors">
-              <Layers className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
-              <span className="text-[8px] font-black uppercase text-slate-900 dark:text-slate-400 tracking-widest transition-colors">Worksheets</span>
+              <Info className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
+              <span className="text-[8px] font-black uppercase text-slate-900 dark:text-slate-400 tracking-widest transition-colors">Navigation</span>
             </div>
-            <div className="flex-1 overflow-y-auto p-3 space-y-1.5 custom-scrollbar">
-              {workbook.Worksheets?.map((sheet: any, idx: number) => (
+            
+            <div className="flex-1 overflow-y-auto p-3 space-y-4 custom-scrollbar">
+              {/* Metadata Section */}
+              <div className="space-y-1">
+                <span className="text-[7px] font-black text-slate-400 dark:text-slate-600 uppercase ml-2 tracking-widest">Metadata</span>
                 <div 
-                  key={sheet.SheetName || idx}
-                  onClick={() => setActiveSheet(sheet)}
+                  onClick={() => setActiveSheet(null)}
                   className={cn(
-                    "p-3 rounded-md cursor-pointer transition-all border border-transparent group",
-                    activeSheet === sheet ? "bg-indigo-600 border-indigo-500/30 text-white shadow-md shadow-indigo-600/20" : "hover:bg-slate-100 dark:hover:bg-slate-800/50 text-slate-500 dark:text-slate-500"
+                    "p-3 rounded-md cursor-pointer transition-all border border-transparent group flex items-center gap-2",
+                    activeSheet === null ? "bg-slate-900 dark:bg-slate-800 text-white shadow-md" : "hover:bg-slate-100 dark:hover:bg-slate-800/50 text-slate-500 dark:text-slate-500"
                   )}
                 >
-                  <div className="flex items-center justify-between gap-1.5">
-                    <span className="text-[10px] font-black truncate uppercase transition-colors">{sheet.SheetName}</span>
+                  <History className="w-3.5 h-3.5" />
+                  <span className="text-[10px] font-black truncate uppercase">Version Log</span>
+                </div>
+              </div>
+
+              {/* Worksheets Section */}
+              <div className="space-y-1">
+                <span className="text-[7px] font-black text-slate-400 dark:text-slate-600 uppercase ml-2 tracking-widest">Worksheets</span>
+                {workbook.Worksheets?.map((sheet: any, idx: number) => (
+                  <div 
+                    key={sheet.SheetName || idx}
+                    onClick={() => setActiveSheet(sheet)}
+                    className={cn(
+                      "p-3 rounded-md cursor-pointer transition-all border border-transparent group flex items-center justify-between gap-1.5",
+                      activeSheet === sheet ? "bg-indigo-600 border-indigo-500/30 text-white shadow-md shadow-indigo-600/20" : "hover:bg-slate-100 dark:hover:bg-slate-800/50 text-slate-500 dark:text-slate-500"
+                    )}
+                  >
+                    <span className="text-[10px] font-black truncate uppercase">{sheet.SheetName}</span>
                     <span className={cn(
-                      "text-[7px] font-black px-1 py-0.5 rounded-sm uppercase transition-colors",
+                      "text-[7px] font-black px-1 py-0.5 rounded-sm uppercase",
                       activeSheet === sheet ? "bg-white/20 text-white" : "bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-600"
                     )}>
                       {sheet.SheetType}
                     </span>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
-
-          {/* Change Log Section */}
-          {selectedKey.log && (
-            <div className="h-48 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-md flex flex-col overflow-hidden shadow-sm dark:shadow-xl transition-all">
-              <div className="p-4 border-b border-slate-200/60 dark:border-slate-800 flex items-center gap-1.5 bg-slate-50/50 dark:bg-slate-950/30 transition-colors">
-                <History className="w-3.5 h-3.5 text-purple-500 dark:text-purple-400" />
-                <span className="text-[8px] font-black uppercase text-slate-900 dark:text-slate-400 tracking-widest transition-colors">Change Log</span>
-              </div>
-              <div className="flex-1 overflow-y-auto p-4 custom-scrollbar bg-white dark:bg-slate-950/20">
-                <div 
-                  className="prose dark:prose-invert max-w-none text-[10px] leading-relaxed text-slate-600 dark:text-slate-400"
-                  dangerouslySetInnerHTML={{ __html: selectedKey.log }}
-                />
-              </div>
-            </div>
-          )}
         </aside>
 
-        {/* Sheet Content Viewer */}
+        {/* Main Content Area */}
         <main className="flex-1 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-md overflow-hidden flex flex-col shadow-sm dark:shadow-xl relative transition-all">
           <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/[0.03] dark:bg-indigo-600/5 blur-[100px] rounded-full pointer-events-none transition-all"></div>
           
-          {activeSheet ? (
-            <div className="flex-1 flex flex-col overflow-hidden">
+          {activeSheet === null ? (
+            /* VERSION INFO / LOG VIEW */
+            <div className="flex-1 flex flex-col overflow-hidden animate-in slide-in-from-right-2 duration-300">
+              <div className="p-5 border-b border-slate-200/60 dark:border-slate-800/50 flex items-center gap-3 bg-slate-50/50 dark:bg-slate-950/20 shrink-0">
+                <History className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
+                <h3 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest">Version Info & Log</h3>
+              </div>
+              
+              <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+                <div className="max-w-3xl mx-auto space-y-6">
+                  {/* Meta Cards */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-sm flex items-center gap-4">
+                      <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
+                        <User className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <div>
+                        <span className="text-[8px] font-black text-slate-400 uppercase block mb-0.5 tracking-widest">Last Updated By</span>
+                        <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{selectedKey.updater}</span>
+                      </div>
+                    </div>
+                    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-sm flex items-center gap-4">
+                      <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl">
+                        <Calendar className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                      </div>
+                      <div>
+                        <span className="text-[8px] font-black text-slate-400 uppercase block mb-0.5 tracking-widest">Updated Date</span>
+                        <span className="text-sm font-bold text-slate-700 dark:text-slate-200">
+                          {new Date(selectedKey.updateDate).toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Log Content Card */}
+                  <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden flex flex-col">
+                    <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-950/10 flex items-center justify-between">
+                      <span className="text-[9px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-[0.2em]">Change Log Detail</span>
+                      <span className="text-[8px] font-black text-slate-400 uppercase">Rev. v{selectedKey.revNo}</span>
+                    </div>
+                    <div className="p-8">
+                      <div 
+                        className="prose dark:prose-invert max-w-none text-xs leading-relaxed text-slate-600 dark:text-slate-400 font-medium whitespace-pre-wrap"
+                      >
+                        {selectedKey.log || "No update details provided for this version."}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Workbook Stats */}
+                  <div className="bg-slate-50 dark:bg-slate-950/20 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl p-6 flex justify-around text-center">
+                    <div>
+                      <span className="text-[8px] font-black text-slate-400 uppercase block mb-1 tracking-widest">Total Sheets</span>
+                      <span className="text-xl font-black text-slate-900 dark:text-white">{workbook.Worksheets?.length || 0}</span>
+                    </div>
+                    <div className="w-[1px] bg-slate-200 dark:bg-slate-800"></div>
+                    <div>
+                      <span className="text-[8px] font-black text-slate-400 uppercase block mb-1 tracking-widest">Original Filename</span>
+                      <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{selectedKey.filename}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            /* DATA SHEET VIEW */
+            <div className="flex-1 flex flex-col overflow-hidden animate-in fade-in duration-300">
               {/* Sheet Sub-header */}
               <div className="p-5 border-b border-slate-200/60 dark:border-slate-800/50 flex justify-between items-center bg-slate-50/50 dark:bg-slate-950/20 shrink-0 transition-colors">
                 <div className="flex items-center gap-3">
@@ -163,11 +241,6 @@ export const PhotoKeyDetail: React.FC = () => {
                   </tbody>
                 </table>
               </div>
-            </div>
-          ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 transition-colors">
-              <FileSpreadsheet className="w-12 h-12 mb-3.5 opacity-[0.05] dark:opacity-10 transition-opacity" />
-              <p className="text-[10px] font-black uppercase tracking-[0.4em]">Select a sheet to view</p>
             </div>
           )}
         </main>
