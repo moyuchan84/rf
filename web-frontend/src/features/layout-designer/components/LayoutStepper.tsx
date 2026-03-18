@@ -20,10 +20,10 @@ export const LayoutStepper: React.FC<LayoutStepperProps> = ({
   onStepClick 
 }) => {
   return (
-    <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-2xl backdrop-blur-xl">
+    <div className="bg-white dark:bg-slate-900/80 border border-slate-200/60 dark:border-slate-800 rounded-md p-6 shadow-sm dark:shadow-2xl backdrop-blur-xl transition-all">
       <div className="flex items-center justify-between relative px-4">
         {/* Progress Line */}
-        <div className="absolute top-[22px] left-10 right-10 h-0.5 bg-slate-800 z-0"></div>
+        <div className="absolute top-[22px] left-10 right-10 h-0.5 bg-slate-100 dark:bg-slate-800 z-0"></div>
         
         {steps.map((step, index) => {
           const isActive = index === currentStepIndex;
@@ -37,10 +37,10 @@ export const LayoutStepper: React.FC<LayoutStepperProps> = ({
               <button
                 onClick={() => onStepClick(index)}
                 className={cn(
-                  "w-11 h-11 rounded-xl flex items-center justify-center transition-all border-2 active:scale-95",
-                  isActive ? "bg-indigo-600 border-indigo-400 shadow-[0_0_20px_rgba(79,70,229,0.4)]" : 
-                  isDone ? "bg-emerald-600/20 border-emerald-500 text-emerald-500" :
-                  "bg-slate-950 border-slate-800 text-slate-700 hover:border-slate-600 hover:text-slate-500"
+                  "w-11 h-11 rounded-md flex items-center justify-center transition-all border-2 active:scale-95",
+                  isActive ? "bg-indigo-600 border-indigo-400 shadow-lg shadow-indigo-600/20 dark:shadow-[0_0_20px_rgba(79,70,229,0.4)]" : 
+                  isDone ? "bg-emerald-50 dark:bg-emerald-600/20 border-emerald-500 text-emerald-600 dark:text-emerald-500" :
+                  "bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:text-slate-600 dark:hover:text-slate-500"
                 )}
               >
                 {isDone ? <CheckCircle2 className="w-5 h-5" /> : 
@@ -52,12 +52,12 @@ export const LayoutStepper: React.FC<LayoutStepperProps> = ({
               <div className="text-center">
                 <p className={cn(
                   "text-[9px] font-black uppercase tracking-[0.15em] transition-colors",
-                  isActive ? "text-indigo-400" : 
-                  isDone ? "text-emerald-500" : "text-slate-600"
+                  isActive ? "text-indigo-600 dark:text-indigo-400" : 
+                  isDone ? "text-emerald-600 dark:text-emerald-500" : "text-slate-400 dark:text-slate-600"
                 )}>
                   {step.name}
                 </p>
-                <span className="text-[7px] font-bold text-slate-700 uppercase mt-1 block">
+                <span className="text-[7px] font-bold text-slate-400 dark:text-slate-700 uppercase mt-1 block tracking-wider">
                   {step.description}
                 </span>
               </div>

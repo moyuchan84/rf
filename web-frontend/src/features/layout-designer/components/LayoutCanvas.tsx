@@ -12,13 +12,13 @@ export const LayoutCanvas: React.FC = () => {
   } = useCanvasLogic();
 
   if (status === 'loading') {
-    return <div className="w-full h-full min-h-[400px] flex items-center justify-center bg-slate-900 animate-pulse rounded-2xl" />;
+    return <div className="w-full h-full min-h-[400px] flex items-center justify-center bg-slate-50 dark:bg-slate-900 animate-pulse rounded-md border border-slate-200 dark:border-slate-800" />;
   }
 
   return (
     <div 
       ref={containerRef} 
-      className="flex-1 w-full h-full min-h-[400px] bg-slate-950 relative flex items-center justify-center overflow-hidden border border-slate-800 rounded-2xl"
+      className="flex-1 w-full h-full min-h-[400px] bg-slate-100 dark:bg-slate-950 relative flex items-center justify-center overflow-hidden border border-slate-200 dark:border-slate-800 rounded-md shadow-inner transition-colors duration-300"
     >
       {img && dimensions.width > 0 && dimensions.height > 0 ? (
         <Stage 
@@ -54,16 +54,16 @@ export const LayoutCanvas: React.FC = () => {
               <Group onClick={(e) => { e.cancelBubble = true; selectElement(boundary.id); }}>
                 <Rect
                   x={boundary.x} y={boundary.y} width={boundary.width} height={boundary.height}
-                  stroke={selectedId === boundary.id ? "#ffffff" : "#ef4444"}
+                  stroke={selectedId === boundary.id ? "#6366f1" : "#ef4444"}
                   strokeWidth={(selectedId === boundary.id ? 6 : 4) / stageScale}
                   shadowBlur={selectedId === boundary.id ? 10 / stageScale : 0}
-                  shadowColor="#ef4444"
+                  shadowColor={selectedId === boundary.id ? "#6366f1" : "#ef4444"}
                   dash={[10 / stageScale, 5 / stageScale]}
                   fill="rgba(239, 68, 68, 0.05)"
                 />
                 <Text 
                   text="BOUNDARY" x={boundary.x} y={boundary.y - 15 / stageScale} 
-                  fill={selectedId === boundary.id ? "#ffffff" : "#ef4444"}
+                  fill={selectedId === boundary.id ? "#6366f1" : "#ef4444"}
                   fontSize={10 / stageScale} fontStyle="bold"
                 />
               </Group>
@@ -75,15 +75,15 @@ export const LayoutCanvas: React.FC = () => {
                 <Group key={chip.id} onClick={(e) => { e.cancelBubble = true; selectElement(chip.id); }}>
                   <Rect
                     x={chip.x} y={chip.y} width={chip.width} height={chip.height}
-                    stroke={selectedId === chip.id ? "#ffffff" : "#10b981"}
+                    stroke={selectedId === chip.id ? "#6366f1" : "#10b981"}
                     strokeWidth={(selectedId === chip.id ? 4 : 2) / stageScale}
                     shadowBlur={selectedId === chip.id ? 8 / stageScale : 0}
-                    shadowColor="#10b981"
+                    shadowColor={selectedId === chip.id ? "#6366f1" : "#10b981"}
                     fill={chip.isManual ? "rgba(245, 158, 11, 0.15)" : "rgba(16, 185, 129, 0.1)"}
                   />
                   <Text 
                     text={chip.isManual ? "MANUAL" : "CHIP"} x={chip.x} y={chip.y - 12 / stageScale} 
-                    fill={selectedId === chip.id ? "#ffffff" : "#10b981"}
+                    fill={selectedId === chip.id ? "#6366f1" : "#10b981"}
                     fontSize={8 / stageScale} fontStyle="bold"
                   />
                 </Group>
@@ -114,13 +114,13 @@ export const LayoutCanvas: React.FC = () => {
           </Layer>
         </Stage>
       ) : (
-        <div className="flex flex-col items-center gap-3 text-slate-700">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-slate-800"></div>
+        <div className="flex flex-col items-center gap-3 text-slate-400 dark:text-slate-700 transition-colors">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600 dark:border-slate-800"></div>
           <span className="text-[10px] font-black uppercase tracking-[0.2em]">Ready for Workspace</span>
         </div>
       )}
       
-      <div className="absolute bottom-4 left-4 px-3 py-1 bg-black/60 backdrop-blur rounded text-[10px] font-black text-white/50 border border-white/10 pointer-events-none">
+      <div className="absolute bottom-4 left-4 px-3 py-1 bg-white/80 dark:bg-black/60 backdrop-blur rounded-sm text-[10px] font-black text-slate-600 dark:text-white/50 border border-slate-200/60 dark:border-white/10 pointer-events-none shadow-sm transition-colors">
         {Math.round(stageScale * 100)}% ZOOM
       </div>
     </div>
