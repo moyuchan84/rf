@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { v4 as uuidv4 } from 'uuid';
 
 export interface Point {
   x: number;
@@ -12,14 +13,14 @@ export interface GeometricObject {
   width: number;
   height: number;
   isManual?: boolean;
-  visible?: boolean;
+  visible: boolean; // 필수 속성으로 변경
+  tag: 'BOUNDARY' | 'CHIP';
 }
 
-export interface Scribelane {
+export interface LaneElement {
   id: string;
   p1: Point;
   p2: Point;
-  orientation: 'HORIZONTAL' | 'VERTICAL';
   visible?: boolean;
 }
 
@@ -44,29 +45,32 @@ interface LayoutState {
   productId: number | null;
   boundary: GeometricObject | null;
   chips: GeometricObject[];
-  scribelanes: Scribelane[];
+  laneElements: LaneElement[];
   placements: GeometricObject[];
   shotInfo: ShotInfo | null;
   config: LayoutConfig;
-  scale: number;
-  selectedId: string | null;
+  selectedId: string | null; // 하이라이트용
   imageUrl: string | null;
   currentStep: number;
+  isAddMode: boolean;
 
   // Actions
   setTitle: (title: string) => void;
   setProductId: (id: number | null) => void;
   setBoundary: (boundary: GeometricObject | null) => void;
   setChips: (chips: GeometricObject[]) => void;
-  setScribelanes: (scribelanes: Scribelane[]) => void;
+  addChip: (chip: Omit<GeometricObject, 'id' | 'tag' | 'visible'>) => void;
+  removeChip: (id: string) => void;
+  toggleRole: (id: string) => void;
+  setLaneElements: (elements: LaneElement[]) => void;
   setPlacements: (placements: GeometricObject[]) => void;
   updatePlacement: (id: string, updates: Partial<GeometricObject>) => void;
   setShotInfo: (info: ShotInfo | null) => void;
   setConfig: (config: Partial<LayoutConfig>) => void;
-  setScale: (scale: number) => void;
   selectElement: (id: string | null) => void;
   setImageUrl: (url: string | null) => void;
   setCurrentStep: (step: number) => void;
+  setAddMode: (isAddMode: boolean) => void;
   reset: () => void;
 }
 
@@ -84,20 +88,41 @@ export const useLayoutStore = create<LayoutState>((set) => ({
   productId: null,
   boundary: null,
   chips: [],
-  scribelanes: [],
+  laneElements: [],
   placements: [],
   shotInfo: null,
   config: initialConfig,
-  scale: 1,
   selectedId: null,
   imageUrl: null,
   currentStep: 0,
+  isAddMode: false,
 
   setTitle: (title) => set({ title }),
   setProductId: (productId) => set({ productId }),
-  setBoundary: (boundary) => set({ boundary }),
-  setChips: (chips) => set({ chips }),
-  setScribelanes: (scribelanes) => set({ scribelanes }),
+  setBoundary: (boundary) => set({ boundary: boundary ? { ...boundary, tag: 'BOUNDARY', visible: boundary.visible ?? true } : null }),
+  setChips: (chips) => set({ chips: chips.map(c => ({ ...c, tag: 'CHIP', visible: c.visible ?? true })) }),
+  addChip: (chip) => set((state) => ({ 
+    chips: [...state.chips, { ...chip, id: uuidv4(), tag: 'CHIP', visible: true, isManual: true }] 
+  })),
+  removeChip: (id) => set((state) => ({ 
+    chips: state.chips.filter(c => c.id !== id),
+    selectedId: state.selectedId === id ? null : state.selectedId
+  })),
+  toggleRole: (id) => set((state) => {
+    if (state.boundary?.id === id) {
+      return { boundary: null, chips: [...state.chips, { ...state.boundary, tag: 'CHIP' }] };
+    }
+    const chipToMove = state.chips.find(c => c.id === id);
+    if (chipToMove) {
+      const oldBoundaryAsChip = state.boundary ? [{ ...state.boundary, tag: 'CHIP' as const }] : [];
+      return {
+        boundary: { ...chipToMove, tag: 'BOUNDARY' },
+        chips: [...state.chips.filter(c => c.id !== id), ...oldBoundaryAsChip]
+      };
+    }
+    return state;
+  }),
+  setLaneElements: (laneElements) => set({ laneElements }),
   setPlacements: (placements) => set({ placements }),
   updatePlacement: (id, updates) =>
     set((state) => ({
@@ -106,25 +131,14 @@ export const useLayoutStore = create<LayoutState>((set) => ({
       ),
     })),
   setShotInfo: (info) => set({ shotInfo: info }),
-  setConfig: (config) =>
-    set((state) => ({ config: { ...state.config, ...config } })),
-  setScale: (scale) => set({ scale }),
-  selectElement: (id) => set({ selectedId: id }),
+  setConfig: (config) => set((state) => ({ config: { ...state.config, ...config } })),
+  selectElement: (selectedId) => set({ selectedId }),
   setImageUrl: (url) => set({ imageUrl: url }),
   setCurrentStep: (currentStep) => set({ currentStep }),
-  reset: () =>
-    set({
-      title: 'Untitled Layout',
-      productId: null,
-      boundary: null,
-      chips: [],
-      scribelanes: [],
-      placements: [],
-      shotInfo: null,
-      config: initialConfig,
-      scale: 1,
-      selectedId: null,
-      imageUrl: null,
-      currentStep: 0,
-    }),
+  setAddMode: (isAddMode) => set({ isAddMode }),
+  reset: () => set({
+    title: 'Untitled Layout', productId: null, boundary: null, chips: [], laneElements: [], 
+    placements: [], shotInfo: null, config: initialConfig, selectedId: null, 
+    imageUrl: null, currentStep: 0, isAddMode: false,
+  }),
 }));
