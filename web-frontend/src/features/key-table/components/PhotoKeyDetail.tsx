@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { cn } from '@/shared/utils/cn';
-import { Database, FileSpreadsheet, Download, ArrowLeft, Layers } from 'lucide-react';
+import { Database, FileSpreadsheet, Download, ArrowLeft, Layers, History } from 'lucide-react';
 import { ExcelRestoreService } from '../services/ExcelRestoreService';
 import { useKeyTableStore } from '../store/useKeyTableStore';
 
@@ -58,34 +58,52 @@ export const PhotoKeyDetail: React.FC = () => {
       </header>
 
       <div className="flex-1 flex gap-5 overflow-hidden">
-        {/* Worksheets Navigation */}
-        <aside className="w-56 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-md flex flex-col overflow-hidden shrink-0 shadow-sm dark:shadow-xl transition-all">
-          <div className="p-4 border-b border-slate-200/60 dark:border-slate-800 flex items-center gap-1.5 bg-slate-50/50 dark:bg-slate-950/30 transition-colors">
-            <Layers className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
-            <span className="text-[8px] font-black uppercase text-slate-900 dark:text-slate-400 tracking-widest transition-colors">Worksheets</span>
-          </div>
-          <div className="flex-1 overflow-y-auto p-3 space-y-1.5 custom-scrollbar">
-            {workbook.Worksheets?.map((sheet: any, idx: number) => (
-              <div 
-                key={sheet.SheetName || idx}
-                onClick={() => setActiveSheet(sheet)}
-                className={cn(
-                  "p-3 rounded-md cursor-pointer transition-all border border-transparent group",
-                  activeSheet === sheet ? "bg-indigo-600 border-indigo-500/30 text-white shadow-md shadow-indigo-600/20" : "hover:bg-slate-100 dark:hover:bg-slate-800/50 text-slate-500 dark:text-slate-500"
-                )}
-              >
-                <div className="flex items-center justify-between gap-1.5">
-                  <span className="text-[10px] font-black truncate uppercase transition-colors">{sheet.SheetName}</span>
-                  <span className={cn(
-                    "text-[7px] font-black px-1 py-0.5 rounded-sm uppercase transition-colors",
-                    activeSheet === sheet ? "bg-white/20 text-white" : "bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-600"
-                  )}>
-                    {sheet.SheetType}
-                  </span>
+        {/* Worksheets Navigation & Log */}
+        <aside className="w-56 flex flex-col gap-5 shrink-0 overflow-hidden">
+          <div className="flex-1 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-md flex flex-col overflow-hidden shadow-sm dark:shadow-xl transition-all">
+            <div className="p-4 border-b border-slate-200/60 dark:border-slate-800 flex items-center gap-1.5 bg-slate-50/50 dark:bg-slate-950/30 transition-colors">
+              <Layers className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
+              <span className="text-[8px] font-black uppercase text-slate-900 dark:text-slate-400 tracking-widest transition-colors">Worksheets</span>
+            </div>
+            <div className="flex-1 overflow-y-auto p-3 space-y-1.5 custom-scrollbar">
+              {workbook.Worksheets?.map((sheet: any, idx: number) => (
+                <div 
+                  key={sheet.SheetName || idx}
+                  onClick={() => setActiveSheet(sheet)}
+                  className={cn(
+                    "p-3 rounded-md cursor-pointer transition-all border border-transparent group",
+                    activeSheet === sheet ? "bg-indigo-600 border-indigo-500/30 text-white shadow-md shadow-indigo-600/20" : "hover:bg-slate-100 dark:hover:bg-slate-800/50 text-slate-500 dark:text-slate-500"
+                  )}
+                >
+                  <div className="flex items-center justify-between gap-1.5">
+                    <span className="text-[10px] font-black truncate uppercase transition-colors">{sheet.SheetName}</span>
+                    <span className={cn(
+                      "text-[7px] font-black px-1 py-0.5 rounded-sm uppercase transition-colors",
+                      activeSheet === sheet ? "bg-white/20 text-white" : "bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-600"
+                    )}>
+                      {sheet.SheetType}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
+
+          {/* Change Log Section */}
+          {selectedKey.log && (
+            <div className="h-48 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-md flex flex-col overflow-hidden shadow-sm dark:shadow-xl transition-all">
+              <div className="p-4 border-b border-slate-200/60 dark:border-slate-800 flex items-center gap-1.5 bg-slate-50/50 dark:bg-slate-950/30 transition-colors">
+                <History className="w-3.5 h-3.5 text-purple-500 dark:text-purple-400" />
+                <span className="text-[8px] font-black uppercase text-slate-900 dark:text-slate-400 tracking-widest transition-colors">Change Log</span>
+              </div>
+              <div className="flex-1 overflow-y-auto p-4 custom-scrollbar bg-white dark:bg-slate-950/20">
+                <div 
+                  className="prose dark:prose-invert max-w-none text-[10px] leading-relaxed text-slate-600 dark:text-slate-400"
+                  dangerouslySetInnerHTML={{ __html: selectedKey.log }}
+                />
+              </div>
+            </div>
+          )}
         </aside>
 
         {/* Sheet Content Viewer */}
@@ -133,7 +151,7 @@ export const PhotoKeyDetail: React.FC = () => {
                   </thead>
                   <tbody className="divide-y divide-slate-200/60 dark:divide-slate-800/30 text-[10px] font-medium text-slate-600 dark:text-slate-400 transition-colors">
                     {activeSheet.TableData?.map((row: any, rIdx: number) => (
-                      <tr key={rIdx} className="hover:bg-indigo-500/5 transition-colors group">
+                      <tr key={rIdx} className="hover:bg-indigo-50/5 transition-colors group">
                         <td className="p-3 text-center border-r border-slate-200/60 dark:border-r-slate-800/50 bg-slate-50/30 dark:bg-slate-950/10 text-slate-400 dark:text-slate-600 font-mono text-[9px] transition-colors">{rIdx + 1}</td>
                         {activeSheet.Columns?.map((col: any) => (
                           <td key={col.Key} className="p-3 border-r border-slate-200/60 dark:border-r-slate-800/30 group-hover:text-slate-900 dark:group-hover:text-slate-200 transition-colors">

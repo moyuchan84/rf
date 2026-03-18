@@ -17,7 +17,8 @@ class PhotoKeyRepository:
             rev_no=obj_in.rev_no,
             workbook_data=obj_in.workbook_data,
             filename=obj_in.filename,
-            updater=obj_in.updater
+            updater=obj_in.updater,
+            log=obj_in.log
         )
         self.db.add(db_obj)
         self.db.commit()

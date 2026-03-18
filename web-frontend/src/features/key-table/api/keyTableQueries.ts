@@ -10,6 +10,7 @@ export const GET_PHOTO_KEYS = gql`
       photoCategory
       isReference
       filename
+      log
       updateDate
       productId
       processPlanId

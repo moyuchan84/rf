@@ -14,6 +14,10 @@ import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-
  * Learn more about it here: https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#reducing-bundle-size
  */
 type Documents = {
+    "\n  query GetKeyDesigns {\n    keyDesigns {\n      id\n      name\n      keyType\n      sizeX\n      sizeY\n      isVertical\n      isHorizontal\n      rotation\n      description\n      gdsPath\n      edmList\n      xAxis\n      yAxis\n      images\n      processPlans {\n        id\n        designRule\n      }\n      createdAt\n      updatedAt\n    }\n  }\n": typeof types.GetKeyDesignsDocument,
+    "\n  mutation CreateKeyDesign($input: CreateKeyDesignInput!) {\n    createKeyDesign(input: $input) {\n      id\n      name\n    }\n  }\n": typeof types.CreateKeyDesignDocument,
+    "\n  mutation UpdateKeyDesign($id: Int!, $input: UpdateKeyDesignInput!) {\n    updateKeyDesign(id: $id, input: $input) {\n      id\n      name\n    }\n  }\n": typeof types.UpdateKeyDesignDocument,
+    "\n  mutation RemoveKeyDesign($id: Int!) {\n    removeKeyDesign(id: $id) {\n      id\n    }\n  }\n": typeof types.RemoveKeyDesignDocument,
     "\n  query GetPhotoKeys($productId: Int, $beolOptionId: Int, $processPlanId: Int) {\n    photoKeys(productId: $productId, beolOptionId: $beolOptionId, processPlanId: $processPlanId) {\n      id\n      tableName\n      revNo\n      rfgCategory\n      photoCategory\n      isReference\n      filename\n      updateDate\n      productId\n      processPlanId\n      beolOptionId\n      workbookData\n    }\n  }\n": typeof types.GetPhotoKeysDocument,
     "\n  query GetLayouts($productId: Int!) {\n    layouts(productId: $productId) {\n      id\n      title\n      boundary\n      chips\n      scribelanes\n      placements\n      shotInfo\n      config\n      imageUrl\n    }\n  }\n": typeof types.GetLayoutsDocument,
     "\n  mutation SaveLayout($input: CreateLayoutInput!) {\n    saveLayout(input: $input) {\n      id\n      title\n    }\n  }\n": typeof types.SaveLayoutDocument,
@@ -39,6 +43,10 @@ type Documents = {
     "\n  query GetRequestTables($requestId: Int!, $type: String!) {\n    requestTables(requestId: $requestId, type: $type) {\n      id\n      photoKeyId\n      type\n    }\n  }\n": typeof types.GetRequestTablesDocument,
 };
 const documents: Documents = {
+    "\n  query GetKeyDesigns {\n    keyDesigns {\n      id\n      name\n      keyType\n      sizeX\n      sizeY\n      isVertical\n      isHorizontal\n      rotation\n      description\n      gdsPath\n      edmList\n      xAxis\n      yAxis\n      images\n      processPlans {\n        id\n        designRule\n      }\n      createdAt\n      updatedAt\n    }\n  }\n": types.GetKeyDesignsDocument,
+    "\n  mutation CreateKeyDesign($input: CreateKeyDesignInput!) {\n    createKeyDesign(input: $input) {\n      id\n      name\n    }\n  }\n": types.CreateKeyDesignDocument,
+    "\n  mutation UpdateKeyDesign($id: Int!, $input: UpdateKeyDesignInput!) {\n    updateKeyDesign(id: $id, input: $input) {\n      id\n      name\n    }\n  }\n": types.UpdateKeyDesignDocument,
+    "\n  mutation RemoveKeyDesign($id: Int!) {\n    removeKeyDesign(id: $id) {\n      id\n    }\n  }\n": types.RemoveKeyDesignDocument,
     "\n  query GetPhotoKeys($productId: Int, $beolOptionId: Int, $processPlanId: Int) {\n    photoKeys(productId: $productId, beolOptionId: $beolOptionId, processPlanId: $processPlanId) {\n      id\n      tableName\n      revNo\n      rfgCategory\n      photoCategory\n      isReference\n      filename\n      updateDate\n      productId\n      processPlanId\n      beolOptionId\n      workbookData\n    }\n  }\n": types.GetPhotoKeysDocument,
     "\n  query GetLayouts($productId: Int!) {\n    layouts(productId: $productId) {\n      id\n      title\n      boundary\n      chips\n      scribelanes\n      placements\n      shotInfo\n      config\n      imageUrl\n    }\n  }\n": types.GetLayoutsDocument,
     "\n  mutation SaveLayout($input: CreateLayoutInput!) {\n    saveLayout(input: $input) {\n      id\n      title\n    }\n  }\n": types.SaveLayoutDocument,
@@ -78,6 +86,22 @@ const documents: Documents = {
  */
 export function gql(source: string): unknown;
 
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(source: "\n  query GetKeyDesigns {\n    keyDesigns {\n      id\n      name\n      keyType\n      sizeX\n      sizeY\n      isVertical\n      isHorizontal\n      rotation\n      description\n      gdsPath\n      edmList\n      xAxis\n      yAxis\n      images\n      processPlans {\n        id\n        designRule\n      }\n      createdAt\n      updatedAt\n    }\n  }\n"): (typeof documents)["\n  query GetKeyDesigns {\n    keyDesigns {\n      id\n      name\n      keyType\n      sizeX\n      sizeY\n      isVertical\n      isHorizontal\n      rotation\n      description\n      gdsPath\n      edmList\n      xAxis\n      yAxis\n      images\n      processPlans {\n        id\n        designRule\n      }\n      createdAt\n      updatedAt\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(source: "\n  mutation CreateKeyDesign($input: CreateKeyDesignInput!) {\n    createKeyDesign(input: $input) {\n      id\n      name\n    }\n  }\n"): (typeof documents)["\n  mutation CreateKeyDesign($input: CreateKeyDesignInput!) {\n    createKeyDesign(input: $input) {\n      id\n      name\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(source: "\n  mutation UpdateKeyDesign($id: Int!, $input: UpdateKeyDesignInput!) {\n    updateKeyDesign(id: $id, input: $input) {\n      id\n      name\n    }\n  }\n"): (typeof documents)["\n  mutation UpdateKeyDesign($id: Int!, $input: UpdateKeyDesignInput!) {\n    updateKeyDesign(id: $id, input: $input) {\n      id\n      name\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(source: "\n  mutation RemoveKeyDesign($id: Int!) {\n    removeKeyDesign(id: $id) {\n      id\n    }\n  }\n"): (typeof documents)["\n  mutation RemoveKeyDesign($id: Int!) {\n    removeKeyDesign(id: $id) {\n      id\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

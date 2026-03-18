@@ -42,6 +42,23 @@ export type CreateBeolOptionInput = {
   processPlanId: Scalars['Int']['input'];
 };
 
+export type CreateKeyDesignInput = {
+  description?: InputMaybe<Scalars['String']['input']>;
+  edmList?: Array<Scalars['String']['input']>;
+  gdsPath?: InputMaybe<Scalars['String']['input']>;
+  images?: Array<Scalars['String']['input']>;
+  isHorizontal?: Scalars['Boolean']['input'];
+  isVertical?: Scalars['Boolean']['input'];
+  keyType: Scalars['String']['input'];
+  name: Scalars['String']['input'];
+  processPlanIds?: Array<Scalars['Int']['input']>;
+  rotation?: Scalars['Float']['input'];
+  sizeX: Scalars['Float']['input'];
+  sizeY: Scalars['Float']['input'];
+  xAxis: Scalars['JSON']['input'];
+  yAxis: Scalars['JSON']['input'];
+};
+
 export type CreateLayoutInput = {
   beolOptionId?: InputMaybe<Scalars['Int']['input']>;
   boundary?: InputMaybe<Scalars['JSON']['input']>;
@@ -87,10 +104,32 @@ export type CreateStreamInfoInput = {
   streamPath: Scalars['String']['input'];
 };
 
+export type KeyDesign = {
+  __typename?: 'KeyDesign';
+  createdAt: Scalars['DateTime']['output'];
+  description?: Maybe<Scalars['String']['output']>;
+  edmList: Array<Scalars['String']['output']>;
+  gdsPath?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  images: Array<Scalars['String']['output']>;
+  isHorizontal: Scalars['Boolean']['output'];
+  isVertical: Scalars['Boolean']['output'];
+  keyType: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  processPlans?: Maybe<Array<ProcessPlan>>;
+  rotation: Scalars['Float']['output'];
+  sizeX: Scalars['Float']['output'];
+  sizeY: Scalars['Float']['output'];
+  updatedAt: Scalars['DateTime']['output'];
+  xAxis: Scalars['JSON']['output'];
+  yAxis: Scalars['JSON']['output'];
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
   assignUser: RequestAssignee;
   createBeolOption: BeolOption;
+  createKeyDesign: KeyDesign;
   createProcessPlan: ProcessPlan;
   createProduct: Product;
   createRequestItem: RequestItem;
@@ -101,8 +140,10 @@ export type Mutation = {
   deleteProduct: Product;
   deleteRequestItem: RequestItem;
   removeAssignee: RequestAssignee;
+  removeKeyDesign: KeyDesign;
   saveLayout: ReticleLayout;
   saveRequestTables: Array<RequestTableMap>;
+  updateKeyDesign: KeyDesign;
   updateLayout: ReticleLayout;
   updateProduct: Product;
   updateRequestItem: RequestItem;
@@ -117,6 +158,11 @@ export type MutationAssignUserArgs = {
 
 export type MutationCreateBeolOptionArgs = {
   input: CreateBeolOptionInput;
+};
+
+
+export type MutationCreateKeyDesignArgs = {
+  input: CreateKeyDesignInput;
 };
 
 
@@ -170,6 +216,11 @@ export type MutationRemoveAssigneeArgs = {
 };
 
 
+export type MutationRemoveKeyDesignArgs = {
+  id: Scalars['Int']['input'];
+};
+
+
 export type MutationSaveLayoutArgs = {
   input: CreateLayoutInput;
 };
@@ -177,6 +228,12 @@ export type MutationSaveLayoutArgs = {
 
 export type MutationSaveRequestTablesArgs = {
   input: SaveRequestTablesInput;
+};
+
+
+export type MutationUpdateKeyDesignArgs = {
+  id: Scalars['Int']['input'];
+  input: UpdateKeyDesignInput;
 };
 
 
@@ -208,6 +265,7 @@ export type PhotoKey = {
   filename: Scalars['String']['output'];
   id: Scalars['Int']['output'];
   isReference: Scalars['Boolean']['output'];
+  log?: Maybe<Scalars['String']['output']>;
   photoCategory?: Maybe<Scalars['String']['output']>;
   processPlanId?: Maybe<Scalars['Int']['output']>;
   productId: Scalars['Int']['output'];
@@ -225,6 +283,7 @@ export type ProcessPlan = {
   createdAt: Scalars['DateTime']['output'];
   designRule: Scalars['String']['output'];
   id: Scalars['Int']['output'];
+  keyDesigns?: Maybe<Array<KeyDesign>>;
   updatedAt: Scalars['DateTime']['output'];
 };
 
@@ -269,6 +328,8 @@ export type ProductMetaInput = {
 
 export type Query = {
   __typename?: 'Query';
+  keyDesign: KeyDesign;
+  keyDesigns: Array<KeyDesign>;
   layout?: Maybe<ReticleLayout>;
   layouts: Array<ReticleLayout>;
   photoKeys: Array<PhotoKey>;
@@ -279,6 +340,11 @@ export type Query = {
   requestTables: Array<RequestTableMap>;
   streamInfoByRequest: Array<StreamInfo>;
   streamInfosByProduct: Array<StreamInfo>;
+};
+
+
+export type QueryKeyDesignArgs = {
+  id: Scalars['Int']['input'];
 };
 
 
@@ -415,6 +481,23 @@ export type StreamInfo = {
   updatedAt: Scalars['DateTime']['output'];
 };
 
+export type UpdateKeyDesignInput = {
+  description?: InputMaybe<Scalars['String']['input']>;
+  edmList?: InputMaybe<Array<Scalars['String']['input']>>;
+  gdsPath?: InputMaybe<Scalars['String']['input']>;
+  images?: InputMaybe<Array<Scalars['String']['input']>>;
+  isHorizontal?: InputMaybe<Scalars['Boolean']['input']>;
+  isVertical?: InputMaybe<Scalars['Boolean']['input']>;
+  keyType?: InputMaybe<Scalars['String']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  processPlanIds?: InputMaybe<Array<Scalars['Int']['input']>>;
+  rotation?: InputMaybe<Scalars['Float']['input']>;
+  sizeX?: InputMaybe<Scalars['Float']['input']>;
+  sizeY?: InputMaybe<Scalars['Float']['input']>;
+  xAxis?: InputMaybe<Scalars['JSON']['input']>;
+  yAxis?: InputMaybe<Scalars['JSON']['input']>;
+};
+
 export type UpdateLayoutInput = {
   boundary?: InputMaybe<Scalars['JSON']['input']>;
   chips?: InputMaybe<Scalars['JSON']['input']>;
@@ -448,6 +531,33 @@ export type UpdateStepInput = {
   workContent?: InputMaybe<Scalars['String']['input']>;
   workerId?: InputMaybe<Scalars['String']['input']>;
 };
+
+export type GetKeyDesignsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetKeyDesignsQuery = { __typename?: 'Query', keyDesigns: Array<{ __typename?: 'KeyDesign', id: string, name: string, keyType: string, sizeX: number, sizeY: number, isVertical: boolean, isHorizontal: boolean, rotation: number, description?: string | null, gdsPath?: string | null, edmList: Array<string>, xAxis: any, yAxis: any, images: Array<string>, createdAt: any, updatedAt: any, processPlans?: Array<{ __typename?: 'ProcessPlan', id: number, designRule: string }> | null }> };
+
+export type CreateKeyDesignMutationVariables = Exact<{
+  input: CreateKeyDesignInput;
+}>;
+
+
+export type CreateKeyDesignMutation = { __typename?: 'Mutation', createKeyDesign: { __typename?: 'KeyDesign', id: string, name: string } };
+
+export type UpdateKeyDesignMutationVariables = Exact<{
+  id: Scalars['Int']['input'];
+  input: UpdateKeyDesignInput;
+}>;
+
+
+export type UpdateKeyDesignMutation = { __typename?: 'Mutation', updateKeyDesign: { __typename?: 'KeyDesign', id: string, name: string } };
+
+export type RemoveKeyDesignMutationVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type RemoveKeyDesignMutation = { __typename?: 'Mutation', removeKeyDesign: { __typename?: 'KeyDesign', id: string } };
 
 export type GetPhotoKeysQueryVariables = Exact<{
   productId?: InputMaybe<Scalars['Int']['input']>;
@@ -612,6 +722,10 @@ export type GetRequestTablesQueryVariables = Exact<{
 export type GetRequestTablesQuery = { __typename?: 'Query', requestTables: Array<{ __typename?: 'RequestTableMap', id: number, photoKeyId: number, type: string }> };
 
 
+export const GetKeyDesignsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetKeyDesigns"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"keyDesigns"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"keyType"}},{"kind":"Field","name":{"kind":"Name","value":"sizeX"}},{"kind":"Field","name":{"kind":"Name","value":"sizeY"}},{"kind":"Field","name":{"kind":"Name","value":"isVertical"}},{"kind":"Field","name":{"kind":"Name","value":"isHorizontal"}},{"kind":"Field","name":{"kind":"Name","value":"rotation"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"gdsPath"}},{"kind":"Field","name":{"kind":"Name","value":"edmList"}},{"kind":"Field","name":{"kind":"Name","value":"xAxis"}},{"kind":"Field","name":{"kind":"Name","value":"yAxis"}},{"kind":"Field","name":{"kind":"Name","value":"images"}},{"kind":"Field","name":{"kind":"Name","value":"processPlans"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"designRule"}}]}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}}]}}]} as unknown as DocumentNode<GetKeyDesignsQuery, GetKeyDesignsQueryVariables>;
+export const CreateKeyDesignDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateKeyDesign"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateKeyDesignInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createKeyDesign"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]} as unknown as DocumentNode<CreateKeyDesignMutation, CreateKeyDesignMutationVariables>;
+export const UpdateKeyDesignDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateKeyDesign"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"UpdateKeyDesignInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateKeyDesign"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}},{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]} as unknown as DocumentNode<UpdateKeyDesignMutation, UpdateKeyDesignMutationVariables>;
+export const RemoveKeyDesignDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"RemoveKeyDesign"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"removeKeyDesign"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<RemoveKeyDesignMutation, RemoveKeyDesignMutationVariables>;
 export const GetPhotoKeysDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetPhotoKeys"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"productId"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"beolOptionId"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"processPlanId"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"photoKeys"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"productId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"productId"}}},{"kind":"Argument","name":{"kind":"Name","value":"beolOptionId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"beolOptionId"}}},{"kind":"Argument","name":{"kind":"Name","value":"processPlanId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"processPlanId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"tableName"}},{"kind":"Field","name":{"kind":"Name","value":"revNo"}},{"kind":"Field","name":{"kind":"Name","value":"rfgCategory"}},{"kind":"Field","name":{"kind":"Name","value":"photoCategory"}},{"kind":"Field","name":{"kind":"Name","value":"isReference"}},{"kind":"Field","name":{"kind":"Name","value":"filename"}},{"kind":"Field","name":{"kind":"Name","value":"updateDate"}},{"kind":"Field","name":{"kind":"Name","value":"productId"}},{"kind":"Field","name":{"kind":"Name","value":"processPlanId"}},{"kind":"Field","name":{"kind":"Name","value":"beolOptionId"}},{"kind":"Field","name":{"kind":"Name","value":"workbookData"}}]}}]}}]} as unknown as DocumentNode<GetPhotoKeysQuery, GetPhotoKeysQueryVariables>;
 export const GetLayoutsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetLayouts"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"productId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"layouts"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"productId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"productId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"boundary"}},{"kind":"Field","name":{"kind":"Name","value":"chips"}},{"kind":"Field","name":{"kind":"Name","value":"scribelanes"}},{"kind":"Field","name":{"kind":"Name","value":"placements"}},{"kind":"Field","name":{"kind":"Name","value":"shotInfo"}},{"kind":"Field","name":{"kind":"Name","value":"config"}},{"kind":"Field","name":{"kind":"Name","value":"imageUrl"}}]}}]}}]} as unknown as DocumentNode<GetLayoutsQuery, GetLayoutsQueryVariables>;
 export const SaveLayoutDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SaveLayout"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateLayoutInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"saveLayout"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}}]}}]}}]} as unknown as DocumentNode<SaveLayoutMutation, SaveLayoutMutationVariables>;

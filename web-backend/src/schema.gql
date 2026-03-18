@@ -144,6 +144,7 @@ type PhotoKey {
   filename: String!
   id: Int!
   isReference: Boolean!
+  log: String
   photoCategory: String
   processPlanId: Int
   productId: Int!

@@ -78,4 +78,5 @@ class PhotoKey(Base):
     workbook_data = Column(JSON)
     filename = Column(String)
     updater = Column(String)
+    log = Column(Text, nullable=True)
     update_date = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

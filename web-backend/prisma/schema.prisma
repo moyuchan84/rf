@@ -167,6 +167,7 @@ model PhotoKey {
   workbookData  Json?    @map("workbook_data")
   filename      String?
   updater       String?
+  log           String?  @db.Text
   updateDate    DateTime @default(now()) @map("update_date")
 
   requestMaps RequestTableMap[]

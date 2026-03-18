@@ -81,6 +81,9 @@ export class PhotoKey {
   @Field({ nullable: true })
   updater?: string;
 
+  @Field({ nullable: true })
+  log?: string;
+
   @Field(() => GraphQLJSON, { nullable: true })
   workbookData?: any;
 

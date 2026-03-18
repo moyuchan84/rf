@@ -11,6 +11,7 @@ class PhotoKeyBase(BaseModel):
     workbook_data: Dict[str, Any]
     filename: str
     updater: str
+    log: Optional[str] = None
 
 class PhotoKeyCreate(PhotoKeyBase):
     process_plan: str

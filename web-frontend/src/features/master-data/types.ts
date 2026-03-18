@@ -67,6 +67,7 @@ export interface PhotoKey {
   revNo: number;
   filename?: string | null;
   updater?: string | null;
+  log?: string | null;
   workbookData?: any;
   updateDate: string;
 }
