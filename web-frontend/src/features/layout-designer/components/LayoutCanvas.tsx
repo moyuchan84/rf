@@ -1,131 +1,128 @@
-import React, { useRef, useEffect, useState, useMemo } from 'react';
-import { Stage, Layer, Rect, Image as KonvaImage, Circle, Group } from 'react-konva';
+import React from 'react';
+import { Stage, Layer, Rect, Image as KonvaImage, Circle, Group, Text, Line } from 'react-konva';
 import { useLayoutStore } from '../store/useLayoutStore';
-import useImage from 'use-image';
+import { useCanvasLogic } from '../hooks/useCanvasLogic';
 
 export const LayoutCanvas: React.FC = () => {
-  const { boundary, chips, placements, imageUrl, updatePlacement } = useLayoutStore();
-  
-  // 데이터 URL의 경우 anonymous 설정이 불필요하거나 문제가 될 수 있음 제거
-  const [img, status] = useImage(imageUrl || '');
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const { boundary, chips, laneElements, placements, updatePlacement, currentStep, selectedId, selectElement } = useLayoutStore();
+  const {
+    containerRef, stageRef, img, status, dimensions,
+    stageScale, stagePos, setStagePos, handleWheel,
+    handleMouseDown, handleMouseMove, handleMouseUp, tempRect
+  } = useCanvasLogic();
 
-  // 컴포넌트 마운트 시 및 imageUrl 변경 시 크기 재측정 강제
-  useEffect(() => {
-    const updateSize = () => {
-      if (containerRef.current) {
-        const { clientWidth, clientHeight } = containerRef.current;
-        console.log(`[Canvas] Measuring: ${clientWidth}x${clientHeight}`);
-        if (clientWidth > 0 && clientHeight > 0) {
-          setDimensions({ width: clientWidth, height: clientHeight });
-        }
-      }
-    };
-
-    const ro = new ResizeObserver(updateSize);
-    if (containerRef.current) ro.observe(containerRef.current);
-    
-    // 즉시 측정 시도
-    updateSize();
-    
-    // 애니메이션 등으로 인해 지연 측정 필요할 수 있음
-    const timer = setTimeout(updateSize, 100);
-
-    return () => {
-      ro.disconnect();
-      clearTimeout(timer);
-    };
-  }, [imageUrl]); // 이미지 URL이 들어올 때 다시 측정
-
-  const { scale, x, y } = useMemo(() => {
-    if (!img || dimensions.width === 0 || dimensions.height === 0) return { scale: 1, x: 0, y: 0 };
-    
-    const scaleX = dimensions.width / img.width;
-    const scaleY = dimensions.height / img.height;
-    const s = Math.min(scaleX, scaleY, 1) * 0.95;
-    
-    return {
-      scale: s,
-      x: (dimensions.width - img.width * s) / 2,
-      y: (dimensions.height - img.height * s) / 2
-    };
-  }, [img, dimensions]);
-
-  // 디버깅 로그 강화
-  useEffect(() => {
-    console.log(`[Canvas] State -> Status: ${status}, HasImg: ${!!img}, HasURL: ${!!imageUrl}, Dim: ${dimensions.width}x${dimensions.height}`);
-  }, [status, img, imageUrl, dimensions]);
-
-  if (status === 'loading' || !imageUrl) {
-    return (
-      <div className="w-full h-full min-h-[400px] flex flex-col items-center justify-center bg-slate-900 gap-3">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-500"></div>
-        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-          {!imageUrl ? 'Waiting for Image...' : 'Loading Image...'}
-        </span>
-      </div>
-    );
+  if (status === 'loading') {
+    return <div className="w-full h-full min-h-[400px] flex items-center justify-center bg-slate-900 animate-pulse rounded-2xl" />;
   }
 
   return (
-    <div ref={containerRef} className="w-full h-full min-h-[400px] bg-slate-950 relative flex items-center justify-center overflow-hidden border border-slate-800 rounded-2xl">
-      {img && dimensions.width > 0 ? (
-        <Stage width={dimensions.width} height={dimensions.height}>
-          <Layer x={x} y={y} scaleX={scale} scaleY={scale}>
+    <div 
+      ref={containerRef} 
+      className="flex-1 w-full h-full min-h-[400px] bg-slate-950 relative flex items-center justify-center overflow-hidden border border-slate-800 rounded-2xl"
+    >
+      {img && dimensions.width > 0 && dimensions.height > 0 ? (
+        <Stage 
+          ref={stageRef}
+          width={dimensions.width} height={dimensions.height}
+          scaleX={stageScale} scaleY={stageScale}
+          x={stagePos.x} y={stagePos.y}
+          onWheel={handleWheel}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          draggable={!tempRect}
+          onDragEnd={(e) => setStagePos({ x: e.target.x(), y: e.target.y() })}
+          style={{ cursor: currentStep === 1 ? 'crosshair' : 'grab' }}
+          onClick={() => selectElement(null)} // Deselect on empty click
+        >
+          <Layer>
             <KonvaImage image={img} opacity={1} />
-            <Group opacity={0.8}>
-              {boundary && (
+
+            {/* Scribelane Elements (Linearized) */}
+            {laneElements.map(lane => (
+              <Line 
+                key={lane.id}
+                points={[lane.p1.x, lane.p1.y, lane.p2.x, lane.p2.y]}
+                stroke="#6366f1"
+                strokeWidth={2 / stageScale}
+                opacity={0.6}
+              />
+            ))}
+
+            {/* Boundary */}
+            {boundary?.visible && (
+              <Group onClick={(e) => { e.cancelBubble = true; selectElement(boundary.id); }}>
                 <Rect
-                  x={boundary.x}
-                  y={boundary.y}
-                  width={boundary.width}
-                  height={boundary.height}
-                  stroke="#10b981"
-                  strokeWidth={4 / scale}
-                  dash={[10 / scale, 5 / scale]}
-                  fill="rgba(16, 185, 129, 0.05)"
+                  x={boundary.x} y={boundary.y} width={boundary.width} height={boundary.height}
+                  stroke={selectedId === boundary.id ? "#ffffff" : "#ef4444"}
+                  strokeWidth={(selectedId === boundary.id ? 6 : 4) / stageScale}
+                  shadowBlur={selectedId === boundary.id ? 10 / stageScale : 0}
+                  shadowColor="#ef4444"
+                  dash={[10 / stageScale, 5 / stageScale]}
+                  fill="rgba(239, 68, 68, 0.05)"
                 />
-              )}
-              {chips.map((chip) => (
-                <Rect
-                  key={chip.id}
-                  x={chip.x}
-                  y={chip.y}
-                  width={chip.width}
-                  height={chip.height}
-                  stroke="#48BB78"
-                  strokeWidth={2 / scale}
-                  fill="rgba(72, 187, 120, 0.1)"
+                <Text 
+                  text="BOUNDARY" x={boundary.x} y={boundary.y - 15 / stageScale} 
+                  fill={selectedId === boundary.id ? "#ffffff" : "#ef4444"}
+                  fontSize={10 / stageScale} fontStyle="bold"
                 />
-              ))}
-            </Group>
+              </Group>
+            )}
+
+            {/* Chips */}
+            {chips.map((chip) => (
+              chip.visible && (
+                <Group key={chip.id} onClick={(e) => { e.cancelBubble = true; selectElement(chip.id); }}>
+                  <Rect
+                    x={chip.x} y={chip.y} width={chip.width} height={chip.height}
+                    stroke={selectedId === chip.id ? "#ffffff" : "#10b981"}
+                    strokeWidth={(selectedId === chip.id ? 4 : 2) / stageScale}
+                    shadowBlur={selectedId === chip.id ? 8 / stageScale : 0}
+                    shadowColor="#10b981"
+                    fill={chip.isManual ? "rgba(245, 158, 11, 0.15)" : "rgba(16, 185, 129, 0.1)"}
+                  />
+                  <Text 
+                    text={chip.isManual ? "MANUAL" : "CHIP"} x={chip.x} y={chip.y - 12 / stageScale} 
+                    fill={selectedId === chip.id ? "#ffffff" : "#10b981"}
+                    fontSize={8 / stageScale} fontStyle="bold"
+                  />
+                </Group>
+              )
+            ))}
+
+            {/* Drawing Temp Rect */}
+            {tempRect && (
+              <Rect 
+                x={tempRect.x} y={tempRect.y} width={tempRect.w} height={tempRect.h}
+                stroke="#f59e0b" strokeWidth={1 / stageScale} dash={[5 / stageScale, 2 / stageScale]}
+              />
+            )}
+
+            {/* Placements */}
             {placements.map((p) => (
                <Circle 
                   key={p.id}
-                  x={p.x + p.width / 2}
-                  y={p.y + p.height / 2}
+                  x={p.x + p.width / 2} y={p.y + p.height / 2}
                   radius={Math.max(p.width, p.height) / 2}
-                  fill="#3182CE"
-                  stroke="#63B3ED"
-                  strokeWidth={2 / scale}
+                  fill="#3b82f6" stroke="#60a5fa" strokeWidth={2 / stageScale}
                   draggable
                   onDragEnd={(e) => {
-                    updatePlacement(p.id, {
-                      x: e.target.x() - p.width / 2,
-                      y: e.target.y() - p.height / 2,
-                    });
+                    updatePlacement(p.id, { x: e.target.x() - p.width / 2, y: e.target.y() - p.height / 2 });
                   }}
                />
             ))}
           </Layer>
         </Stage>
       ) : (
-        <div className="flex flex-col items-center gap-2 text-slate-600">
-          <div className="animate-pulse w-12 h-12 bg-slate-900 rounded-full mb-2"></div>
-          <span className="text-[10px] font-black uppercase tracking-widest">Initializing Canvas...</span>
+        <div className="flex flex-col items-center gap-3 text-slate-700">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-slate-800"></div>
+          <span className="text-[10px] font-black uppercase tracking-[0.2em]">Ready for Workspace</span>
         </div>
       )}
+      
+      <div className="absolute bottom-4 left-4 px-3 py-1 bg-black/60 backdrop-blur rounded text-[10px] font-black text-white/50 border border-white/10 pointer-events-none">
+        {Math.round(stageScale * 100)}% ZOOM
+      </div>
     </div>
   );
 };

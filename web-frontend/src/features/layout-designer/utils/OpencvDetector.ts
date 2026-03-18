@@ -55,28 +55,25 @@ export class OpencvDetector {
 
     const contours = new cv.MatVector();
     const hierarchy = new cv.Mat();
-    // Use RETR_LIST to find nested boxes
     cv.findContours(finalMask, contours, hierarchy, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE);
 
-    const detectedRects: GeometricObject[] = [];
+    const candidates: GeometricObject[] = [];
     const minArea = (imgElement.width * imgElement.height) * 0.0005;
 
     for (let i = 0; i < contours.size(); ++i) {
       const cnt = contours.get(i);
       const area = cv.contourArea(cnt);
-      
       if (area < minArea) continue;
 
       const approx = new cv.Mat();
       cv.approxPolyDP(cnt, approx, 0.02 * cv.arcLength(cnt, true), true);
 
-      // Check if it's a 4-point polygon
       if (approx.rows === 4) {
         const bound = cv.boundingRect(approx);
         const extent = area / (bound.width * bound.height);
         
-        if (extent > 0.7) { // More generous extent
-          detectedRects.push({
+        if (extent > 0.7) {
+          candidates.push({
             id: uuidv4(),
             x: Math.round(bound.x),
             y: Math.round(bound.y),
@@ -84,13 +81,41 @@ export class OpencvDetector {
             height: Math.round(bound.height),
             isManual: false,
             visible: true,
+            tag: 'CHIP' // Default, will be assigned later
           });
         }
       }
       approx.delete();
     }
 
-    console.log(`[OpenCV] Total contours: ${contours.size()}, Rects found: ${detectedRects.length}`);
+    // 2. Deduplication Logic: Remove outer boxes of double-lines
+    // Sort by area ASCENDING to process smaller (inner) boxes first
+    candidates.sort((a, b) => (a.width * a.height) - (b.width * b.height));
+
+    const detectedRects: GeometricObject[] = [];
+    const dupThreshold = 15; // px margin to consider as "same box"
+
+    for (const cand of candidates) {
+      let isDuplicate = false;
+      for (const accepted of detectedRects) {
+        const dx = Math.abs(cand.x - accepted.x);
+        const dy = Math.abs(cand.y - accepted.y);
+        const dw = Math.abs(cand.width - accepted.width);
+        const dh = Math.abs(cand.height - accepted.height);
+
+        // If this candidate is almost the same as an already accepted (smaller) box
+        if (dx < dupThreshold && dy < dupThreshold && dw < dupThreshold && dh < dupThreshold) {
+          isDuplicate = true;
+          break;
+        }
+      }
+      
+      if (!isDuplicate) {
+        detectedRects.push(cand);
+      }
+    }
+
+    console.log(`[OpenCV] Candidates: ${candidates.length}, Rects after cleanup: ${detectedRects.length}`);
 
     // Cleanup
     [src, gray, hsv, m1, m2, mask, edges, contours, hierarchy, low1, high1, low2, high2].forEach(m => {
