@@ -8,6 +8,8 @@ import { ConfigModule } from '@nestjs/config';
 import { MasterDataModule } from './master-data/master-data.module';
 import { RequestsModule } from './requests/requests.module';
 import { LayoutsModule } from './layouts/layouts.module';
+import { KeyDesignModule } from './key-design/key-design.module';
+import { PrismaModule } from './prisma.module';
 
 @Module({
   imports: [
@@ -19,9 +21,11 @@ import { LayoutsModule } from './layouts/layouts.module';
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
       sortSchema: true,
     }),
+    PrismaModule,
     MasterDataModule,
     RequestsModule,
     LayoutsModule,
+    KeyDesignModule,
   ],
   controllers: [AppController],
   providers: [AppService],
