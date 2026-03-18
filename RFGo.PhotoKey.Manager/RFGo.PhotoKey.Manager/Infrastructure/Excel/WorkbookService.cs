@@ -36,6 +36,16 @@ namespace RFGo.PhotoKey.Manager.Infrastructure.Excel
                 workbookData.Meta.FileName = Path.GetFileName(filePath);
                 workbookData.Meta.FullPath = filePath;
 
+                // Suggested logic: 2nd sheet name as table name
+                if (workbook.Sheets.Count >= 2)
+                {
+                    MSExcel.Worksheet secondSheet = workbook.Sheets[2] as MSExcel.Worksheet;
+                    workbookData.Meta.SuggestedTableName = secondSheet?.Name;
+                }
+
+                // Parse revision from filename
+                workbookData.Meta.Revision = ExtractRevisionFromPath(filePath);
+
                 for (int i = 1; i <= workbook.Sheets.Count; i++)
                 {
                     MSExcel.Worksheet sheet = workbook.Sheets[i] as MSExcel.Worksheet;
@@ -53,6 +63,22 @@ namespace RFGo.PhotoKey.Manager.Infrastructure.Excel
             }
 
             return workbookData;
+        }
+
+        private int ExtractRevisionFromPath(string path)
+        {
+            try
+            {
+                string fileName = Path.GetFileName(path);
+                // Look for _R{number}_ pattern
+                var match = System.Text.RegularExpressions.Regex.Match(fileName, @"_R(\d+)_");
+                if (match.Success && int.TryParse(match.Groups[1].Value, out int rev))
+                {
+                    return rev;
+                }
+            }
+            catch { }
+            return 1; // Default revision
         }
 
         private WorksheetData ParseWorksheet(MSExcel.Worksheet sheet, int index)
@@ -187,6 +213,16 @@ namespace RFGo.PhotoKey.Manager.Infrastructure.Excel
             {
                 workbookData.Meta.FileName = workbook.Name;
                 workbookData.Meta.FullPath = workbook.FullName;
+
+                // Suggested logic: 2nd sheet name as table name
+                if (workbook.Sheets.Count >= 2)
+                {
+                    MSExcel.Worksheet secondSheet = workbook.Sheets[2] as MSExcel.Worksheet;
+                    workbookData.Meta.SuggestedTableName = secondSheet?.Name;
+                }
+
+                // Parse revision from filename
+                workbookData.Meta.Revision = ExtractRevisionFromPath(workbook.FullName);
 
                 for (int i = 1; i <= workbook.Sheets.Count; i++)
                 {

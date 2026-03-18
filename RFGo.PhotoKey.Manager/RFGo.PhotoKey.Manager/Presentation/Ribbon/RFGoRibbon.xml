@@ -2,7 +2,15 @@
 <customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui" onLoad="Ribbon_Load">
   <ribbon>
     <tabs>
-      <tab id="tabPhotoKey" label="PhotoKey">
+      <tab id="tabPhotoKey" label="RFGO">
+
+		<group id="groupMaster" label="Standard Info">
+			<button id="btnManageMasterData"
+					label="Master Data"
+					size="large"
+					onAction="OnManageMasterData"
+					imageMso="TableDesign" />
+		</group>
         <group id="groupManager" label="Data Loader">
           <button id="btnOpenTaskPane" label="Folder Upload" 
                   size="large" onAction="OnOpenTaskPane" 
@@ -19,13 +27,6 @@
                   imageMso="GetExternalDataFromAccess" />
         </group>
 
-        <group id="groupMaster" label="Standard Info">
-          <button id="btnManageMasterData" 
-                  label="Master Data" 
-                  size="large" 
-                  onAction="OnManageMasterData" 
-                  imageMso="TableDesign" />
-        </group>
       </tab>
     </tabs>
   </ribbon>
