@@ -58,7 +58,7 @@ web-frontend/dist/
 web-frontend/node_modules/
 
 # === Backend Specific ===
-#backend/.env
+backend/.env
 backend/migrations/versions/*.pyc
 
 # === Docker ===

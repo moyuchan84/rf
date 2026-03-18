@@ -17,7 +17,7 @@ from app.domain.models import Base
 config = context.config
 
 # config.py의 데이터베이스 URL을 alembic 설정에 주입합니다.
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+config.set_main_option("sqlalchemy.url", settings.sqlalchemy_database_url)
 
 # 로깅 설정
 if config.config_file_name is not None:
