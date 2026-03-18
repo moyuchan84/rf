@@ -158,12 +158,13 @@ export class RequestsService {
   }
 
   async findPhotoKeys(filters: { productId?: number; beolOptionId?: number; processPlanId?: number }) {
+    const where: any = {};
+    if (filters.productId !== undefined) where.productId = filters.productId;
+    if (filters.beolOptionId !== undefined) where.beolOptionId = filters.beolOptionId;
+    if (filters.processPlanId !== undefined) where.processPlanId = filters.processPlanId;
+
     return this.prisma.photoKey.findMany({
-      where: {
-        productId: filters.productId,
-        beolOptionId: filters.beolOptionId,
-        processPlanId: filters.processPlanId,
-      },
+      where,
       include: {
         product: true,
         processPlan: true,
