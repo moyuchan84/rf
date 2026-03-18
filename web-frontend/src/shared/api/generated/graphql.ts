@@ -42,6 +42,20 @@ export type CreateBeolOptionInput = {
   processPlanId: Scalars['Int']['input'];
 };
 
+export type CreateLayoutInput = {
+  beolOptionId?: InputMaybe<Scalars['Int']['input']>;
+  boundary?: InputMaybe<Scalars['JSON']['input']>;
+  chips?: InputMaybe<Scalars['JSON']['input']>;
+  config?: InputMaybe<Scalars['JSON']['input']>;
+  imageUrl?: InputMaybe<Scalars['String']['input']>;
+  placements?: InputMaybe<Scalars['JSON']['input']>;
+  processPlanId?: InputMaybe<Scalars['Int']['input']>;
+  productId: Scalars['Int']['input'];
+  scribelanes?: InputMaybe<Scalars['JSON']['input']>;
+  shotInfo?: InputMaybe<Scalars['JSON']['input']>;
+  title: Scalars['String']['input'];
+};
+
 export type CreateProcessPlanInput = {
   designRule: Scalars['String']['input'];
 };
@@ -82,11 +96,14 @@ export type Mutation = {
   createRequestItem: RequestItem;
   createStreamInfo: StreamInfo;
   deleteBeolOption: BeolOption;
+  deleteLayout: ReticleLayout;
   deleteProcessPlan: ProcessPlan;
   deleteProduct: Product;
   deleteRequestItem: RequestItem;
   removeAssignee: RequestAssignee;
+  saveLayout: ReticleLayout;
   saveRequestTables: Array<RequestTableMap>;
+  updateLayout: ReticleLayout;
   updateProduct: Product;
   updateRequestItem: RequestItem;
   updateRequestStep: RequestStep;
@@ -128,6 +145,11 @@ export type MutationDeleteBeolOptionArgs = {
 };
 
 
+export type MutationDeleteLayoutArgs = {
+  id: Scalars['Int']['input'];
+};
+
+
 export type MutationDeleteProcessPlanArgs = {
   id: Scalars['Int']['input'];
 };
@@ -148,8 +170,19 @@ export type MutationRemoveAssigneeArgs = {
 };
 
 
+export type MutationSaveLayoutArgs = {
+  input: CreateLayoutInput;
+};
+
+
 export type MutationSaveRequestTablesArgs = {
   input: SaveRequestTablesInput;
+};
+
+
+export type MutationUpdateLayoutArgs = {
+  id: Scalars['Int']['input'];
+  input: UpdateLayoutInput;
 };
 
 
@@ -236,6 +269,8 @@ export type ProductMetaInput = {
 
 export type Query = {
   __typename?: 'Query';
+  layout?: Maybe<ReticleLayout>;
+  layouts: Array<ReticleLayout>;
   photoKeys: Array<PhotoKey>;
   processPlans: Array<ProcessPlan>;
   requestItem?: Maybe<RequestItem>;
@@ -244,6 +279,16 @@ export type Query = {
   requestTables: Array<RequestTableMap>;
   streamInfoByRequest: Array<StreamInfo>;
   streamInfosByProduct: Array<StreamInfo>;
+};
+
+
+export type QueryLayoutArgs = {
+  id: Scalars['Int']['input'];
+};
+
+
+export type QueryLayoutsArgs = {
+  productId: Scalars['Int']['input'];
 };
 
 
@@ -328,6 +373,24 @@ export type RequestTableMap = {
   type: Scalars['String']['output'];
 };
 
+export type ReticleLayout = {
+  __typename?: 'ReticleLayout';
+  beolOptionId?: Maybe<Scalars['Int']['output']>;
+  boundary?: Maybe<Scalars['JSON']['output']>;
+  chips?: Maybe<Scalars['JSON']['output']>;
+  config?: Maybe<Scalars['JSON']['output']>;
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['Int']['output'];
+  imageUrl?: Maybe<Scalars['String']['output']>;
+  placements?: Maybe<Scalars['JSON']['output']>;
+  processPlanId?: Maybe<Scalars['Int']['output']>;
+  productId: Scalars['Int']['output'];
+  scribelanes?: Maybe<Scalars['JSON']['output']>;
+  shotInfo?: Maybe<Scalars['JSON']['output']>;
+  title: Scalars['String']['output'];
+  updatedAt: Scalars['DateTime']['output'];
+};
+
 export type SaveRequestTablesInput = {
   beolOptionId: Scalars['Int']['input'];
   photoKeyIds: Array<Scalars['Int']['input']>;
@@ -350,6 +413,18 @@ export type StreamInfo = {
   streamOutput: Array<Scalars['String']['output']>;
   streamPath: Scalars['String']['output'];
   updatedAt: Scalars['DateTime']['output'];
+};
+
+export type UpdateLayoutInput = {
+  boundary?: InputMaybe<Scalars['JSON']['input']>;
+  chips?: InputMaybe<Scalars['JSON']['input']>;
+  config?: InputMaybe<Scalars['JSON']['input']>;
+  id: Scalars['Int']['input'];
+  imageUrl?: InputMaybe<Scalars['String']['input']>;
+  placements?: InputMaybe<Scalars['JSON']['input']>;
+  scribelanes?: InputMaybe<Scalars['JSON']['input']>;
+  shotInfo?: InputMaybe<Scalars['JSON']['input']>;
+  title?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdateProductInput = {
@@ -382,6 +457,20 @@ export type GetPhotoKeysQueryVariables = Exact<{
 
 
 export type GetPhotoKeysQuery = { __typename?: 'Query', photoKeys: Array<{ __typename?: 'PhotoKey', id: number, tableName: string, revNo: number, rfgCategory?: string | null, photoCategory?: string | null, isReference: boolean, filename: string, updateDate: any, productId: number, processPlanId?: number | null, beolOptionId?: number | null, workbookData?: any | null }> };
+
+export type GetLayoutsQueryVariables = Exact<{
+  productId: Scalars['Int']['input'];
+}>;
+
+
+export type GetLayoutsQuery = { __typename?: 'Query', layouts: Array<{ __typename?: 'ReticleLayout', id: number, title: string, boundary?: any | null, chips?: any | null, scribelanes?: any | null, placements?: any | null, shotInfo?: any | null, config?: any | null, imageUrl?: string | null }> };
+
+export type SaveLayoutMutationVariables = Exact<{
+  input: CreateLayoutInput;
+}>;
+
+
+export type SaveLayoutMutation = { __typename?: 'Mutation', saveLayout: { __typename?: 'ReticleLayout', id: number, title: string } };
 
 export type GetProcessPlansQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -524,6 +613,8 @@ export type GetRequestTablesQuery = { __typename?: 'Query', requestTables: Array
 
 
 export const GetPhotoKeysDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetPhotoKeys"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"productId"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"beolOptionId"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"processPlanId"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"photoKeys"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"productId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"productId"}}},{"kind":"Argument","name":{"kind":"Name","value":"beolOptionId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"beolOptionId"}}},{"kind":"Argument","name":{"kind":"Name","value":"processPlanId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"processPlanId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"tableName"}},{"kind":"Field","name":{"kind":"Name","value":"revNo"}},{"kind":"Field","name":{"kind":"Name","value":"rfgCategory"}},{"kind":"Field","name":{"kind":"Name","value":"photoCategory"}},{"kind":"Field","name":{"kind":"Name","value":"isReference"}},{"kind":"Field","name":{"kind":"Name","value":"filename"}},{"kind":"Field","name":{"kind":"Name","value":"updateDate"}},{"kind":"Field","name":{"kind":"Name","value":"productId"}},{"kind":"Field","name":{"kind":"Name","value":"processPlanId"}},{"kind":"Field","name":{"kind":"Name","value":"beolOptionId"}},{"kind":"Field","name":{"kind":"Name","value":"workbookData"}}]}}]}}]} as unknown as DocumentNode<GetPhotoKeysQuery, GetPhotoKeysQueryVariables>;
+export const GetLayoutsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetLayouts"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"productId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"layouts"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"productId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"productId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"boundary"}},{"kind":"Field","name":{"kind":"Name","value":"chips"}},{"kind":"Field","name":{"kind":"Name","value":"scribelanes"}},{"kind":"Field","name":{"kind":"Name","value":"placements"}},{"kind":"Field","name":{"kind":"Name","value":"shotInfo"}},{"kind":"Field","name":{"kind":"Name","value":"config"}},{"kind":"Field","name":{"kind":"Name","value":"imageUrl"}}]}}]}}]} as unknown as DocumentNode<GetLayoutsQuery, GetLayoutsQueryVariables>;
+export const SaveLayoutDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SaveLayout"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateLayoutInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"saveLayout"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}}]}}]}}]} as unknown as DocumentNode<SaveLayoutMutation, SaveLayoutMutationVariables>;
 export const GetProcessPlansDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetProcessPlans"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"processPlans"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"designRule"}},{"kind":"Field","name":{"kind":"Name","value":"beolOptions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"optionName"}},{"kind":"Field","name":{"kind":"Name","value":"products"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"partId"}},{"kind":"Field","name":{"kind":"Name","value":"productName"}},{"kind":"Field","name":{"kind":"Name","value":"metaInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"processId"}},{"kind":"Field","name":{"kind":"Name","value":"mtoDate"}},{"kind":"Field","name":{"kind":"Name","value":"customer"}},{"kind":"Field","name":{"kind":"Name","value":"application"}},{"kind":"Field","name":{"kind":"Name","value":"chipSizeX"}},{"kind":"Field","name":{"kind":"Name","value":"chipSizeY"}},{"kind":"Field","name":{"kind":"Name","value":"slSizeX"}},{"kind":"Field","name":{"kind":"Name","value":"slSizeY"}}]}}]}}]}}]}}]}}]} as unknown as DocumentNode<GetProcessPlansQuery, GetProcessPlansQueryVariables>;
 export const CreateProcessPlanDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateProcessPlan"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateProcessPlanInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createProcessPlan"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"designRule"}}]}}]}}]} as unknown as DocumentNode<CreateProcessPlanMutation, CreateProcessPlanMutationVariables>;
 export const CreateBeolOptionDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateBeolOption"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateBeolOptionInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createBeolOption"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"optionName"}}]}}]}}]} as unknown as DocumentNode<CreateBeolOptionMutation, CreateBeolOptionMutationVariables>;

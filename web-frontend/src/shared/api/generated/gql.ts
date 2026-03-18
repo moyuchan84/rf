@@ -15,6 +15,8 @@ import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-
  */
 type Documents = {
     "\n  query GetPhotoKeys($productId: Int, $beolOptionId: Int, $processPlanId: Int) {\n    photoKeys(productId: $productId, beolOptionId: $beolOptionId, processPlanId: $processPlanId) {\n      id\n      tableName\n      revNo\n      rfgCategory\n      photoCategory\n      isReference\n      filename\n      updateDate\n      productId\n      processPlanId\n      beolOptionId\n      workbookData\n    }\n  }\n": typeof types.GetPhotoKeysDocument,
+    "\n  query GetLayouts($productId: Int!) {\n    layouts(productId: $productId) {\n      id\n      title\n      boundary\n      chips\n      scribelanes\n      placements\n      shotInfo\n      config\n      imageUrl\n    }\n  }\n": typeof types.GetLayoutsDocument,
+    "\n  mutation SaveLayout($input: CreateLayoutInput!) {\n    saveLayout(input: $input) {\n      id\n      title\n    }\n  }\n": typeof types.SaveLayoutDocument,
     "\n  query GetProcessPlans {\n    processPlans {\n      id\n      designRule\n      beolOptions {\n        id\n        optionName\n        products {\n          id\n          partId\n          productName\n          metaInfo {\n            id\n            processId\n            mtoDate\n            customer\n            application\n            chipSizeX\n            chipSizeY\n            slSizeX\n            slSizeY\n          }\n        }\n      }\n    }\n  }\n": typeof types.GetProcessPlansDocument,
     "\n  mutation CreateProcessPlan($input: CreateProcessPlanInput!) {\n    createProcessPlan(input: $input) {\n      id\n      designRule\n    }\n  }\n": typeof types.CreateProcessPlanDocument,
     "\n  mutation CreateBeolOption($input: CreateBeolOptionInput!) {\n    createBeolOption(input: $input) {\n      id\n      optionName\n    }\n  }\n": typeof types.CreateBeolOptionDocument,
@@ -38,6 +40,8 @@ type Documents = {
 };
 const documents: Documents = {
     "\n  query GetPhotoKeys($productId: Int, $beolOptionId: Int, $processPlanId: Int) {\n    photoKeys(productId: $productId, beolOptionId: $beolOptionId, processPlanId: $processPlanId) {\n      id\n      tableName\n      revNo\n      rfgCategory\n      photoCategory\n      isReference\n      filename\n      updateDate\n      productId\n      processPlanId\n      beolOptionId\n      workbookData\n    }\n  }\n": types.GetPhotoKeysDocument,
+    "\n  query GetLayouts($productId: Int!) {\n    layouts(productId: $productId) {\n      id\n      title\n      boundary\n      chips\n      scribelanes\n      placements\n      shotInfo\n      config\n      imageUrl\n    }\n  }\n": types.GetLayoutsDocument,
+    "\n  mutation SaveLayout($input: CreateLayoutInput!) {\n    saveLayout(input: $input) {\n      id\n      title\n    }\n  }\n": types.SaveLayoutDocument,
     "\n  query GetProcessPlans {\n    processPlans {\n      id\n      designRule\n      beolOptions {\n        id\n        optionName\n        products {\n          id\n          partId\n          productName\n          metaInfo {\n            id\n            processId\n            mtoDate\n            customer\n            application\n            chipSizeX\n            chipSizeY\n            slSizeX\n            slSizeY\n          }\n        }\n      }\n    }\n  }\n": types.GetProcessPlansDocument,
     "\n  mutation CreateProcessPlan($input: CreateProcessPlanInput!) {\n    createProcessPlan(input: $input) {\n      id\n      designRule\n    }\n  }\n": types.CreateProcessPlanDocument,
     "\n  mutation CreateBeolOption($input: CreateBeolOptionInput!) {\n    createBeolOption(input: $input) {\n      id\n      optionName\n    }\n  }\n": types.CreateBeolOptionDocument,
@@ -78,6 +82,14 @@ export function gql(source: string): unknown;
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(source: "\n  query GetPhotoKeys($productId: Int, $beolOptionId: Int, $processPlanId: Int) {\n    photoKeys(productId: $productId, beolOptionId: $beolOptionId, processPlanId: $processPlanId) {\n      id\n      tableName\n      revNo\n      rfgCategory\n      photoCategory\n      isReference\n      filename\n      updateDate\n      productId\n      processPlanId\n      beolOptionId\n      workbookData\n    }\n  }\n"): (typeof documents)["\n  query GetPhotoKeys($productId: Int, $beolOptionId: Int, $processPlanId: Int) {\n    photoKeys(productId: $productId, beolOptionId: $beolOptionId, processPlanId: $processPlanId) {\n      id\n      tableName\n      revNo\n      rfgCategory\n      photoCategory\n      isReference\n      filename\n      updateDate\n      productId\n      processPlanId\n      beolOptionId\n      workbookData\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(source: "\n  query GetLayouts($productId: Int!) {\n    layouts(productId: $productId) {\n      id\n      title\n      boundary\n      chips\n      scribelanes\n      placements\n      shotInfo\n      config\n      imageUrl\n    }\n  }\n"): (typeof documents)["\n  query GetLayouts($productId: Int!) {\n    layouts(productId: $productId) {\n      id\n      title\n      boundary\n      chips\n      scribelanes\n      placements\n      shotInfo\n      config\n      imageUrl\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(source: "\n  mutation SaveLayout($input: CreateLayoutInput!) {\n    saveLayout(input: $input) {\n      id\n      title\n    }\n  }\n"): (typeof documents)["\n  mutation SaveLayout($input: CreateLayoutInput!) {\n    saveLayout(input: $input) {\n      id\n      title\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

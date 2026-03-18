@@ -20,7 +20,7 @@ export const StreamInfoForm: React.FC<StreamInfoFormProps> = ({ request, onSave 
   const [newInput, setNewInput] = useState('');
   const [newOutput, setNewOutput] = useState('');
 
-  const { data: existingData } = useQuery(GET_STREAM_INFO_BY_REQUEST, {
+  const { data: existingData } = useQuery<any>(GET_STREAM_INFO_BY_REQUEST, {
     variables: { requestId: request.id }
   });
 
