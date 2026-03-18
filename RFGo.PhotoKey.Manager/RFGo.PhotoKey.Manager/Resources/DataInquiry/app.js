@@ -13,6 +13,7 @@ createApp({
         const detailWorkbook = ref(null);
         const activeSheet = ref(null);
         const status = ref('READY');
+        const selectedLogKey = ref(null);
 
         // Folder selection & Persistence
         const targetFolderPath = ref(localStorage.getItem('rfgo_target_path') || '');
@@ -87,6 +88,10 @@ createApp({
                 alert('Failed to load detail: ' + error.message);
                 status.value = 'ERROR';
             }
+        };
+
+        const showLog = (key) => {
+            selectedLogKey.value = key;
         };
 
         const restoreToExcel = async () => {
@@ -194,7 +199,9 @@ createApp({
             restoreToExcelFromDetail,
             toggleAll,
             allSelected,
-            pickFolder
+            pickFolder,
+            showLog,
+            selectedLogKey
         };
     }
 }).mount('#app');

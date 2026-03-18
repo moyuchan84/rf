@@ -35,11 +35,12 @@ const app = createApp({
                 }
 
                 wb.config = reactive({
-                    rfgCategory: 'common',
-                    photoCategory: 'key',
-                    tableName: suggestedName,
-                    revNo: rev,
-                    isReference: false
+                    rfgCategory: wb.Config?.rfgCategory || 'common',
+                    photoCategory: wb.Config?.photoCategory || 'key',
+                    tableName: wb.Config?.tableName || suggestedName,
+                    revNo: wb.Config?.revNo || rev,
+                    isReference: wb.Config?.isReference || false,
+                    log: wb.Config?.log || ''
                 });
 
                 // 테이블명 변경 시 rev_no 자동 업데이트 감시

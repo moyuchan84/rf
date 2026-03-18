@@ -17,6 +17,7 @@ const apiClient = {
                     is_reference: config.isReference,
                     table_name: config.tableName,
                     rev_no: parseInt(config.revNo),
+                    log: config.log,
                     workbook_data: workbook,
                     filename: workbook.Meta.FileName,
                     updater: 'admin_user'

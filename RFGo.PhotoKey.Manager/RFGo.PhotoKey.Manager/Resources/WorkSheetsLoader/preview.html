@@ -214,6 +214,13 @@
                                class="w-full text-xs bg-white border border-slate-200 rounded-2xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500 shadow-sm font-medium">
                     </div>
 
+                    <!-- Change Log -->
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-wider ml-1">Change Log</label>
+                        <textarea v-model="activeWorkbook.config.log" placeholder="Enter change log (reason for update, etc.)..." 
+                                  class="w-full text-[11px] bg-white border border-slate-200 rounded-2xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 shadow-sm font-medium h-32 resize-none custom-scrollbar"></textarea>
+                    </div>
+
                     <!-- Reference Toggle -->
                     <div class="pt-6 border-t border-slate-100">
                         <div class="flex items-center justify-between">
