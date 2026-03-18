@@ -23,6 +23,23 @@ input CreateBeolOptionInput {
   processPlanId: Int!
 }
 
+input CreateKeyDesignInput {
+  description: String
+  edmList: [String!]! = []
+  gdsPath: String
+  images: [String!]! = []
+  isHorizontal: Boolean! = true
+  isVertical: Boolean! = true
+  keyType: String!
+  name: String!
+  processPlanIds: [Int!]! = []
+  rotation: Float! = 0
+  sizeX: Float!
+  sizeY: Float!
+  xAxis: JSON!
+  yAxis: JSON!
+}
+
 input CreateLayoutInput {
   beolOptionId: Int
   boundary: JSON
@@ -78,9 +95,30 @@ The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://
 """
 scalar JSON
 
+type KeyDesign {
+  createdAt: DateTime!
+  description: String
+  edmList: [String!]!
+  gdsPath: String
+  id: ID!
+  images: [String!]!
+  isHorizontal: Boolean!
+  isVertical: Boolean!
+  keyType: String!
+  name: String!
+  processPlans: [ProcessPlan!]
+  rotation: Float!
+  sizeX: Float!
+  sizeY: Float!
+  updatedAt: DateTime!
+  xAxis: JSON!
+  yAxis: JSON!
+}
+
 type Mutation {
   assignUser(input: AssignUserInput!): RequestAssignee!
   createBeolOption(input: CreateBeolOptionInput!): BeolOption!
+  createKeyDesign(input: CreateKeyDesignInput!): KeyDesign!
   createProcessPlan(input: CreateProcessPlanInput!): ProcessPlan!
   createProduct(input: CreateProductInput!): Product!
   createRequestItem(input: CreateRequestItemInput!): RequestItem!
@@ -91,8 +129,10 @@ type Mutation {
   deleteProduct(id: Int!): Product!
   deleteRequestItem(id: Int!): RequestItem!
   removeAssignee(id: Int!): RequestAssignee!
+  removeKeyDesign(id: Int!): KeyDesign!
   saveLayout(input: CreateLayoutInput!): ReticleLayout!
   saveRequestTables(input: SaveRequestTablesInput!): [RequestTableMap!]!
+  updateKeyDesign(id: Int!, input: UpdateKeyDesignInput!): KeyDesign!
   updateLayout(id: Int!, input: UpdateLayoutInput!): ReticleLayout!
   updateProduct(id: Int!, input: UpdateProductInput!): Product!
   updateRequestItem(id: Int!, input: UpdateRequestItemInput!): RequestItem!
@@ -120,6 +160,7 @@ type ProcessPlan {
   createdAt: DateTime!
   designRule: String!
   id: Int!
+  keyDesigns: [KeyDesign!]
   updatedAt: DateTime!
 }
 
@@ -161,6 +202,8 @@ input ProductMetaInput {
 }
 
 type Query {
+  keyDesign(id: Int!): KeyDesign!
+  keyDesigns: [KeyDesign!]!
   layout(id: Int!): ReticleLayout
   layouts(productId: Int!): [ReticleLayout!]!
   photoKeys(beolOptionId: Int, processPlanId: Int, productId: Int): [PhotoKey!]!
@@ -256,6 +299,23 @@ type StreamInfo {
   streamOutput: [String!]!
   streamPath: String!
   updatedAt: DateTime!
+}
+
+input UpdateKeyDesignInput {
+  description: String
+  edmList: [String!]
+  gdsPath: String
+  images: [String!]
+  isHorizontal: Boolean
+  isVertical: Boolean
+  keyType: String
+  name: String
+  processPlanIds: [Int!]
+  rotation: Float
+  sizeX: Float
+  sizeY: Float
+  xAxis: JSON
+  yAxis: JSON
 }
 
 input UpdateLayoutInput {

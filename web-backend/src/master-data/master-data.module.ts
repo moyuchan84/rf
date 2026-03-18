@@ -4,6 +4,6 @@ import { MasterDataResolver } from './master-data.resolver';
 import { PrismaService } from '../prisma.service';
 
 @Module({
-  providers: [MasterDataService, MasterDataResolver, PrismaService],
+  providers: [MasterDataService, MasterDataResolver],
 })
 export class MasterDataModule {}

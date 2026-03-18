@@ -25,6 +25,7 @@ export class MasterDataService {
             },
           },
         },
+        keyDesigns: true,
       },
       orderBy: { designRule: 'asc' },
     });

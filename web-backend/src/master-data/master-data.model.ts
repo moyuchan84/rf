@@ -1,5 +1,6 @@
 import { Field, Float, Int, ObjectType } from '@nestjs/graphql';
 import { RequestItem } from '../requests/requests.model';
+import { KeyDesign } from '../key-design/key-design.model';
 
 @ObjectType()
 export class ProductMeta {
@@ -98,6 +99,9 @@ export class ProcessPlan {
 
   @Field(() => [BeolOption])
   beolOptions: BeolOption[];
+
+  @Field(() => [KeyDesign], { nullable: true })
+  keyDesigns?: KeyDesign[];
 
   @Field()
   createdAt: Date;

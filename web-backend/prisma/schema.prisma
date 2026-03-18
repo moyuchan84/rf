@@ -14,11 +14,35 @@ model ProcessPlan {
   designRule  String       @unique @map("design_rule")
   beolOptions BeolOption[]
   photoKeys   PhotoKey[]
+  keyDesigns  KeyDesign[] @relation("KeyDesignToProcessPlan")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("update_time")
 
   @@map("process_plans")
+}
+
+model KeyDesign {
+  id              Int           @id @default(autoincrement())
+  name            String        @unique
+  keyType         String        @map("key_type")
+  sizeX           Float         @map("size_x")
+  sizeY           Float         @map("size_y")
+  isVertical      Boolean       @default(true) @map("is_vertical")
+  isHorizontal    Boolean       @default(true) @map("is_horizontal")
+  rotation        Float         @default(0)
+  description     String?       @db.Text
+  gdsPath         String?       @map("gds_path")
+  edmList         String[]      @map("edm_list")
+  xAxis           Json          @map("x_axis")
+  yAxis           Json          @map("y_axis")
+  images          String[]
+  processPlans    ProcessPlan[] @relation("KeyDesignToProcessPlan")
+  
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("update_time")
+
+  @@map("key_designs")
 }
 
 model BeolOption {
