@@ -1,0 +1,101 @@
+key Design 의 경우는 key name(str), key type(str), size_x(float),size_y (float), vertical(bool), horizontal(bool), rotation(number), description(str), gds path(str), edm_list(str[]), x_axis({w:{pitch,cd}},{m:{pitch,cd}}),y_axis({w:{pitch,cd}},{m:{pitch,cd}}) , key design img(img[]), processplanId(fk), 에 대해서 입력해야하는거같네
+processplan 에만 종속적이고, 해당 schema 에 맞는 최적의 입력 form 을 구성해주고, 현재 keydesign 에서 보여주는 card형태의 component 로 등록되어있는 key design 은 보여주면 좋을거같아.
+즉 key design 에 대해서 crud 기능이 있어야하고, 등록한 key design 에 대해서 processplan (복수개)랑 link 할수있는 기능도 잇으면 좋을거같아
+1) key design crud 기능 구현
+2) retrieve 는 현재 @KeyDesignPage.tsx 기준으로 유지해서 보여주면될거같고
+3) create/update/delete 는 dataschema 에 맞춰서 description 은 rich text box 로 해주고
+4) @GEMINI.web.md 참고해서 business logic 은 hook, api, component, zustand store로 구분해서 잘구현해줘
+
+분석하신 내용이 매우 정교합니다. 특히 **`x_axis`, `y_axis`** 부분에서 **`w`(Window)**와 **`m`(Main/Measure)** 레이어별로 **`pitch`**와 **`cd`**를 구분하여 설계한 점은 실제 반도체 포토 공정의 계측(Overlay/Align) 요구사항을 완벽하게 반영하고 있습니다.
+
+제시해주신 필드들을 바탕으로 **Prisma 스키마**와 **입력 UI 구성 전략**을 정리해 드립니다. 특히 복잡한 JSON 구조(`x_axis`, `y_axis`)를 어떻게 타입 안정성 있게 관리할지가 핵심입니다.
+
+---
+
+## 1. Prisma Schema 설계 (JSONB 활용)
+
+`x_axis`와 `y_axis`처럼 중첩된 구조는 PostgreSQL의 **JSONB** 필드를 사용하는 것이 유연하며, TypeScript의 `interface`를 통해 타입을 강제할 수 있습니다.
+
+```prisma
+model KeyDesign {
+  id              Int          @id @default(autoincrement())
+  name            String       @unique
+  keyType         String       // 예: Align, Overlay, Zero
+  sizeX           Float
+  sizeY           Float
+  isVertical      Boolean      @default(true)
+  isHorizontal    Boolean      @default(true)
+  rotation        Float        @default(0)
+  description     String?      @db.Text
+  gdsPath         String?
+  edmList         String[]     // EDM URL 리스트
+  
+  // 계측 정보 (JSONB로 저장하여 확장성 확보)
+  xAxis           Json         // { w: { pitch: number, cd: number }, m: { ... } }
+  yAxis           Json         // 위와 동일 구조
+  
+  // 이미지 관리
+  images          String[]     // S3 또는 서버 저장 경로 리스트
+  
+  // 관계 설정
+  processPlanId   Int
+  processPlan     ProcessPlan  @relation(fields: [processPlanId], references: [id])
+  
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+}
+```
+
+---
+
+## 2. UI/UX 구성 아이디어 (Key Design 등록 페이지)
+
+입력할 항목이 많으므로 한 화면에 나열하기보다 **논리적 그룹화**가 필요합니다.
+
+### **A. 섹션별 그룹화**
+1.  **Basic Info:** `Name`, `Type`, `ProcessPlan` (공정 선택)
+2.  **Geometry:** `Size X/Y`, `Rotation`, `Vertical/Horizontal` (토글 스위치)
+3.  **Technical Specs (핵심):**
+    * `x_axis`와 `y_axis` 입력란을 카드 형태로 분리.
+    * **Window(W)**와 **Main(M)** 영역을 구분하여 `Pitch`와 `CD`를 입력받는 그리드 레이아웃.
+4.  **Resources:** `GDS Path`, `EDM List` (칩 형태의 리스트), `Image Upload` (드래그 앤 드롭).
+
+### **B. 인터랙티브 프리뷰**
+* `size_x`, `size_y`를 입력하면 우측에 실제 비율의 사각형 박스를 시각화해줍니다.
+* `rotation` 수치를 바꾸면 해당 박스가 회전하는 애니메이션을 넣어주면 데이터 입력 오류를 줄일 수 있습니다.
+
+---
+
+## 3. Frontend 상태 관리 (Zustand)
+
+`x_axis`와 `y_axis`는 객체 구조이므로, Zustand에서 부분 업데이트를 쉽게 하도록 설계합니다.
+
+```typescript
+interface AxisDetail {
+  pitch: number;
+  cd: number;
+}
+
+interface AxisInfo {
+  w: AxisDetail;
+  m: AxisDetail;
+}
+
+interface KeyDesignStore {
+  xAxis: AxisInfo;
+  setXAxis: (side: 'w' | 'm', field: keyof AxisDetail, value: number) => void;
+}
+
+// 사용 예시
+setXAxis('w', 'pitch', 0.5); // X축 Window의 Pitch를 0.5로 설정
+```
+
+---
+
+## 💡 전문가의 팁: 데이터 정합성 가이드
+
+1.  **유효성 검사 (Validation):** `pitch`는 항상 `cd`보다 커야 한다는 물리적 제약 조건이 있을 것입니다. 이를 프런트엔드(`React Hook Form` + `Zod`)와 백엔드 양쪽에서 모두 체크해야 합니다.
+2.  **단위 명시:** UI상에서 `size`나 `pitch` 입력 시 단위(μm 등)를 명확히 표시하여 오입력을 방지하세요.
+3.  **복사 기능:** 기존에 등록된 Key Design을 '복사하여 새로 만들기' 기능을 넣으면, 미세하게 수치만 다른 수많은 디자인을 등록할 때 엔지니어의 작업 시간을 획기적으로 줄여줄 수 있습니다.
+
+**이 구조로 `GEMINI.md`에 추가할 상세 스펙을 작성해 드릴까요? 아니면 특정 필드(예: Axis 상세 구조)의 UI 컴포넌트 코드가 필요하신가요?**
