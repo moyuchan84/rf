@@ -7,6 +7,7 @@ import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { MasterDataModule } from './master-data/master-data.module';
 import { RequestsModule } from './requests/requests.module';
+import { LayoutsModule } from './layouts/layouts.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { RequestsModule } from './requests/requests.module';
     }),
     MasterDataModule,
     RequestsModule,
+    LayoutsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

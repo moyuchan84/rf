@@ -23,6 +23,20 @@ input CreateBeolOptionInput {
   processPlanId: Int!
 }
 
+input CreateLayoutInput {
+  beolOptionId: Int
+  boundary: JSON
+  chips: JSON
+  config: JSON
+  imageUrl: String
+  placements: JSON
+  processPlanId: Int
+  productId: Int!
+  scribelanes: JSON
+  shotInfo: JSON
+  title: String!
+}
+
 input CreateProcessPlanInput {
   designRule: String!
 }
@@ -72,11 +86,14 @@ type Mutation {
   createRequestItem(input: CreateRequestItemInput!): RequestItem!
   createStreamInfo(input: CreateStreamInfoInput!): StreamInfo!
   deleteBeolOption(id: Int!): BeolOption!
+  deleteLayout(id: Int!): ReticleLayout!
   deleteProcessPlan(id: Int!): ProcessPlan!
   deleteProduct(id: Int!): Product!
   deleteRequestItem(id: Int!): RequestItem!
   removeAssignee(id: Int!): RequestAssignee!
+  saveLayout(input: CreateLayoutInput!): ReticleLayout!
   saveRequestTables(input: SaveRequestTablesInput!): [RequestTableMap!]!
+  updateLayout(id: Int!, input: UpdateLayoutInput!): ReticleLayout!
   updateProduct(id: Int!, input: UpdateProductInput!): Product!
   updateRequestItem(id: Int!, input: UpdateRequestItemInput!): RequestItem!
   updateRequestStep(input: UpdateStepInput!): RequestStep!
@@ -144,6 +161,8 @@ input ProductMetaInput {
 }
 
 type Query {
+  layout(id: Int!): ReticleLayout
+  layouts(productId: Int!): [ReticleLayout!]!
   photoKeys(beolOptionId: Int, processPlanId: Int, productId: Int): [PhotoKey!]!
   processPlans: [ProcessPlan!]!
   requestItem(id: Int!): RequestItem
@@ -199,6 +218,23 @@ type RequestTableMap {
   type: String!
 }
 
+type ReticleLayout {
+  beolOptionId: Int
+  boundary: JSON
+  chips: JSON
+  config: JSON
+  createdAt: DateTime!
+  id: Int!
+  imageUrl: String
+  placements: JSON
+  processPlanId: Int
+  productId: Int!
+  scribelanes: JSON
+  shotInfo: JSON
+  title: String!
+  updatedAt: DateTime!
+}
+
 input SaveRequestTablesInput {
   beolOptionId: Int!
   photoKeyIds: [Int!]!
@@ -220,6 +256,18 @@ type StreamInfo {
   streamOutput: [String!]!
   streamPath: String!
   updatedAt: DateTime!
+}
+
+input UpdateLayoutInput {
+  boundary: JSON
+  chips: JSON
+  config: JSON
+  id: Int!
+  imageUrl: String
+  placements: JSON
+  scribelanes: JSON
+  shotInfo: JSON
+  title: String
 }
 
 input UpdateProductInput {

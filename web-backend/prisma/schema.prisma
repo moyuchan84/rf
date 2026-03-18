@@ -45,11 +45,40 @@ model Product {
   metaInfo     ProductMeta?
   requests     RequestItem[]
   photoKeys    PhotoKey[]
+  layouts      ReticleLayout[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("update_time")
 
   @@map("products")
+}
+
+model ReticleLayout {
+  id        Int     @id @default(autoincrement())
+  title     String
+  productId Int     @map("product_id")
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  beolOptionId  Int? @map("beol_option_id")
+  processPlanId Int? @map("process_plan_id")
+
+  // 원본 및 스펙 정보
+  shotInfo Json? @map("shot_info") // { realW, realH, pixelW, pixelH }
+  imageUrl String? @map("image_url") @db.Text
+
+  // 기하학적 데이터 (JSONB 구조화)
+  boundary    Json? @map("boundary")     // { x, y, w, h }
+  chips       Json? @map("chips")        // [ { id, x, y, w, h, isManual, visible } ]
+  scribelanes Json? @map("scribelanes")  // [ { id, p1: {x,y}, p2: {x,y}, orientation } ]
+  placements  Json? @map("placements")   // [ { id, x, y, w, h, isActive, isManual, visible } ]
+
+  // 배치 설정값
+  config Json? @map("config") // { n, strategy, defaultFlags: { center, corner } }
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("update_time")
+
+  @@map("reticle_layouts")
 }
 
 model ProductMeta {
