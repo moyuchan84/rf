@@ -100,81 +100,84 @@ namespace RFGo.PhotoKey.Manager.Infrastructure.Excel
         private void ProcessDataSheet(MSExcel.Worksheet sheet, WorksheetData data)
         {
             MSExcel.Range usedRange = sheet.UsedRange;
+            if (usedRange == null) return;
+
             int startRow = usedRange.Row;
             int startCol = usedRange.Column;
             int lastCol = usedRange.Columns.Count + startCol - 1;
             int lastRow = usedRange.Rows.Count + startRow - 1;
 
-            // 1. 전체 스타일 스냅샷
+            // 1. 스타일 스냅샷
             data.StyleBundle = _styleSerializer.SerializeStyle(usedRange);
 
             // 2. "진짜" 데이터 시작점(Anchor) 찾기
             int absoluteStartRow = -1;
             int absoluteStartCol = -1;
-            int headerRow = -1;
+            bool anchorFound = false;
 
-            for (int r = startRow; r <= Math.Min(startRow + 200, lastRow); r++)
+            for (int r = startRow; r <= lastRow && !anchorFound; r++)
             {
                 for (int c = startCol; c <= lastCol; c++)
                 {
-                    string val = sheet.Cells[r, c].Value2?.ToString();
-                    if (!string.IsNullOrEmpty(val))
+                    if (sheet.Cells[r, c].Value2 != null)
                     {
-                        if (absoluteStartRow == -1)
-                        {
-                            absoluteStartRow = r;
-                            absoluteStartCol = c;
-                        }
-
-                        if (val.Trim().StartsWith(";"))
-                        {
-                            headerRow = r;
-                            goto HeaderFound;
-                        }
+                        absoluteStartRow = r;
+                        absoluteStartCol = c;
+                        anchorFound = true;
+                        break;
                     }
                 }
             }
 
-        HeaderFound:
-            if (headerRow == -1) headerRow = absoluteStartRow != -1 ? absoluteStartRow : startRow;
-            if (absoluteStartRow == -1) absoluteStartRow = startRow;
-            if (absoluteStartCol == -1) absoluteStartCol = startCol;
+            if (absoluteStartRow == -1) return;
 
+            // 3. 데이터 형태 분석을 통한 헤더 행(headerRow) 식별
+            // 규칙: 행에 데이터가 2개 이상 있는 첫 번째 행이 진짜 테이블 헤더임.
+            int headerRow = -1;
+            for (int r = absoluteStartRow; r <= lastRow; r++)
+            {
+                if (CountOccupiedInRow(sheet, r, startCol, lastCol) >= 2)
+                {
+                    headerRow = r;
+                    break;
+                }
+            }
+
+            if (headerRow == -1) headerRow = absoluteStartRow;
+
+            // 좌표 확정
             data.Origin.Row = absoluteStartRow;
             data.Origin.Col = absoluteStartCol;
             data.DataOrigin.Row = headerRow;
-            data.DataOrigin.Col = absoluteStartCol;
+            data.DataOrigin.Col = startCol; 
 
-            // 3. 메타정보 추출 (DATA 시트인 경우만 실행)
+            // 4. 메타정보 추출 (Absolute Origin ~ HeaderRow - 1)
             bool metaOriginSet = false;
             if (data.SheetType == "DATA")
             {
                 for (int r = absoluteStartRow; r < headerRow; r++)
                 {
-                    for (int c = absoluteStartCol; c <= lastCol; c++)
+                    string val = sheet.Cells[r, absoluteStartCol].Value2?.ToString();
+                    if (!string.IsNullOrEmpty(val))
                     {
-                        string val = sheet.Cells[r, c].Value2?.ToString();
-                        if (!string.IsNullOrEmpty(val))
+                        if (!metaOriginSet)
                         {
-                            if (!metaOriginSet)
-                            {
-                                data.MetaOrigin.Row = r;
-                                data.MetaOrigin.Col = c;
-                                metaOriginSet = true;
-                            }
+                            data.MetaOrigin.Row = r;
+                            data.MetaOrigin.Col = absoluteStartCol;
+                            metaOriginSet = true;
+                        }
 
-                            if (val.Contains(":"))
-                            {
-                                var split = val.Split(':');
-                                string k = split[0].Trim();
-                                if (!data.MetaInfo.ContainsKey(k))
-                                    data.MetaInfo[k] = split.Length > 1 ? split[1].Trim() : "";
-                            }
-                            else
-                            {
-                                string key = $"#{data.MetaInfo.Count + 1}";
-                                data.MetaInfo[key] = val;
-                            }
+                        if (val.Contains(":"))
+                        {
+                            var split = val.Split(':');
+                            string k = split[0].Trim();
+                            if (!data.MetaInfo.ContainsKey(k))
+                                data.MetaInfo[k] = split.Length > 1 ? split[1].Trim() : "";
+                        }
+                        else
+                        {
+                            string key = $"#{data.MetaInfo.Count + 1}";
+                            data.MetaInfo[key] = val;
                         }
                     }
                 }
@@ -182,32 +185,42 @@ namespace RFGo.PhotoKey.Manager.Infrastructure.Excel
 
             data.PhotoCategory = data.MetaInfo.Count > 0 ? "key" : "info";
 
-            // 4. 컬럼 에일리어싱 (중복 방지)
+            // 5. 컬럼 정의 및 Aliasing (원본 이름 보존, ';' 유지)
             data.Columns.Clear();
-            for (int j = absoluteStartCol; j <= lastCol; j++)
+            for (int j = startCol; j <= lastCol; j++)
             {
                 string originalHeader = sheet.Cells[headerRow, j].Value2?.ToString() ?? "";
                 data.Columns.Add(new ColumnDefinition 
                 { 
-                    Key = $"col_{j - absoluteStartCol}", 
+                    Key = $"col_{j - startCol}", 
                     Name = originalHeader, 
-                    Index = j - absoluteStartCol 
+                    Index = j - startCol 
                 });
             }
 
-            // 5. 데이터 파싱 (에일리어싱 키 기준)
+            // 6. 데이터 행 파싱
             for (int i = headerRow + 1; i <= lastRow; i++)
             {
                 var row = new Dictionary<string, object>();
-                bool hasData = false;
+                bool rowHasData = false;
                 foreach (var colDef in data.Columns)
                 {
-                    var cellVal = sheet.Cells[i, absoluteStartCol + colDef.Index].Value2;
+                    var cellVal = sheet.Cells[i, startCol + colDef.Index].Value2;
                     row[colDef.Key] = cellVal;
-                    if (cellVal != null) hasData = true;
+                    if (cellVal != null) rowHasData = true;
                 }
-                if (hasData) data.TableData.Add(row);
+                if (rowHasData) data.TableData.Add(row);
             }
+        }
+
+        private int CountOccupiedInRow(MSExcel.Worksheet sheet, int row, int startCol, int lastCol)
+        {
+            int count = 0;
+            for (int c = startCol; c <= lastCol; c++)
+            {
+                if (sheet.Cells[row, c].Value2 != null) count++;
+            }
+            return count;
         }
 
         public WorkbookData ParseActiveWorkbook()

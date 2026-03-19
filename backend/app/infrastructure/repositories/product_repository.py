@@ -31,9 +31,20 @@ class ProductRepository:
     def get_or_create_product(self, partid: str, product_name: str, beol_option_id: int):
         obj = self.db.query(models.Product).filter(
             models.Product.partid == partid,
+            models.Product.product_name == product_name,
             models.Product.beol_option_id == beol_option_id
         ).first()
         if not obj:
+            # If not found with all 3, check if partid already exists to avoid UniqueConstraint error
+            existing_by_partid = self.db.query(models.Product).filter(models.Product.partid == partid).first()
+            if existing_by_partid:
+                # Update existing product if partid matches but other info differs
+                existing_by_partid.product_name = product_name
+                existing_by_partid.beol_option_id = beol_option_id
+                self.db.commit()
+                self.db.refresh(existing_by_partid)
+                return existing_by_partid
+            
             obj = models.Product(partid=partid, product_name=product_name, beol_option_id=beol_option_id)
             self.db.add(obj)
             self.db.commit()
