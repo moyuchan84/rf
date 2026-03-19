@@ -92,11 +92,6 @@ namespace RFGo.PhotoKey.Manager.Infrastructure.Excel
             MSExcel.Range usedRange = sheet.UsedRange;
             if (usedRange == null || usedRange.Cells.Count == 0) return data;
 
-            // 핵심 수정: Origin을 UsedRange의 시작점(좌상단)으로 설정하여 
-            // 전체 시트 데이터(Meta + Table)의 상대적 위치를 보존함.
-            data.Origin.Row = usedRange.Row;
-            data.Origin.Col = usedRange.Column;
-
             ProcessDataSheet(sheet, data);
             
             return data;
@@ -110,59 +105,76 @@ namespace RFGo.PhotoKey.Manager.Infrastructure.Excel
             int lastCol = usedRange.Columns.Count + startCol - 1;
             int lastRow = usedRange.Rows.Count + startRow - 1;
 
-            // 1. 전체 스타일 스냅샷 (복원 시 기본 틀로 사용)
+            // 1. 전체 스타일 스냅샷
             data.StyleBundle = _styleSerializer.SerializeStyle(usedRange);
 
-            // 2. 헤더 행 및 DataOrigin 찾기
+            // 2. "진짜" 데이터 시작점(Anchor) 찾기
+            int absoluteStartRow = -1;
+            int absoluteStartCol = -1;
             int headerRow = -1;
-            int scanLimit = Math.Min(startRow + 100, lastRow);
-            for (int r = startRow; r <= scanLimit; r++)
-            {
-                for (int c = startCol; c <= lastCol; c++)
-                {
-                    string val = sheet.Cells[r, c].Value2?.ToString();
-                    if (val != null && val.Trim().StartsWith(";"))
-                    {
-                        headerRow = r;
-                        break;
-                    }
-                }
-                if (headerRow != -1) break;
-            }
 
-            if (headerRow == -1) headerRow = startRow;
-
-            // 테이블 데이터 시작 좌표 저장 (UsedRange의 왼쪽 끝 열을 기준으로 너비 전체 파싱)
-            data.DataOrigin.Row = headerRow;
-            data.DataOrigin.Col = startCol; 
-
-            // 3. 메타정보 수집 및 MetaOrigin 설정
-            bool metaOriginSet = false;
-            for (int r = startRow; r < headerRow; r++)
+            for (int r = startRow; r <= Math.Min(startRow + 200, lastRow); r++)
             {
                 for (int c = startCol; c <= lastCol; c++)
                 {
                     string val = sheet.Cells[r, c].Value2?.ToString();
                     if (!string.IsNullOrEmpty(val))
                     {
-                        if (!metaOriginSet)
+                        if (absoluteStartRow == -1)
                         {
-                            data.MetaOrigin.Row = r;
-                            data.MetaOrigin.Col = c;
-                            metaOriginSet = true;
+                            absoluteStartRow = r;
+                            absoluteStartCol = c;
                         }
 
-                        if (val.Contains(":"))
+                        if (val.Trim().StartsWith(";"))
                         {
-                            var split = val.Split(':');
-                            string k = split[0].Trim();
-                            if (!data.MetaInfo.ContainsKey(k))
-                                data.MetaInfo[k] = split.Length > 1 ? split[1].Trim() : "";
+                            headerRow = r;
+                            goto HeaderFound;
                         }
-                        else
+                    }
+                }
+            }
+
+        HeaderFound:
+            if (headerRow == -1) headerRow = absoluteStartRow != -1 ? absoluteStartRow : startRow;
+            if (absoluteStartRow == -1) absoluteStartRow = startRow;
+            if (absoluteStartCol == -1) absoluteStartCol = startCol;
+
+            data.Origin.Row = absoluteStartRow;
+            data.Origin.Col = absoluteStartCol;
+            data.DataOrigin.Row = headerRow;
+            data.DataOrigin.Col = absoluteStartCol;
+
+            // 3. 메타정보 추출 (DATA 시트인 경우만 실행)
+            bool metaOriginSet = false;
+            if (data.SheetType == "DATA")
+            {
+                for (int r = absoluteStartRow; r < headerRow; r++)
+                {
+                    for (int c = absoluteStartCol; c <= lastCol; c++)
+                    {
+                        string val = sheet.Cells[r, c].Value2?.ToString();
+                        if (!string.IsNullOrEmpty(val))
                         {
-                            string key = $"#{data.MetaInfo.Count + 1}";
-                            data.MetaInfo[key] = val;
+                            if (!metaOriginSet)
+                            {
+                                data.MetaOrigin.Row = r;
+                                data.MetaOrigin.Col = c;
+                                metaOriginSet = true;
+                            }
+
+                            if (val.Contains(":"))
+                            {
+                                var split = val.Split(':');
+                                string k = split[0].Trim();
+                                if (!data.MetaInfo.ContainsKey(k))
+                                    data.MetaInfo[k] = split.Length > 1 ? split[1].Trim() : "";
+                            }
+                            else
+                            {
+                                string key = $"#{data.MetaInfo.Count + 1}";
+                                data.MetaInfo[key] = val;
+                            }
                         }
                     }
                 }
@@ -170,30 +182,27 @@ namespace RFGo.PhotoKey.Manager.Infrastructure.Excel
 
             data.PhotoCategory = data.MetaInfo.Count > 0 ? "key" : "info";
 
-            // 4. 컬럼 정의 (원본 이름 그대로 보존, empty 포함, ';' 포함)
+            // 4. 컬럼 에일리어싱 (중복 방지)
             data.Columns.Clear();
-            for (int j = startCol; j <= lastCol; j++)
+            for (int j = absoluteStartCol; j <= lastCol; j++)
             {
-                string header = sheet.Cells[headerRow, j].Value2?.ToString() ?? "";
-                
-                // 억지로 이름을 지어내지 않고 원본 그대로(빈 문자열 포함) 저장
-                // ';' 도 지우지 않고 그대로 유지함.
+                string originalHeader = sheet.Cells[headerRow, j].Value2?.ToString() ?? "";
                 data.Columns.Add(new ColumnDefinition 
                 { 
-                    Key = $"col_{j - startCol}", 
-                    Name = header, 
-                    Index = j - startCol 
+                    Key = $"col_{j - absoluteStartCol}", 
+                    Name = originalHeader, 
+                    Index = j - absoluteStartCol 
                 });
             }
 
-            // 5. 데이터 파싱
+            // 5. 데이터 파싱 (에일리어싱 키 기준)
             for (int i = headerRow + 1; i <= lastRow; i++)
             {
                 var row = new Dictionary<string, object>();
                 bool hasData = false;
                 foreach (var colDef in data.Columns)
                 {
-                    var cellVal = sheet.Cells[i, startCol + colDef.Index].Value2;
+                    var cellVal = sheet.Cells[i, absoluteStartCol + colDef.Index].Value2;
                     row[colDef.Key] = cellVal;
                     if (cellVal != null) hasData = true;
                 }
@@ -320,22 +329,22 @@ namespace RFGo.PhotoKey.Manager.Infrastructure.Excel
             int headerRow = data.DataOrigin.Row;
             int tableStartCol = data.DataOrigin.Col;
 
-            for (int i = 0; i < data.Columns.Count; i++)
+            // 헤더 복원 (보존된 Name 사용)
+            foreach (var col in data.Columns)
             {
-                var col = data.Columns[i];
-                sheet.Cells[headerRow, tableStartCol + i].Value2 = col.Name;
+                sheet.Cells[headerRow, tableStartCol + col.Index].Value2 = col.Name;
             }
 
+            // 데이터 복원 (에일리어싱된 Key 기준 매핑)
             int dataStartRow = headerRow + 1;
             for (int i = 0; i < data.TableData.Count; i++)
             {
                 var rowData = data.TableData[i];
-                for (int j = 0; j < data.Columns.Count; j++)
+                foreach (var col in data.Columns)
                 {
-                    var col = data.Columns[j];
                     if (rowData.ContainsKey(col.Key))
                     {
-                        sheet.Cells[dataStartRow + i, tableStartCol + j].Value2 = rowData[col.Key];
+                        sheet.Cells[dataStartRow + i, tableStartCol + col.Index].Value2 = rowData[col.Key];
                     }
                 }
             }

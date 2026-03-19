@@ -8,6 +8,9 @@ class ProcessPlan(Base):
     id = Column(Integer, primary_key=True, index=True)
     design_rule = Column(String, unique=True, index=True)
     beol_options = relationship("BeolOption", back_populates="process_plan", cascade="all, delete-orphan")
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), default=func.now())
+    update_time = Column(DateTime(timezone=True), server_default=func.now(), default=func.now(), onupdate=func.now())
 
 class BeolOption(Base):
     __tablename__ = "beol_options"
@@ -16,6 +19,9 @@ class BeolOption(Base):
     process_plan_id = Column(Integer, ForeignKey("process_plans.id", ondelete="CASCADE"))
     process_plan = relationship("ProcessPlan", back_populates="beol_options")
     products = relationship("Product", back_populates="beol_option", cascade="all, delete-orphan")
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), default=func.now())
+    update_time = Column(DateTime(timezone=True), server_default=func.now(), default=func.now(), onupdate=func.now())
 
 class Product(Base):
     __tablename__ = "products"
@@ -28,6 +34,9 @@ class Product(Base):
     meta_info = relationship("ProductMeta", back_populates="product", uselist=False, cascade="all, delete-orphan")
     requests = relationship("RequestItem", back_populates="product", cascade="all, delete-orphan")
     photo_keys = relationship("PhotoKey", back_populates="product", cascade="all, delete-orphan")
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), default=func.now())
+    update_time = Column(DateTime(timezone=True), server_default=func.now(), default=func.now(), onupdate=func.now())
 
 class ProductMeta(Base):
     __tablename__ = "product_meta"
