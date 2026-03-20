@@ -14,6 +14,7 @@ export const usePhotoKeys = () => {
         beolOptionId: selectedOptionId,
         processPlanId: selectedPlanId,
       },
+      skip: !selectedProductId,
     }
   );
 

@@ -3,6 +3,18 @@ import { saveAs } from 'file-saver';
 import { type PhotoKey } from '../../master-data/types';
 
 export class ExcelRestoreService {
+  static async downloadBinaryFromApi(id: number, tableName: string, revNo: number) {
+    const baseUrl = 'http://localhost:9999';
+    const response = await fetch(`${baseUrl}/download/photo-key/${id}`);
+
+    if (!response.ok) {
+      throw new Error(`Download failed: ${response.statusText}`);
+    }
+
+    const blob = await response.blob();
+    saveAs(blob, `${tableName}_Rev${revNo}.xlsx`);
+  }
+
   static async exportToExcel(photoKey: PhotoKey) {
     if (!photoKey.workbookData) {
       throw new Error('No workbook data available for export');

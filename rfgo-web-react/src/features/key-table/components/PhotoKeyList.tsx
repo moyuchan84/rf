@@ -2,8 +2,8 @@ import React from 'react';
 import { Download, Database, Search, Filter } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
 import { usePhotoKeys } from '../hooks/usePhotoKeys';
+import { usePhotoKeyDownload } from '../hooks/usePhotoKeyDownload';
 import { useKeyTableStore } from '../store/useKeyTableStore';
-import { ExcelRestoreService } from '../services/ExcelRestoreService';
 import type { PhotoKey } from '../../master-data/types';
 
 interface PhotoKeyListProps {
@@ -14,15 +14,12 @@ interface PhotoKeyListProps {
 
 export const PhotoKeyList: React.FC<PhotoKeyListProps> = ({ designRule, optionName, partId }) => {
   const { photoKeys, loading } = usePhotoKeys();
+  const { downloadBinary, isDownloading } = usePhotoKeyDownload();
   const { setSelectedKey, selectedProductId } = useKeyTableStore();
 
   const handleDownload = async (e: React.MouseEvent, key: PhotoKey) => {
     e.stopPropagation();
-    try {
-      await ExcelRestoreService.exportToExcel(key);
-    } catch (err) {
-      console.error('Export failed:', err);
-    }
+    await downloadBinary(key);
   };
 
   return (
@@ -106,10 +103,22 @@ export const PhotoKeyList: React.FC<PhotoKeyListProps> = ({ designRule, optionNa
                     <td className="p-5">
                       <button 
                         onClick={(e) => handleDownload(e, key)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-600/10 hover:bg-indigo-600 text-indigo-600 dark:text-indigo-400 hover:text-white rounded-md transition-all border border-indigo-500/20 active:scale-95 group/btn"
+                        disabled={isDownloading(key.id)}
+                        className={cn(
+                          "flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all border active:scale-95 group/btn min-w-[70px] justify-center",
+                          isDownloading(key.id) 
+                            ? "bg-slate-100 dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700 cursor-not-allowed"
+                            : "bg-indigo-50 dark:bg-indigo-600/10 hover:bg-indigo-600 text-indigo-600 dark:text-indigo-400 hover:text-white border-indigo-500/20"
+                        )}
                       >
-                        <Download className="w-3 h-3 group-hover/btn:scale-110 transition-transform" />
-                        <span className="text-[8px] font-black uppercase tracking-widest">Excel</span>
+                        {isDownloading(key.id) ? (
+                          <div className="w-3 h-3 border-2 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin" />
+                        ) : (
+                          <>
+                            <Download className="w-3 h-3 group-hover/btn:scale-110 transition-transform" />
+                            <span className="text-[8px] font-black uppercase tracking-widest">Excel</span>
+                          </>
+                        )}
                       </button>
                     </td>
                   </tr>
