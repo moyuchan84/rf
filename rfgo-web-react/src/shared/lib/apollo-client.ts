@@ -2,7 +2,8 @@ import { ApolloClient, InMemoryCache, HttpLink } from '@apollo/client';
 
 export const client = new ApolloClient({
   link: new HttpLink({
-    uri: 'http://localhost:9999/graphql',
+    uri: import.meta.env.VITE_GRAPHQL_ENDPOINT || 'http://localhost:9999/graphql',
+    credentials: 'include',
   }),
   cache: new InMemoryCache(),
 });
