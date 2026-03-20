@@ -14,6 +14,7 @@ createApp({
         const activeSheet = ref(null);
         const status = ref('READY');
         const activeLog = ref(null);
+        const openAfterRestore = ref(true);
 
         // Folder selection & Persistence
         const targetFolderPath = ref(localStorage.getItem('rfgo_target_path') || '');
@@ -136,7 +137,8 @@ createApp({
                 if (window.chrome?.webview?.hostObjects?.bridge?.inquiry) {
                     await window.chrome.webview.hostObjects.bridge.inquiry.RestoreToExcel(
                         JSON.stringify(itemsToRestore),
-                        targetFolderPath.value
+                        targetFolderPath.value,
+                        openAfterRestore.value
                     );
                 }
                 status.value = 'READY';
@@ -172,7 +174,8 @@ createApp({
                 if (window.chrome?.webview?.hostObjects?.bridge?.inquiry) {
                     await window.chrome.webview.hostObjects.bridge.inquiry.RestoreToExcel(
                         JSON.stringify([item]),
-                        targetFolderPath.value
+                        targetFolderPath.value,
+                        openAfterRestore.value
                     );
                 }
                 status.value = 'READY';
@@ -205,6 +208,7 @@ createApp({
             detailWorkbook,
             activeSheet,
             targetFolderPath,
+            openAfterRestore,
             status,
             loadHierarchy,
             selectProduct,

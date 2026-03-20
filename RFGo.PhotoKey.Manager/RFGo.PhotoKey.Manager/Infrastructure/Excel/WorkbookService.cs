@@ -112,10 +112,10 @@ namespace RFGo.PhotoKey.Manager.Infrastructure.Excel
             int lastCol = usedRange.Columns.Count + startCol - 1;
             int lastRow = usedRange.Rows.Count + startRow - 1;
 
-            // 1. 스타일 스냅샷 (HTML Clipboard 방식)
-            data.StyleBundle = CopyRangeStyleToHtml(usedRange);
+            // 1. Style Bundle (No longer needed as we restore from full binary)
+            // data.StyleBundle = CopyRangeStyleToHtml(usedRange);
 
-            // 2. "진짜" 데이터 시작점(Anchor) 찾기
+            // 2. Find real anchor
             int absoluteStartRow = -1;
             int absoluteStartCol = -1;
             bool anchorFound = false;
@@ -136,8 +136,7 @@ namespace RFGo.PhotoKey.Manager.Infrastructure.Excel
 
             if (absoluteStartRow == -1) return;
 
-            // 3. 데이터 형태 분석을 통한 헤더 행(headerRow) 식별
-            // 규칙: 행에 데이터가 2개 이상 있는 첫 번째 행이 진짜 테이블 헤더임.
+            // 3. Identify header row
             int headerRow = -1;
             for (int r = absoluteStartRow; r <= lastRow; r++)
             {
@@ -150,13 +149,13 @@ namespace RFGo.PhotoKey.Manager.Infrastructure.Excel
 
             if (headerRow == -1) headerRow = absoluteStartRow;
 
-            // 좌표 확정
+            // Set coordinates
             data.Origin.Row = absoluteStartRow;
             data.Origin.Col = absoluteStartCol;
             data.DataOrigin.Row = headerRow;
             data.DataOrigin.Col = startCol; 
 
-            // 4. 메타정보 추출 (Absolute Origin ~ HeaderRow - 1)
+            // 4. Extract metadata
             bool metaOriginSet = false;
             if (data.SheetType == "DATA")
             {
@@ -190,7 +189,7 @@ namespace RFGo.PhotoKey.Manager.Infrastructure.Excel
 
             data.PhotoCategory = data.MetaInfo.Count > 0 ? "key" : "info";
 
-            // 5. 컬럼 정의 및 Aliasing (원본 이름 보존, ';' 유지)
+            // 5. Columns and Aliasing
             data.Columns.Clear();
             for (int j = startCol; j <= lastCol; j++)
             {
@@ -203,7 +202,7 @@ namespace RFGo.PhotoKey.Manager.Infrastructure.Excel
                 });
             }
 
-            // 6. 데이터 행 파싱
+            // 6. Data rows
             for (int i = headerRow + 1; i <= lastRow; i++)
             {
                 var row = new Dictionary<string, object>();
@@ -268,165 +267,62 @@ namespace RFGo.PhotoKey.Manager.Infrastructure.Excel
 
         public bool SaveToPreconfirmTable(WorkbookData data) => true;
 
-        public bool RestoreToExcel(WorkbookData data, string targetFilePath)
+        public bool RestoreToExcel(WorkbookData data, string targetFilePath, bool openAfterRestore = false)
         {
-            MSExcel.Application excelApp = new MSExcel.Application();
-            excelApp.DisplayAlerts = false; // 저장 중 팝업 방지
-            MSExcel.Workbook workbook = excelApp.Workbooks.Add();
-
             try
             {
-                for (int i = 0; i < data.Worksheets.Count; i++)
+                if (string.IsNullOrEmpty(data.Meta.BinaryContent))
                 {
-                    var wsData = data.Worksheets[i];
-                    MSExcel.Worksheet sheet;
-                    if (i == 0) sheet = workbook.ActiveSheet as MSExcel.Worksheet;
-                    else sheet = workbook.Sheets.Add(After: workbook.Sheets[workbook.Sheets.Count]) as MSExcel.Worksheet;
-
-                    sheet.Name = wsData.SheetName;
-                    RestoreWorksheet(sheet, wsData);
+                    throw new Exception("No binary content found in WorkbookData.");
                 }
 
+                byte[] bytes = Convert.FromBase64String(data.Meta.BinaryContent);
                 string finalSavePath = targetFilePath;
-                if (!string.IsNullOrEmpty(targetFilePath) && !string.IsNullOrEmpty(data.Meta.FileName))
+
+                if (!string.IsNullOrEmpty(targetFilePath))
                 {
-                    // FileName 속성이 있으면 이를 우선 사용
                     string directory = Path.GetDirectoryName(targetFilePath);
-                    if (string.IsNullOrEmpty(directory)) directory = ".";
-                    
+                    if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+                    {
+                        Directory.CreateDirectory(directory);
+                    }
+
                     if (Directory.Exists(targetFilePath))
                     {
-                        finalSavePath = Path.Combine(targetFilePath, data.Meta.FileName);
+                        finalSavePath = Path.Combine(targetFilePath, data.Meta.FileName ?? "RestoredWorkbook.xlsx");
                     }
-                    else
-                    {
-                        finalSavePath = Path.Combine(directory, data.Meta.FileName);
-                    }
-                }
-
-                if (!string.IsNullOrEmpty(finalSavePath))
-                {
-                    workbook.SaveAs(finalSavePath);
-                    workbook.Close();
                 }
                 else
                 {
+                    // If no target path, save to temp and open
+                    string tempPath = Path.GetTempPath();
+                    finalSavePath = Path.Combine(tempPath, data.Meta.FileName ?? "RestoredWorkbook.xlsx");
+                    openAfterRestore = true;
+                }
+
+                File.WriteAllBytes(finalSavePath, bytes);
+
+                if (openAfterRestore)
+                {
+                    MSExcel.Application excelApp = Globals.ThisAddIn.Application;
+                    excelApp.Workbooks.Open(finalSavePath);
                     excelApp.Visible = true;
                 }
+
+                return true;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"RestoreToExcel Error: {ex.Message}");
                 return false;
             }
-            finally
-            {
-                if (!string.IsNullOrEmpty(targetFilePath))
-                {
-                    // 클립보드 비우기
-                    try { excelApp.CutCopyMode = (MSExcel.XlCutCopyMode)0; } catch { }
-                    excelApp.Quit();
-                    System.Runtime.InteropServices.Marshal.ReleaseComObject(excelApp);
-                }
-            }
-            return true;
         }
 
         public void RestoreWorkbooks(List<WorkbookData> workbooks)
         {
             foreach (var wb in workbooks)
             {
-                RestoreToExcel(wb, null);
-            }
-        }
-
-        private void RestoreWorksheet(MSExcel.Worksheet sheet, WorksheetData data)
-        {
-            // 1. 전체 스타일 및 내용 복원 (HTML Clipboard 방식 우선)
-            if (!string.IsNullOrEmpty(data.StyleBundle))
-            {
-                MSExcel.Range targetRange = sheet.Cells[data.Origin.Row, data.Origin.Col];
-                PasteStyleFromHtml(targetRange, data.StyleBundle);
-                return; // HTML Clipboard로 복원 시 메타/테이블 데이터 복원은 생략 (원본 그대로 복원)
-            }
-
-            // Fallback: MetaInfo/TableData 기반 복원
-            if (data.MetaOrigin.Row > 0 && data.MetaOrigin.Col > 0)
-            {
-                int r = data.MetaOrigin.Row;
-                int c = data.MetaOrigin.Col;
-                foreach (var meta in data.MetaInfo)
-                {
-                    string output = meta.Key.StartsWith("#") ? meta.Value : $"{meta.Key}: {meta.Value}";
-                    sheet.Cells[r, c].Value2 = output;
-                    r++; 
-                }
-            }
-
-            int headerRow = data.DataOrigin.Row;
-            int tableStartCol = data.DataOrigin.Col;
-
-            foreach (var col in data.Columns)
-            {
-                sheet.Cells[headerRow, tableStartCol + col.Index].Value2 = col.Name;
-            }
-
-            int dataStartRow = headerRow + 1;
-            for (int i = 0; i < data.TableData.Count; i++)
-            {
-                var rowData = data.TableData[i];
-                foreach (var col in data.Columns)
-                {
-                    if (rowData.ContainsKey(col.Key))
-                    {
-                        sheet.Cells[dataStartRow + i, tableStartCol + col.Index].Value2 = rowData[col.Key];
-                    }
-                }
-            }
-        }
-
-        private string CopyRangeStyleToHtml(MSExcel.Range targetRange)
-        {
-            try
-            {
-                targetRange.Copy();
-                IDataObject dataObject = Clipboard.GetDataObject();
-                string result = null;
-                if (dataObject != null && dataObject.GetDataPresent(DataFormats.Html))
-                {
-                    result = dataObject.GetData(DataFormats.Html) as string;
-                }
-                
-                // CutCopyMode를 0으로 설정하여 클립보드 점유 해제 및 "대용량 데이터" 경고 방지
-                try { targetRange.Application.CutCopyMode = (MSExcel.XlCutCopyMode)0; } catch { }
-                
-                return result;
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"CopyRangeStyleToHtml Error: {ex.Message}");
-            }
-            return null;
-        }
-
-        private void PasteStyleFromHtml(MSExcel.Range targetRange, string htmlData)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(htmlData)) return;
-
-                DataObject dataObj = new DataObject();
-                dataObj.SetData(DataFormats.Html, htmlData);
-                // Persist를 false로 설정하여 프로세스 종료 시 클립보드 데이터를 유지하지 않음
-                Clipboard.SetDataObject(dataObj, false);
-
-                targetRange.Worksheet.Paste(targetRange);
-                
-                // 붙여넣기 후에도 CutCopyMode 해제
-                try { targetRange.Application.CutCopyMode = (MSExcel.XlCutCopyMode)0; } catch { }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"PasteStyleFromHtml Error: {ex.Message}");
+                RestoreToExcel(wb, null, true);
             }
         }
 
@@ -454,6 +350,7 @@ namespace RFGo.PhotoKey.Manager.Infrastructure.Excel
         }
     }
 }
+  
 
     
 

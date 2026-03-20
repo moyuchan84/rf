@@ -118,6 +118,10 @@
                                         <span class="material-symbols-outlined text-sm">folder_open</span>
                                     </button>
                                 </div>
+                                <label class="flex items-center gap-1.5 cursor-pointer group">
+                                    <input type="checkbox" v-model="openAfterRestore" class="rounded border-slate-300 text-blue-600">
+                                    <span class="text-[10px] font-bold text-slate-500 group-hover:text-blue-600 transition-colors uppercase tracking-tight">Open files</span>
+                                </label>
                                 <button v-if="selectedKeys.length > 0" @click="restoreToExcel" 
                                         class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-[10px] font-black tracking-widest transition-all shadow-lg flex items-center gap-2">
                                     <span class="material-symbols-outlined text-sm">settings_backup_restore</span> RESTORE ({{selectedKeys.length}})

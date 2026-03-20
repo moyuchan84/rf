@@ -48,7 +48,7 @@ namespace RFGo.PhotoKey.Manager.Presentation.TaskPane
             return selectedPath;
         }
 
-        public string RestoreToExcel(string jsonItems, string baseFolder)
+        public string RestoreToExcel(string jsonItems, string baseFolder, bool openAfterRestore = false)
         {
             try
             {
@@ -62,7 +62,7 @@ namespace RFGo.PhotoKey.Manager.Presentation.TaskPane
                         string directory = Path.GetDirectoryName(item.TargetPath);
                         if (!Directory.Exists(directory)) Directory.CreateDirectory(directory);
 
-                        _workbookService.RestoreToExcel(item.WorkbookData, item.TargetPath);
+                        _workbookService.RestoreToExcel(item.WorkbookData, item.TargetPath, openAfterRestore);
                     }
                     
                     // MessageBox는 모달이므로 사용자가 '확인'을 누를 때까지 아래 return "Success"가 실행되지 않음.
