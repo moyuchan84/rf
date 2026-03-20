@@ -161,7 +161,7 @@ const app = createApp({
             if (!activeWorkbook.value) return;
             const path = activeWorkbook.value.Meta.FullPath;
             const sheetKeys = activeWorkbook.value.Worksheets.map(s => `${path}::${s.SheetName}`);
-            selectedSheets.value = selectedSheets.value.filter(k => k !== key);
+            selectedSheets.value = selectedSheets.value.filter(k => !sheetKeys.includes(k));
             closeContextMenu();
         };
 
@@ -176,6 +176,7 @@ const app = createApp({
             // 중복 체크 (Existing Table & Rev)
             for (const wb of parsedWorkbooks.value) {
                 if (selectedWorkbooks.value.includes(wb.Meta.FullPath)) {
+                    if (!wb.config) continue;
                     try {
                         const existsRes = await window.apiClient.checkExistence(
                             hierarchy.value.partId, 
@@ -198,14 +199,15 @@ const app = createApp({
             status.value = 'UPLOADING';
             try {
                 const filteredData = parsedWorkbooks.value
-                    .filter(w => selectedWorkbooks.value.includes(w.Meta.FullPath))
+                    .filter(w => selectedWorkbooks.value.includes(w.Meta.FullPath) && w.config)
                     .map(w => {
+                        const cfg = w.config;
                         return {
-                            rfg_category: w.config.rfgCategory,
-                            photo_category: w.config.photoCategory,
-                            is_reference: w.config.isReference,
-                            table_name: w.config.tableName,
-                            rev_no: w.config.revNo,
+                            rfg_category: cfg.rfgCategory,
+                            photo_category: cfg.photoCategory,
+                            is_reference: cfg.isReference,
+                            table_name: cfg.tableName,
+                            rev_no: cfg.revNo,
                             workbook_data: {
                                 Meta: w.Meta,
                                 Worksheets: w.Worksheets.filter(s => 
@@ -214,8 +216,8 @@ const app = createApp({
                             },
                             binary_content: w.Meta.BinaryContent,
                             filename: w.Meta.FileName,
-                            updater: 'Admin', // TODO: Get actual user
-                            log: w.config.log,
+                            updater: 'Admin', 
+                            log: cfg.log,
                             process_plan: hierarchy.value.processPlan,
                             beol_option: hierarchy.value.beolOption,
                             partid: hierarchy.value.partId,
