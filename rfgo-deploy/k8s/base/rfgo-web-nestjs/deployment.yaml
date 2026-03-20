@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rfgo-web-nestjs
+  labels:
+    app: rfgo-web-nestjs
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: rfgo-web-nestjs
+  template:
+    metadata:
+      labels:
+        app: rfgo-web-nestjs
+    spec:
+      containers:
+      - name: rfgo-web-nestjs
+        image: your-registry/rfgo-web-nestjs:latest # Change this after build
+        ports:
+        - containerPort: 3000
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: rfgo-secrets
+              key: database-url
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rfgo-web-nestjs
+spec:
+  selector:
+    app: rfgo-web-nestjs
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
