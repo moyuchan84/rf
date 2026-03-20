@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
@@ -21,6 +21,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { useRequestForm } from '../hooks/useRequestForm';
+import { useUserStore } from '../../auth/store/useUserStore';
 import { type RequestItem } from '../../master-data/types';
 
 const Chip: React.FC<{ label: string; onRemove: () => void }> = ({ label, onRemove }) => (
@@ -43,6 +44,7 @@ interface RequestStepFormProps {
 
 const RequestStepForm: React.FC<RequestStepFormProps> = ({ initialData, onSuccess }) => {
   const navigate = useNavigate();
+  const { user } = useUserStore();
   const {
     processPlans,
     loading,
@@ -66,6 +68,7 @@ const RequestStepForm: React.FC<RequestStepFormProps> = ({ initialData, onSucces
     setRequestType,
     setTitle,
     setDescription,
+    setRequesterId,
     handleAddEdm,
     handleRemoveEdm,
     handleAddPdk,
@@ -76,6 +79,13 @@ const RequestStepForm: React.FC<RequestStepFormProps> = ({ initialData, onSucces
 
   const [newEdm, setNewEdm] = useState('');
   const [newPdk, setNewPdk] = useState('');
+
+  // Auto-populate requesterId from logged-in user
+  useEffect(() => {
+    if (user?.userId && !initialData) {
+      setRequesterId(user.userId);
+    }
+  }, [user, initialData, setRequesterId]);
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,7 +101,7 @@ const RequestStepForm: React.FC<RequestStepFormProps> = ({ initialData, onSucces
   );
   
   if (error) return (
-    <div className="p-20 text-center bg-red-500/5 rounded-[3rem] border border-red-500/20">
+    <div className="p-20 text-center bg-red-500/5 rounded-md border border-red-500/20">
       <X className="w-12 h-12 text-red-500 mx-auto mb-4" />
       <p className="text-red-400 font-bold uppercase tracking-widest text-xs">Error loading data: {error.message}</p>
     </div>
@@ -101,7 +111,7 @@ const RequestStepForm: React.FC<RequestStepFormProps> = ({ initialData, onSucces
     return (
       <div className="flex flex-col items-center justify-center p-16 bg-white dark:bg-slate-900/50 rounded-md border border-indigo-500/30 dark:border-indigo-500/30 shadow-sm dark:shadow-xl relative overflow-hidden transition-all">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(79,70,229,0.05),transparent)] dark:bg-[radial-gradient(circle_at_50%_50%,rgba(79,70,229,0.1),transparent)] pointer-events-none animate-pulse"></div>
-        <div className="w-20 h-24 bg-green-500/10 dark:bg-green-500/20 rounded-full flex items-center justify-center mb-6 border border-green-500/30 dark:border-green-500/50 shadow-sm dark:shadow-[0_0_30px_rgba(34,197,94,0.2)]">
+        <div className="w-20 h-24 bg-green-500/10 dark:bg-green-500/20 rounded-md flex items-center justify-center mb-6 border border-green-500/30 dark:border-green-500/50 shadow-sm dark:shadow-[0_0_30px_rgba(34,197,94,0.2)]">
           <CheckCircle2 className="w-10 h-10 text-green-600 dark:text-green-500" />
         </div>
         <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-3 uppercase tracking-tighter transition-colors">Request Submitted!</h2>
@@ -122,7 +132,8 @@ const RequestStepForm: React.FC<RequestStepFormProps> = ({ initialData, onSucces
     title.trim() && 
     description.replace(/<[^>]*>/g, '').trim() && 
     edmList.length > 0 && 
-    pkdVersions.length > 0;
+    pkdVersions.length > 0 &&
+    requesterId;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pb-10">
@@ -320,15 +331,22 @@ const RequestStepForm: React.FC<RequestStepFormProps> = ({ initialData, onSucces
               </div>
               <div className="space-y-2.5">
                 <label className="text-[8px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest flex items-center gap-1.5 ml-1 transition-colors">
-                  <User className="w-2.5 h-2.5 text-indigo-600 dark:text-indigo-400" /> Requester ID
+                  <User className="w-2.5 h-2.5 text-indigo-600 dark:text-indigo-400" /> Requester
                 </label>
-                <input 
-                  type="text" 
-                  value={requesterId}
-                  readOnly
-                  className="w-full px-5 py-4 bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-md text-slate-400 font-bold text-xs outline-none cursor-not-allowed shadow-sm transition-colors"
-                  title="Auto-populated via SSO"
-                />
+                <div className="relative">
+                  <input 
+                    type="text" 
+                    value={user ? `${user.fullName} (${user.userId})` : requesterId}
+                    readOnly
+                    className="w-full px-5 py-4 bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-md text-slate-500 dark:text-slate-400 font-bold text-xs outline-none cursor-not-allowed shadow-sm transition-colors"
+                    title="Auto-populated via SSO"
+                  />
+                  {user && (
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                      <div className="px-2 py-0.5 bg-green-500/10 border border-green-500/20 rounded text-[8px] text-green-600 dark:text-green-400 font-black uppercase tracking-tighter">Verified</div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 

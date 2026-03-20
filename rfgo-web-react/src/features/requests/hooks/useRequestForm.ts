@@ -19,7 +19,7 @@ export const useRequestForm = (initialData?: RequestItem | null) => {
   const [requestType, setRequestType] = useState('');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [requesterId, setRequesterId] = useState('EMP_123456');
+  const [requesterId, setRequesterId] = useState('');
   const [edmList, setEdmList] = useState<string[]>([]);
   const [pkdVersions, setPkdVersions] = useState<string[]>([]);
   
@@ -103,7 +103,7 @@ export const useRequestForm = (initialData?: RequestItem | null) => {
     setDescription('');
     setEdmList([]);
     setPkdVersions([]);
-    setRequesterId('EMP_123456');
+    setRequesterId('');
     setIsSubmitted(false);
   };
 
