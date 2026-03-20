@@ -1,0 +1,231 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model ProcessPlan {
+  id          Int          @id @default(autoincrement())
+  designRule  String?      @unique @map("design_rule") @db.VarChar
+  createdAt   DateTime?    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime?    @default(now()) @updatedAt @map("update_time") @db.Timestamptz(6)
+  
+  beolOptions BeolOption[]
+  photoKeys   PhotoKey[]
+  keyDesigns  KeyDesign[]  @relation("KeyDesignToProcessPlan")
+
+  @@index([id], map: "ix_process_plans_id")
+  @@map("process_plans")
+}
+
+model BeolOption {
+  id            Int          @id @default(autoincrement())
+  optionName    String?      @map("option_name") @db.VarChar
+  processPlanId Int?         @map("process_plan_id")
+  createdAt     DateTime?    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime?    @default(now()) @updatedAt @map("update_time") @db.Timestamptz(6)
+  
+  processPlan   ProcessPlan? @relation(fields: [processPlanId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  photoKeys     PhotoKey[]
+  products      Product[]
+
+  @@index([id], map: "ix_beol_options_id")
+  @@index([optionName], map: "ix_beol_options_option_name")
+  @@map("beol_options")
+}
+
+model Product {
+  id           Int           @id @default(autoincrement())
+  partid       String?       @unique @map("partid") @db.VarChar
+  productName  String?       @map("product_name") @db.VarChar
+  beolOptionId Int?          @map("beol_option_id")
+  createdAt    DateTime?     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime?     @default(now()) @updatedAt @map("update_time") @db.Timestamptz(6)
+  
+  photoKeys    PhotoKey[]
+  metaInfo     ProductMeta?
+  beolOption   BeolOption?   @relation(fields: [beolOptionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  requests     RequestItem[]
+
+  @@index([id], map: "ix_products_id")
+  @@index([productName], map: "ix_products_product_name")
+  @@map("products")
+}
+
+model ProductMeta {
+  id          Int       @id @default(autoincrement())
+  productId   Int?      @unique @map("product_id")
+  processId   String?   @map("process_id") @db.VarChar
+  mtoDate     DateTime? @map("mto_date")
+  customer    String?   @db.VarChar
+  application String?   @db.VarChar
+  chipSizeX   Float?    @map("chip_size_x")
+  chipSizeY   Float?    @map("chip_size_y")
+  slSizeX     Float?    @map("sl_size_x")
+  slSizeY     Float?    @map("sl_size_y")
+  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime? @default(now()) @updatedAt @map("update_time") @db.Timestamptz(6)
+  
+  product     Product?  @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([id], map: "ix_product_meta_id")
+  @@map("product_meta")
+}
+
+model RequestItem {
+  id          Int       @id @default(autoincrement())
+  productId   Int?      @map("product_id")
+  requestType String    @map("request_type") @db.VarChar
+  title       String    @db.VarChar
+  description String?
+  edmList     String[]  @map("edm_list") @db.VarChar
+  pkdVersions String[]  @map("pkd_versions") @db.VarChar
+  requesterId String    @map("requester_id") @db.VarChar
+  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime? @default(now()) @updatedAt @map("update_time") @db.Timestamptz(6)
+  
+  product     Product?  @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  assignees   RequestAssignee[]
+  steps       RequestStep[]
+  streamInfo  StreamInfo[]
+  tableMaps   RequestTableMap[]
+
+  @@index([id], map: "ix_request_items_id")
+  @@map("request_items")
+}
+
+model RequestAssignee {
+  id        Int    @id @default(autoincrement())
+  requestId Int    @map("request_id")
+  category  String @db.VarChar
+  userId    String @map("user_id") @db.VarChar
+  userName  String @map("user_name") @db.VarChar
+
+  request   RequestItem @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@index([id], map: "ix_request_assignees_id")
+  @@map("request_assignees")
+}
+
+model RequestStep {
+  id          Int       @id @default(autoincrement())
+  requestId   Int       @map("request_id")
+  stepOrder   Int       @map("step_order")
+  stepName    String    @map("step_name") @db.VarChar
+  status      String    @db.VarChar
+  workContent String?   @map("work_content") @db.Text
+  workerId    String?   @map("worker_id") @db.VarChar
+  completedAt DateTime? @map("completed_at") @db.Timestamptz(6)
+
+  request     RequestItem @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@index([id], map: "ix_request_steps_id")
+  @@map("request_steps")
+}
+
+model PhotoKey {
+  id            Int          @id @default(autoincrement())
+  productId     Int?         @map("product_id")
+  processPlanId Int?         @map("process_plan_id")
+  beolOptionId  Int?         @map("beol_option_id")
+  
+  rfgCategory   String?      @map("rfg_category") @db.VarChar
+  photoCategory String?      @map("photo_category") @db.VarChar
+  isReference   Boolean?     @default(false) @map("is_reference")
+  tableName     String?      @map("table_name") @db.VarChar
+  revNo         Int?         @map("rev_no")
+  workbookData  Json?        @map("workbook_data") @db.Json
+  rawBinary     Bytes?       @map("raw_binary")
+  filename      String?      @db.VarChar
+  updater       String?      @db.VarChar
+  log           String?      @db.Text
+  updateDate    DateTime?    @default(now()) @updatedAt @map("update_date") @db.Timestamptz(6)
+  
+  beolOption    BeolOption?  @relation(fields: [beolOptionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  processPlan   ProcessPlan? @relation(fields: [processPlanId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  product       Product?     @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  tableMaps     RequestTableMap[]
+
+  @@index([id], map: "ix_photo_keys_id")
+  @@map("photo_keys")
+}
+
+model KeyDesign {
+  id          Int           @id @default(autoincrement())
+  name        String        @db.VarChar
+  keyType     String        @map("key_type") @db.VarChar
+  sizeX       Float         @map("size_x")
+  sizeY       Float         @map("size_y")
+  isVertical  Boolean       @map("is_vertical")
+  isHorizontal Boolean      @map("is_horizontal")
+  rotation    Float
+  description String?       @db.Text
+  gdsPath     String?       @map("gds_path") @db.VarChar
+  edmList     String[]      @map("edm_list") @db.VarChar
+  xAxis       Json          @map("x_axis") @db.Json
+  yAxis       Json          @map("y_axis") @db.Json
+  images      String[]      @db.VarChar
+  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime      @default(now()) @updatedAt @map("update_time") @db.Timestamptz(6)
+  
+  processPlans ProcessPlan[] @relation("KeyDesignToProcessPlan")
+
+  @@index([id], map: "ix_key_designs_id")
+  @@map("key_designs")
+}
+
+model ReticleLayout {
+  id            Int       @id @default(autoincrement())
+  title         String    @db.VarChar
+  productId     Int       @map("product_id")
+  beolOptionId  Int?      @map("beol_option_id")
+  processPlanId Int?      @map("process_plan_id")
+  shotInfo      Json?     @map("shot_info") @db.Json
+  imageUrl      String?   @map("image_url") @db.VarChar
+  boundary      Json?     @db.Json
+  chips         Json?     @db.Json
+  scribelanes   Json?     @db.Json
+  placements    Json?     @db.Json
+  config        Json?     @db.Json
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime  @default(now()) @updatedAt @map("update_time") @db.Timestamptz(6)
+
+  @@index([id], map: "ix_reticle_layouts_id")
+  @@map("reticle_layouts")
+}
+
+model StreamInfo {
+  id            Int       @id @default(autoincrement())
+  requestId     Int       @map("request_id")
+  productId     Int       @map("product_id")
+  processPlanId Int       @map("process_plan_id")
+  beolOptionId  Int       @map("beol_option_id")
+  streamPath    String    @map("stream_path") @db.VarChar
+  streamInput   String[]  @map("stream_input") @db.VarChar
+  streamOutput  String[]  @map("stream_output") @db.VarChar
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime  @default(now()) @updatedAt @map("update_time") @db.Timestamptz(6)
+
+  request       RequestItem @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@index([id], map: "ix_stream_info_id")
+  @@map("stream_info")
+}
+
+model RequestTableMap {
+  id            Int       @id @default(autoincrement())
+  requestId     Int       @map("request_id")
+  productId     Int?      @map("product_id")
+  processPlanId Int?      @map("process_plan_id")
+  beolOptionId  Int?      @map("beol_option_id")
+  photoKeyId    Int       @map("photo_key_id")
+  type          String    @db.VarChar // REFERENCE, SETUP
+
+  request       RequestItem @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  photoKey      PhotoKey    @relation(fields: [photoKeyId], references: [id], onDelete: Cascade)
+
+  @@index([id], map: "ix_request_table_maps_id")
+  @@map("request_table_maps")
+}

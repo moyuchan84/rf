@@ -21,25 +21,21 @@ timeout /t 15 /nobreak
 
 echo.
 echo ==========================================
-echo [3/4] Applying Database Migrations...
+echo [3/4] Applying Database Migrations (Prisma Master)...
 echo ==========================================
-cd backend
-:: Apply migrations to bring DB to latest state
-call uv run alembic upgrade head
-if %ERRORLEVEL% neq 0 (
-    echo.
-    echo [!] Warning: Migrations failed. Attempting to generate initial revision...
-    call uv run alembic revision --autogenerate -m "Initial tables"
-    call uv run alembic upgrade head
-)
+cd rfgo-web-nestjs
+call npx prisma migrate dev --name unified_schema_sync
+call npx prisma generate
+cd ..
 
 echo.
 echo ==========================================
-echo [4/4] Starting RFGo PhotoKey Backend...
+echo [4/4] Starting RFGo PhotoKey Backend (FastAPI)...
 echo ==========================================
 echo Server will run on: http://localhost:8080
 echo API Docs: http://localhost:8080/docs
 echo.
+cd rfgo-vsto-fastapi
 call uv run uvicorn app.main:app --reload --port 8080
 
 pause

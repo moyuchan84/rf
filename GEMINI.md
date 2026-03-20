@@ -1,21 +1,21 @@
-# 📄 GEMINI.md: Semiconductor Photo-Key Management System
+﻿# ?뱞 GEMINI.md: Semiconductor Photo-Key Management System
 
-## 1. 프로젝트 개요 (Project Overview)
-본 시스템은 반도체 Photo 공정(Align/Overlay)의 비정형 엑셀 데이터를 구조화하여 **PostgreSQL**에 저장하고, 이를 **RAG** 및 **Web Portal**과 연계하는 **Enterprise VSTO Add-in**입니다. 빌드 프로세스를 최소화하기 위해 WebView2 내에서 CDN 기반의 현대적 UI 프레임워크를 활용합니다.
+## 1. ?꾨줈?앺듃 媛쒖슂 (Project Overview)
+蹂??쒖뒪?쒖? 諛섎룄泥?Photo 怨듭젙(Align/Overlay)??鍮꾩젙???묒? ?곗씠?곕? 援ъ“?뷀븯??**PostgreSQL**????ν븯怨? ?대? **RAG** 諛?**Web Portal**怨??곌퀎?섎뒗 **Enterprise VSTO Add-in**?낅땲?? 鍮뚮뱶 ?꾨줈?몄뒪瑜?理쒖냼?뷀븯湲??꾪빐 WebView2 ?댁뿉??CDN 湲곕컲???꾨???UI ?꾨젅?꾩썙?щ? ?쒖슜?⑸땲??
 
 ---
 
-## 2. 기술 스택 (Technical Stack)
+## 2. 湲곗닠 ?ㅽ깮 (Technical Stack)
 * **Client (VSTO):** C# .NET 4.8+ / .NET 6+, WebView2 Control.
-* **UI Framework:** **Vue 3 (Global Build)** - 별도 빌드 없이 CDN 호출.
-* **Styling:** **Tailwind CSS (Play CDN)** - 현대적이고 정교한 디자인 구현.
-* **Backend:** FastAPI (Python), SQLAlchemy.
+* **UI Framework:** **Vue 3 (Global Build)** - 蹂꾨룄 鍮뚮뱶 ?놁씠 CDN ?몄텧.
+* **Styling:** **Tailwind CSS (Play CDN)** - ?꾨??곸씠怨??뺢탳???붿옄??援ы쁽.
+* **rfgo-vsto-fastapi:** FastAPI (Python), SQLAlchemy.
 * **Database:** PostgreSQL 15+ (JSONB).
 
 ---
 
-## 3. 데이터 스키마 (Worksheet-Centric Schema)
-데이터의 최소 단위는 **Worksheet**이며, 각 시트는 독립적인 메타데이터와 복원 정보를 가집니다.
+## 3. ?곗씠???ㅽ궎留?(Worksheet-Centric Schema)
+?곗씠?곗쓽 理쒖냼 ?⑥쐞??**Worksheet**?대ŉ, 媛??쒗듃???낅┰?곸씤 硫뷀??곗씠?곗? 蹂듭썝 ?뺣낫瑜?媛吏묐땲??
 
 ```json
 {
@@ -38,64 +38,64 @@
     }
   ]
 }
-4. WebView2 구현 전략 (No-Build Architecture)
-4.1 UI 구성 방식
-Single File Component (SFC) 지양: 빌드 도구(Vite/Webpack) 없이 작동하도록 별도의 .html 및 .js 파일로 관리.
+4. WebView2 援ы쁽 ?꾨왂 (No-Build Architecture)
+4.1 UI 援ъ꽦 諛⑹떇
+Single File Component (SFC) 吏?? 鍮뚮뱶 ?꾧뎄(Vite/Webpack) ?놁씠 ?묐룞?섎룄濡?蹂꾨룄??.html 諛?.js ?뚯씪濡?愿由?
 
 CDN Integration: * Vue 3: https://unpkg.com/vue@3/dist/vue.global.js
 
-Tailwind: https://cdn.tailwindcss.com (상용 배포 시에는 최적화된 CSS 파일 권장)
+Tailwind: https://cdn.tailwindcss.com (?곸슜 諛고룷 ?쒖뿉??理쒖쟻?붾맂 CSS ?뚯씪 沅뚯옣)
 
-C# Bridge: window.chrome.webview.hostObjects.bridge를 통해 C#의 비즈니스 로직에 직접 접근.
+C# Bridge: window.chrome.webview.hostObjects.bridge瑜??듯빐 C#??鍮꾩쫰?덉뒪 濡쒖쭅??吏곸젒 ?묎렐.
 
-4.2 파일 관리 구조
-Resources/WebView/index.html: UI 구조 및 Tailwind 적용.
+4.2 ?뚯씪 愿由?援ъ“
+Resources/WebView/index.html: UI 援ъ“ 諛?Tailwind ?곸슜.
 
-Resources/WebView/app.js: Vue 인스턴스 로직 및 C# 통신 핸들러.
+Resources/WebView/app.js: Vue ?몄뒪?댁뒪 濡쒖쭅 諛?C# ?듭떊 ?몃뱾??
 
-장점: UI 수정 시 C# 재컴파일 없이 HTML/JS 수정만으로 즉시 반영 가능.
+?μ젏: UI ?섏젙 ??C# ?ъ뺨?뚯씪 ?놁씠 HTML/JS ?섏젙留뚯쑝濡?利됱떆 諛섏쁺 媛??
 
-5. 상세 기능 명세 (Functional Requirements)
+5. ?곸꽭 湲곕뒫 紐낆꽭 (Functional Requirements)
 5.1 VSTO & UI Interop
-Property Sync: 엑셀에서 추출된 시트 목록을 Vue Data에 바인딩하여 트리뷰 UI 자동 렌더링.
+Property Sync: ?묒??먯꽌 異붿텧???쒗듃 紐⑸줉??Vue Data??諛붿씤?⑺븯???몃━酉?UI ?먮룞 ?뚮뜑留?
 
-Excel Control: WebView2 버튼 클릭 시 C#의 Excel Object Model을 호출하여 시트 타입(History/Data) 변경 및 영역 선택 실행.
+Excel Control: WebView2 踰꾪듉 ?대┃ ??C#??Excel Object Model???몄텧?섏뿬 ?쒗듃 ???History/Data) 蹂寃?諛??곸뿭 ?좏깮 ?ㅽ뻾.
 
-5.2 주요 UI 컴포넌트 (Tailwind 기반)
-Hierarchy Tree: ProcessPlan > BEOL > Product를 시각화하는 다크모드 지원 사이드바.
+5.2 二쇱슂 UI 而댄룷?뚰듃 (Tailwind 湲곕컲)
+Hierarchy Tree: ProcessPlan > BEOL > Product瑜??쒓컖?뷀븯???ㅽ겕紐⑤뱶 吏???ъ씠?쒕컮.
 
-Data Previewer: JSON 파싱 결과를 테이블 형태로 미리 보여주는 고성능 그리드.
+Data Previewer: JSON ?뚯떛 寃곌낵瑜??뚯씠釉??뺥깭濡?誘몃━ 蹂댁뿬二쇰뒗 怨좎꽦??洹몃━??
 
-Batch Uploader: 여러 파일을 드래그 앤 드롭하여 일괄 처리 상태를 표시하는 프로그레스 바.
+Batch Uploader: ?щ윭 ?뚯씪???쒕옒洹????쒕∼?섏뿬 ?쇨큵 泥섎━ ?곹깭瑜??쒖떆?섎뒗 ?꾨줈洹몃젅??諛?
 
-6. 핵심 파싱 및 복원 로직
-Smart Anchor Detection: UsedRange 스캔 후 실제 데이터 시작점(origin_coord) 자동 감지.
+6. ?듭떖 ?뚯떛 諛?蹂듭썝 濡쒖쭅
+Smart Anchor Detection: UsedRange ?ㅼ틪 ???ㅼ젣 ?곗씠???쒖옉??origin_coord) ?먮룞 媛먯?.
 
-Bidirectional Mapping: alias_map을 통해 Original Column -> Aliased Key (DB) -> Original Column (Restore) 순환 구조 완성.
+Bidirectional Mapping: alias_map???듯빐 Original Column -> Aliased Key (DB) -> Original Column (Restore) ?쒗솚 援ъ“ ?꾩꽦.
 
-Cell Style Persistence: 배경색, 폰트 굵기 등을 style_bundle에 담아 복원 시 엑셀에 재적용.
+Cell Style Persistence: 諛곌꼍?? ?고듃 援듦린 ?깆쓣 style_bundle???댁븘 蹂듭썝 ???묒????ъ쟻??
 
-7. 시스템 시나리오 (Operation Scenario)
-작업 의뢰: Web Portal 의뢰 확인 및 Reference 로드 (WebView2 화면).
+7. ?쒖뒪???쒕굹由ъ삤 (Operation Scenario)
+?묒뾽 ?섎ː: Web Portal ?섎ː ?뺤씤 諛?Reference 濡쒕뱶 (WebView2 ?붾㈃).
 
-데이터 추출: 엑셀 시트 스캔 -> Vue UI에 리스트업 -> 사용자 속성 매핑.
+?곗씠??異붿텧: ?묒? ?쒗듃 ?ㅼ틪 -> Vue UI??由ъ뒪?몄뾽 -> ?ъ슜???띿꽦 留ㅽ븨.
 
-DB 저장: FastAPI 연동 후 PostgreSQL JSONB 필드에 업로드.
+DB ??? FastAPI ?곕룞 ??PostgreSQL JSONB ?꾨뱶???낅줈??
 
-복원: 필요 시 DB 데이터를 선택하여 style_bundle 기반 원본 복구 실행.
+蹂듭썝: ?꾩슂 ??DB ?곗씠?곕? ?좏깮?섏뿬 style_bundle 湲곕컲 ?먮낯 蹂듦뎄 ?ㅽ뻾.
 
-8. 보안 및 배포 (Security & Deployment)
-Code Signing: VSTO 및 WebView2 리소스에 대한 디지털 서명 적용.
+8. 蹂댁븞 諛?諛고룷 (Security & Deployment)
+Code Signing: VSTO 諛?WebView2 由ъ냼?ㅼ뿉 ????붿????쒕챸 ?곸슜.
 
-Local Web Server: 보안상 외부 CDN 차단 시, 프로젝트 리소스 내에 Vue/Tailwind 라이브러리를 포함하여 로컬 경로로 로드 가능하도록 설계.
+Local Web Server: 蹂댁븞???몃? CDN 李⑤떒 ?? ?꾨줈?앺듃 由ъ냼???댁뿉 Vue/Tailwind ?쇱씠釉뚮윭由щ? ?ы븿?섏뿬 濡쒖뺄 寃쎈줈濡?濡쒕뱶 媛?ν븯?꾨줉 ?ㅺ퀎.
 
 
 ---
 
-### **💡 기획자적 Tip**
+### **?뮕 湲고쉷?먯쟻 Tip**
 
-1.  **Tailwind Play CDN의 활용:** 개발 단계에서는 `https://cdn.tailwindcss.com`을 사용하면 클래스명을 적는 즉시 디자인이 반영되어 생산성이 극대화됩니다.
-2.  **C# 인터페이스 분리:** `app.js`에서 C# 기능을 호출할 때 `const bridge = chrome.webview.hostObjects.bridge;`와 같이 선언하여 사용하면, 마치 일반 웹 API를 쓰듯 깔끔한 코딩이 가능합니다.
-3.  **HTML/JS 리소스 관리:** 이 파일들을 VSTO 프로젝트의 **'내용(Content)'** 또는 **'매몰된 리소스(Embedded Resource)'**로 설정하면 배포 시 함께 포함되어 경로 이슈를 방지할 수 있습니다.
+1.  **Tailwind Play CDN???쒖슜:** 媛쒕컻 ?④퀎?먯꽌??`https://cdn.tailwindcss.com`???ъ슜?섎㈃ ?대옒?ㅻ챸???곷뒗 利됱떆 ?붿옄?몄씠 諛섏쁺?섏뼱 ?앹궛?깆씠 洹밸??붾맗?덈떎.
+2.  **C# ?명꽣?섏씠??遺꾨━:** `app.js`?먯꽌 C# 湲곕뒫???몄텧????`const bridge = chrome.webview.hostObjects.bridge;`? 媛숈씠 ?좎뼵?섏뿬 ?ъ슜?섎㈃, 留덉튂 ?쇰컲 ??API瑜??곕벏 源붾걫??肄붾뵫??媛?ν빀?덈떎.
+3.  **HTML/JS 由ъ냼??愿由?** ???뚯씪?ㅼ쓣 VSTO ?꾨줈?앺듃??**'?댁슜(Content)'** ?먮뒗 **'留ㅻぐ??由ъ냼??Embedded Resource)'**濡??ㅼ젙?섎㈃ 諛고룷 ???④퍡 ?ы븿?섏뼱 寃쎈줈 ?댁뒋瑜?諛⑹??????덉뒿?덈떎.
 
-이제 이 명세서를 바탕으로 **`index.html`과 `app.js`의 초기 뼈대 코드**를 작성해 드릴까요? 아니면
+?댁젣 ??紐낆꽭?쒕? 諛뷀깢?쇰줈 **`index.html`怨?`app.js`??珥덇린 堉덈? 肄붾뱶**瑜??묒꽦???쒕┫源뚯슂? ?꾨땲硫

@@ -1,23 +1,23 @@
-RFGo 시스템의 워크플로우를 완성하기 위한 DB 설계와 UI 전략, 그리고 시스템 연계 가이드를 제안해 드립니다.
+﻿RFGo ?쒖뒪?쒖쓽 ?뚰겕?뚮줈?곕? ?꾩꽦?섍린 ?꾪븳 DB ?ㅺ퀎? UI ?꾨왂, 洹몃━怨??쒖뒪???곌퀎 媛?대뱶瑜??쒖븞???쒕┰?덈떎.
 
-1. DB 스키마 설계 브레인스토밍 (Extended Schema)
-기존 request_items와 photo_keys를 중심으로, 워크플로우를 관리하기 위한 3개의 핵심 테이블을 추가하는 것을 추천합니다.
+1. DB ?ㅽ궎留??ㅺ퀎 釉뚮젅?몄뒪?좊컢 (Extended Schema)
+湲곗〈 request_items? photo_keys瑜?以묒떖?쇰줈, ?뚰겕?뚮줈?곕? 愿由ы븯湲??꾪븳 3媛쒖쓽 ?듭떖 ?뚯씠釉붿쓣 異붽??섎뒗 寃껋쓣 異붿쿇?⑸땲??
 
-1) 의뢰 담당자 관리 (request_assignees)
-인명 검색 API에서 가져온 정보를 저장하고 카테고리별(RFG, Innovation 등)로 복수 지정이 가능하게 합니다.
+1) ?섎ː ?대떦??愿由?(request_assignees)
+?몃챸 寃??API?먯꽌 媛?몄삩 ?뺣낫瑜???ν븯怨?移댄뀒怨좊━蹂?RFG, Innovation ??濡?蹂듭닔 吏?뺤씠 媛?ν븯寃??⑸땲??
 
 id: PK
 
 request_id: FK (request_items.id)
 
-category: String (예: 'RFG_TASK', 'KEY_TABLE_TASK')
+category: String (?? 'RFG_TASK', 'KEY_TABLE_TASK')
 
-user_id: String (사내 사번/계정)
+user_id: String (?щ궡 ?щ쾲/怨꾩젙)
 
-user_name: String (디스플레이용 이름)
+user_name: String (?붿뒪?뚮젅?댁슜 ?대쫫)
 
-2) 작업 단계 상태 관리 (request_steps)
-4단계 스탭의 진행 상황과 작업 내용을 저장합니다.
+2) ?묒뾽 ?④퀎 ?곹깭 愿由?(request_steps)
+4?④퀎 ?ㅽ꺆??吏꾪뻾 ?곹솴怨??묒뾽 ?댁슜????ν빀?덈떎.
 
 id: PK
 
@@ -29,14 +29,14 @@ step_name: String (ReferenceTable, KeyTableSetup, Submission, GDS)
 
 status: String (TODO, IN_PROGRESS, DONE)
 
-work_content: Text (RichText 데이터)
+work_content: Text (RichText ?곗씠??
 
-worker_id: String (최종 작업자)
+worker_id: String (理쒖쥌 ?묒뾽??
 
 completed_at: Timestamp
 
-3) 의뢰별 참조/셋업 테이블 연결 (request_tables_map)
-의뢰(Request)와 실제 데이터(PhotoKey)를 연결하는 중간 테이블입니다.
+3) ?섎ː蹂?李몄“/?뗭뾽 ?뚯씠釉??곌껐 (request_tables_map)
+?섎ː(Request)? ?ㅼ젣 ?곗씠??PhotoKey)瑜??곌껐?섎뒗 以묎컙 ?뚯씠釉붿엯?덈떎.
 
 id: PK
 
@@ -46,53 +46,53 @@ photo_key_id: FK (photo_keys.id)
 
 type: String ('REFERENCE', 'SETUP')
 
-2. UI Layout 및 Page 구성 아이디어
-사용자 권한에 따라 화면이 유동적으로 변하는 "Task-Oriented Dashboard" 스타일을 제안합니다.
+2. UI Layout 諛?Page 援ъ꽦 ?꾩씠?붿뼱
+?ъ슜??沅뚰븳???곕씪 ?붾㈃???좊룞?곸쑝濡?蹂?섎뒗 "Task-Oriented Dashboard" ?ㅽ??쇱쓣 ?쒖븞?⑸땲??
 
-A. 의뢰 상세 및 워크플로우 뷰 (Main Page)
-상단 (Header Summary): 제품 정보(Product Meta)와 현재 전체 진행률을 보여주는 Progress Bar.
+A. ?섎ː ?곸꽭 諛??뚰겕?뚮줈??酉?(Main Page)
+?곷떒 (Header Summary): ?쒗뭹 ?뺣낫(Product Meta)? ?꾩옱 ?꾩껜 吏꾪뻾瑜좎쓣 蹂댁뿬二쇰뒗 Progress Bar.
 
-중앙 (Visual Stepper): 1~4단계를 가로형 Stepper로 배치.
+以묒븰 (Visual Stepper): 1~4?④퀎瑜?媛濡쒗삎 Stepper濡?諛곗튂.
 
-현재 단계는 Active 상태로 표시.
+?꾩옱 ?④퀎??Active ?곹깭濡??쒖떆.
 
-이전 단계가 DONE이 아니면 다음 단계는 비활성화(Disabled).
+?댁쟾 ?④퀎媛 DONE???꾨땲硫??ㅼ쓬 ?④퀎??鍮꾪솢?깊솕(Disabled).
 
-하단 (Contextual Content): Stepper에서 선택된 단계에 맞는 입력 폼 노출.
+?섎떒 (Contextual Content): Stepper?먯꽌 ?좏깮???④퀎??留욌뒗 ?낅젰 ???몄텧.
 
-Step 1 (RFG): photo_keys에서 rfg_category별로 필터링된 테이블 리스트를 보여주고 체크박스로 Reference 지정.
+Step 1 (RFG): photo_keys?먯꽌 rfg_category蹂꾨줈 ?꾪꽣留곷맂 ?뚯씠釉?由ъ뒪?몃? 蹂댁뿬二쇨퀬 泥댄겕諛뺤뒪濡?Reference 吏??
 
-Step 2 (Innov): Step 1에서 지정된 리스트를 보여주며, VSTO를 통해 업로드된 신규 Setup 테이블을 매핑.
+Step 2 (Innov): Step 1?먯꽌 吏?뺣맂 由ъ뒪?몃? 蹂댁뿬二쇰ŉ, VSTO瑜??듯빐 ?낅줈?쒕맂 ?좉퇋 Setup ?뚯씠釉붿쓣 留ㅽ븨.
 
-B. 관리자/담당자 지정 모달
-사내 인명검색 API와 연동된 검색창.
+B. 愿由ъ옄/?대떦??吏??紐⑤떖
+?щ궡 ?몃챸寃??API? ?곕룞??寃?됱갹.
 
-선택된 인원을 '카테고리 칩(Chip)' 형태로 표시 (예: [RFG] 홍길동 X, [Innov] 김철수 X).
+?좏깮???몄썝??'移댄뀒怨좊━ 移?Chip)' ?뺥깭濡??쒖떆 (?? [RFG] ?띻만??X, [Innov] 源泥좎닔 X).
 
-3. 사내 시스템 연계 가이드 (FE vs BE)
-결론부터 말씀드리면, 모든 시스템 연계(메일링, 인명검색, 결재)는 Backend(NestJS)에서 처리하는 것이 강력히 권장됩니다.
+3. ?щ궡 ?쒖뒪???곌퀎 媛?대뱶 (FE vs BE)
+寃곕줎遺??留먯??쒕━硫? 紐⑤뱺 ?쒖뒪???곌퀎(硫붿씪留? ?몃챸寃?? 寃곗옱)??rfgo-vsto-fastapi(NestJS)?먯꽌 泥섎━?섎뒗 寃껋씠 媛뺣젰??沅뚯옣?⑸땲??
 
-왜 Backend에서 호출해야 하는가?
-보안 (Security): 사내 시스템 연계에 필요한 API Key나 인증 토큰을 Frontend에 노출하지 않아도 됩니다.
+??rfgo-vsto-fastapi?먯꽌 ?몄텧?댁빞 ?섎뒗媛?
+蹂댁븞 (Security): ?щ궡 ?쒖뒪???곌퀎???꾩슂??API Key???몄쬆 ?좏겙??Frontend???몄텧?섏? ?딆븘???⑸땲??
 
-트랜잭션 및 로직 통합: 예를 들어 '결재 상신' 버튼 클릭 시, DB 상태 업데이트와 결재 API 호출이 한 번의 비즈니스 로직 안에서 완결되어야 데이터 무결성이 보장됩니다.
+?몃옖??뀡 諛?濡쒖쭅 ?듯빀: ?덈? ?ㅼ뼱 '寃곗옱 ?곸떊' 踰꾪듉 ?대┃ ?? DB ?곹깭 ?낅뜲?댄듃? 寃곗옱 API ?몄텧????踰덉쓽 鍮꾩쫰?덉뒪 濡쒖쭅 ?덉뿉???꾧껐?섏뼱???곗씠??臾닿껐?깆씠 蹂댁옣?⑸땲??
 
-CORS 이슈 회피: 사내 시스템이 특정 서버 IP만 허용하는 경우가 많으므로 백엔드 경유가 필수적입니다.
+CORS ?댁뒋 ?뚰뵾: ?щ궡 ?쒖뒪?쒖씠 ?뱀젙 ?쒕쾭 IP留??덉슜?섎뒗 寃쎌슦媛 留롮쑝誘濡?諛깆뿏??寃쎌쑀媛 ?꾩닔?곸엯?덈떎.
 
-추상화: Frontend는 우리 시스템의 API만 바라보고, 외부 시스템이 바뀌더라도 Backend의 어댑터 로직만 수정하면 됩니다.
+異붿긽?? Frontend???곕━ ?쒖뒪?쒖쓽 API留?諛붾씪蹂닿퀬, ?몃? ?쒖뒪?쒖씠 諛붾뚮뜑?쇰룄 rfgo-vsto-fastapi???대뙌??濡쒖쭅留??섏젙?섎㈃ ?⑸땲??
 
-4. GEMINI.md 작성을 위한 가이드라인
-나중에 GEMINI.md를 생성할 때 다음 기술적 가이드를 포함하세요.
+4. GEMINI.md ?묒꽦???꾪븳 媛?대뱶?쇱씤
+?섏쨷??GEMINI.md瑜??앹꽦?????ㅼ쓬 湲곗닠??媛?대뱶瑜??ы븿?섏꽭??
 
 [Guide 1: External System Integration]
-Infrastructure Layer: 외부 API 호출을 담당하는 MailingClient, ApprovalClient, UserSearchClient를 별도의 Provider로 구현할 것.
+Infrastructure Layer: ?몃? API ?몄텧???대떦?섎뒗 MailingClient, ApprovalClient, UserSearchClient瑜?蹂꾨룄??Provider濡?援ы쁽??寃?
 
-Axios/HttpModule: NestJS의 HttpModule을 사용하여 타임아웃 및 재시도 로직을 포함할 것.
+Axios/HttpModule: NestJS??HttpModule???ъ슜?섏뿬 ??꾩븘??諛??ъ떆??濡쒖쭅???ы븿??寃?
 
 [Guide 2: Workflow Guard & Logic]
-State Transition: 다음 단계로 넘어가기 전 request_steps 테이블의 이전 단계 status가 'DONE'인지 확인하는 Validation 로직을 Service 레이어에 포함할 것.
+State Transition: ?ㅼ쓬 ?④퀎濡??섏뼱媛湲???request_steps ?뚯씠釉붿쓽 ?댁쟾 ?④퀎 status媛 'DONE'?몄? ?뺤씤?섎뒗 Validation 濡쒖쭅??Service ?덉씠?댁뿉 ?ы븿??寃?
 
-Permission: PhotoKey.rfg_category에 따라 해당 권한(RFG/Inno)을 가진 담당자만 Update API를 호출할 수 있도록 GraphQL Shield 또는 NestJS Guard 적용.
+Permission: PhotoKey.rfg_category???곕씪 ?대떦 沅뚰븳(RFG/Inno)??媛吏??대떦?먮쭔 Update API瑜??몄텧?????덈룄濡?GraphQL Shield ?먮뒗 NestJS Guard ?곸슜.
 
 [Guide 3: Mailing Trigger]
-의뢰 생성 시 request_assignees와 requester_id를 기반으로 수신자 리스트를 동적으로 구성하여 백엔드에서 비동기(Queue 권장)로 메일을 발송할 것.
+?섎ː ?앹꽦 ??request_assignees? requester_id瑜?湲곕컲?쇰줈 ?섏떊??由ъ뒪?몃? ?숈쟻?쇰줈 援ъ꽦?섏뿬 諛깆뿏?쒖뿉??鍮꾨룞湲?Queue 沅뚯옣)濡?硫붿씪??諛쒖넚??寃?

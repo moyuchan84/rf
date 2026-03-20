@@ -1,6 +1,6 @@
-# RFGo PhotoKey Backend
+﻿# RFGo PhotoKey rfgo-vsto-fastapi
 
-FastAPI backend for managing semiconductor photo-key data.
+FastAPI rfgo-vsto-fastapi for managing semiconductor photo-key data.
 
 ## Requirements
 - Docker & Docker Compose
@@ -15,7 +15,7 @@ FastAPI backend for managing semiconductor photo-key data.
 
 2. **Install Dependencies**
    ```bash
-   cd backend
+   cd rfgo-vsto-fastapi
    uv sync
    ```
 
@@ -28,3 +28,4 @@ FastAPI backend for managing semiconductor photo-key data.
 - `POST /api/v1/upload`: Upload parsed Excel data.
 - `GET /api/v1/products`: List products and their saved keys.
 - `GET /api/v1/restore/{key_id}`: Get workbook data for Excel restoration.
+

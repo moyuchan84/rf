@@ -2,10 +2,10 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "web-frontend: dev",
+      "label": "rfgo-web-react: dev",
       "type": "npm",
       "script": "dev",
-      "path": "web-frontend",
+      "path": "rfgo-web-react",
       "isBackground": true,
       "problemMatcher": {
         "owner": "custom",

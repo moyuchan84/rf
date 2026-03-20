@@ -1,7 +1,7 @@
-import type { CodegenConfig } from '@graphql-codegen/cli';
+﻿import type { CodegenConfig } from '@graphql-codegen/cli';
 
 const config: CodegenConfig = {
-  schema: '../web-backend/src/schema.gql',
+  schema: '../rfgo-web-nestjs/src/schema.gql',
   documents: ['src/**/*.tsx', 'src/**/*.ts'],
   generates: {
     'src/shared/api/generated/': {
@@ -19,3 +19,4 @@ const config: CodegenConfig = {
 };
 
 export default config;
+

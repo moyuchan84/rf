@@ -12,10 +12,10 @@
         "--port",
         "8080"
       ],
-      "cwd": "${workspaceFolder}/backend",
+      "cwd": "${workspaceFolder}/rfgo-vsto-fastapi",
       "jinja": true,
       "justMyCode": true,
-      "python": "${workspaceFolder}/backend/.venv/Scripts/python.exe"
+      "python": "${workspaceFolder}/rfgo-vsto-fastapi/.venv/Scripts/python.exe"
     },
      {
       "name": "Debug Python Backend (FastAPI)(WSL)",
@@ -28,16 +28,16 @@
         "--port",
         "8080"
       ],
-      "cwd": "${workspaceFolder}/backend",
+      "cwd": "${workspaceFolder}/rfgo-vsto-fastapi",
       "jinja": true,
       "justMyCode": true,
-      "python": "${workspaceFolder}/backend/.venv/bin/python"
+      "python": "${workspaceFolder}/rfgo-vsto-fastapi/.venv/bin/python"
     },
     {
       "name": "Debug Web Backend (NestJS)",
       "type": "pwa-node",
       "request": "launch",
-      "cwd": "${workspaceFolder}/web-backend",
+      "cwd": "${workspaceFolder}/rfgo-web-nestjs",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "start:debug"],
       "sourceMaps": true,
@@ -51,8 +51,8 @@
       "type": "chrome",
       "request": "launch",
       "url": "http://localhost:5173",
-      "webRoot": "${workspaceFolder}/web-frontend",
-      "preLaunchTask": "web-frontend: dev",
+      "webRoot": "${workspaceFolder}/rfgo-web-react",
+      "preLaunchTask": "rfgo-web-react: dev",
       "sourceMapPathOverrides": {
         "webpack:///src/*": "${webRoot}/src/*",
         "vite:///src/*": "${webRoot}/src/*"
