@@ -52,23 +52,23 @@ export const AssigneeManager: React.FC<AssigneeManagerProps> = ({
   };
 
   return (
-    <div className="bg-slate-900/50 border border-slate-800 rounded-[2rem] p-8 space-y-6 shadow-xl">
+    <div className="bg-slate-50/30 dark:bg-slate-950/20 border border-slate-200 dark:border-slate-800 rounded-md p-6 space-y-6 shadow-sm">
       <div className="flex items-center justify-between">
-        <h3 className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.3em]">Task Assignees</h3>
+        <h3 className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-[0.3em]">Task Assignees</h3>
         <button 
           onClick={() => setIsAdding(!isAdding)}
-          className="p-2 bg-indigo-600/10 text-indigo-400 rounded-lg hover:bg-indigo-600/20 transition-all active:scale-90"
+          className="p-2 bg-indigo-50 dark:bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 rounded-md hover:bg-indigo-100 dark:hover:bg-indigo-600/20 border border-indigo-200 dark:border-indigo-500/20 transition-all active:scale-90"
         >
           <UserPlus className="w-4 h-4" />
         </button>
       </div>
 
       {isAdding && (
-        <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-4 animate-in slide-in-from-top-2 duration-300">
+        <div className="p-4 bg-white dark:bg-slate-950 rounded-md border border-slate-200 dark:border-slate-800 space-y-4 animate-in slide-in-from-top-2 duration-300 shadow-sm">
           <select 
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 text-[10px] font-bold text-white outline-none"
+            className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md px-4 py-2 text-[10px] font-bold text-slate-900 dark:text-white outline-none"
           >
             <option value="RFG_TASK">RFG Task</option>
             <option value="KEY_TABLE_TASK">Key Table Task</option>
@@ -80,19 +80,19 @@ export const AssigneeManager: React.FC<AssigneeManagerProps> = ({
               placeholder="User ID (EMP...)"
               value={userId}
               onChange={(e) => setUserId(e.target.value)}
-              className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 text-[10px] font-bold text-white outline-none placeholder:text-slate-700"
+              className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md px-4 py-2 text-[10px] font-bold text-slate-900 dark:text-white outline-none placeholder:text-slate-400 dark:placeholder:text-slate-700"
             />
             <input 
               type="text" 
               placeholder="Full Name"
               value={userName}
               onChange={(e) => setUserName(e.target.value)}
-              className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 text-[10px] font-bold text-white outline-none placeholder:text-slate-700"
+              className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md px-4 py-2 text-[10px] font-bold text-slate-900 dark:text-white outline-none placeholder:text-slate-400 dark:placeholder:text-slate-700"
             />
           </div>
           <button 
             onClick={handleAdd}
-            className="w-full py-2 bg-indigo-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-500 transition-colors"
+            className="w-full py-2 bg-indigo-600 text-white rounded-md text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-colors shadow-sm"
           >
             Add Assignee
           </button>
@@ -103,27 +103,27 @@ export const AssigneeManager: React.FC<AssigneeManagerProps> = ({
         {assignees.map((assignee) => (
           <div 
             key={assignee.id}
-            className="flex items-center justify-between p-4 bg-slate-950/50 border border-slate-800 rounded-2xl group"
+            className="flex items-center justify-between p-4 bg-white dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-md group shadow-sm transition-all"
           >
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-indigo-600/10 rounded-lg flex items-center justify-center border border-indigo-500/20">
-                <User className="w-4 h-4 text-indigo-400" />
+              <div className="w-8 h-8 bg-indigo-50 dark:bg-indigo-600/10 rounded-md flex items-center justify-center border border-indigo-200 dark:border-indigo-500/20">
+                <User className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
               </div>
               <div>
-                <p className="text-[9px] font-black text-slate-500 uppercase tracking-tighter">{assignee.category}</p>
-                <p className="text-xs font-black text-white">{assignee.userName} ({assignee.userId})</p>
+                <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-tighter">{assignee.category}</p>
+                <p className="text-xs font-black text-slate-900 dark:text-white">{assignee.userName} ({assignee.userId})</p>
               </div>
             </div>
             <button 
               onClick={() => handleRemove(assignee.id)}
-              className="p-1.5 text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
+              className="p-1.5 text-slate-300 dark:text-slate-600 hover:text-red-500 dark:hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
         ))}
         {assignees.length === 0 && (
-          <p className="text-[10px] text-slate-600 font-bold text-center py-4 italic uppercase">No assignees designated</p>
+          <p className="text-[10px] text-slate-400 dark:text-slate-600 font-bold text-center py-4 italic uppercase">No assignees designated</p>
         )}
       </div>
     </div>
