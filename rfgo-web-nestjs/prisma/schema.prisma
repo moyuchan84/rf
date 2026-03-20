@@ -226,16 +226,15 @@ model ReticleLayout {
 }
 
 model StreamInfo {
-  id            Int       @id @default(autoincrement())
-  requestId     Int       @map("request_id")
-  productId     Int       @map("product_id")
-  processPlanId Int       @map("process_plan_id")
-  beolOptionId  Int       @map("beol_option_id")
-  streamPath    String    @map("stream_path") @db.VarChar
-  streamInput   String[]  @map("stream_input") @db.VarChar
-  streamOutput  String[]  @map("stream_output") @db.VarChar
-  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt     DateTime  @default(now()) @updatedAt @map("update_time") @db.Timestamptz(6)
+  id                    Int       @id @default(autoincrement())
+  requestId             Int       @map("request_id")
+  productId             Int       @map("product_id")
+  processPlanId         Int       @map("process_plan_id")
+  beolOptionId          Int       @map("beol_option_id")
+  streamPath            String    @map("stream_path") @db.VarChar
+  streamInputOutputFile String?   @map("stream_input_output_file") @db.Text
+  createdAt             DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime  @default(now()) @updatedAt @map("update_time") @db.Timestamptz(6)
 
   request       RequestItem @relation(fields: [requestId], references: [id], onDelete: Cascade)
 

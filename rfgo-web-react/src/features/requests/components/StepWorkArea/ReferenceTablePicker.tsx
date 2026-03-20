@@ -3,7 +3,7 @@ import { useMutation, useQuery } from '@apollo/client/react';
 import { Database } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { 
-  GET_PHOTO_KEYS, 
+  GET_PHOTO_KEYS_FOR_REQUEST, 
   SAVE_REQUEST_TABLES, 
   GET_REQUEST_TABLES,
   GET_STREAM_INFOS_BY_PRODUCT
@@ -11,8 +11,8 @@ import {
 import { 
   GetRequestTablesQuery, 
   GetRequestTablesQueryVariables, 
-  GetPhotoKeysQuery, 
-  GetPhotoKeysQueryVariables, 
+  GetPhotoKeysForRequestQuery, 
+  GetPhotoKeysForRequestQueryVariables, 
   GetStreamInfosByProductQuery, 
   GetStreamInfosByProductQueryVariables, 
   SaveRequestTablesMutation, 
@@ -53,7 +53,7 @@ export const ReferenceTablePicker: React.FC<ReferenceTablePickerProps> = ({ requ
     skip: !isNew || !selectedStreamRequestId
   });
 
-  const { data: directKeysData } = useQuery<GetPhotoKeysQuery, GetPhotoKeysQueryVariables>(GET_PHOTO_KEYS, {
+  const { data: directKeysData } = useQuery<GetPhotoKeysForRequestQuery, GetPhotoKeysForRequestQueryVariables>(GET_PHOTO_KEYS_FOR_REQUEST, {
     variables: { productId: request.productId },
     skip: isNew
   });

@@ -179,8 +179,7 @@ class StreamInfo(Base):
     process_plan_id = Column(Integer, nullable=False)
     beol_option_id = Column(Integer, nullable=False)
     stream_path = Column(String, nullable=False)
-    stream_input = Column(ARRAY(String), default=[])
-    stream_output = Column(ARRAY(String), default=[])
+    stream_input_output_file = Column(Text, nullable=True)
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     update_time = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

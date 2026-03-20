@@ -6,7 +6,6 @@ import {
   CREATE_STREAM_INFO,
   GET_STREAM_INFO_BY_REQUEST
 } from '../../api/requestQueries';
-import { ArrayInput } from './shared/ArrayInput';
 
 interface StreamInfoFormProps {
   request: any;
@@ -15,10 +14,7 @@ interface StreamInfoFormProps {
 
 export const StreamInfoForm: React.FC<StreamInfoFormProps> = ({ request, onSave }) => {
   const [streamPath, setStreamPath] = useState('');
-  const [inputs, setInputs] = useState<string[]>([]);
-  const [outputs, setOutputs] = useState<string[]>([]);
-  const [newInput, setNewInput] = useState('');
-  const [newOutput, setNewOutput] = useState('');
+  const [streamInputOutputFile, setStreamInputOutputFile] = useState('');
 
   const { data: existingData } = useQuery<any>(GET_STREAM_INFO_BY_REQUEST, {
     variables: { requestId: request.id }
@@ -28,8 +24,7 @@ export const StreamInfoForm: React.FC<StreamInfoFormProps> = ({ request, onSave 
     if (existingData?.streamInfoByRequest?.[0]) {
       const si = existingData.streamInfoByRequest[0];
       setStreamPath(si.streamPath);
-      setInputs(si.streamInput);
-      setOutputs(si.streamOutput);
+      setStreamInputOutputFile(si.streamInputOutputFile || '');
     }
   }, [existingData]);
 
@@ -44,8 +39,7 @@ export const StreamInfoForm: React.FC<StreamInfoFormProps> = ({ request, onSave 
           processPlanId: 0,
           beolOptionId: 0,
           streamPath,
-          streamInput: inputs,
-          streamOutput: outputs
+          streamInputOutputFile
         }
       }
     });
@@ -71,9 +65,14 @@ export const StreamInfoForm: React.FC<StreamInfoFormProps> = ({ request, onSave 
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-6">
-          <ArrayInput label="Inputs" items={inputs} setItems={setInputs} newVal={newInput} setNewVal={setNewInput} />
-          <ArrayInput label="Outputs" items={outputs} setItems={setOutputs} newVal={newOutput} setNewVal={setNewOutput} />
+        <div className="space-y-2">
+          <label className="text-[8px] font-black uppercase text-slate-500 ml-1">Stream Input/Output File Content</label>
+          <input 
+            value={streamInputOutputFile}
+            onChange={(e) => setStreamInputOutputFile(e.target.value)}
+             className="w-full p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs font-bold"
+            placeholder="Paste your stream input/output file content here..."
+          />
         </div>
       </div>
 

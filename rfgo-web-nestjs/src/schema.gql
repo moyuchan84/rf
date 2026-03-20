@@ -80,8 +80,7 @@ input CreateStreamInfoInput {
   processPlanId: Int!
   productId: Int!
   requestId: Int!
-  streamInput: [String!]!
-  streamOutput: [String!]!
+  streamInputOutputFile: String
   streamPath: String!
 }
 
@@ -304,8 +303,7 @@ type StreamInfo {
   productId: Int!
   request: RequestItem
   requestId: Int!
-  streamInput: [String!]!
-  streamOutput: [String!]!
+  streamInputOutputFile: String
   streamPath: String!
   updatedAt: DateTime!
 }

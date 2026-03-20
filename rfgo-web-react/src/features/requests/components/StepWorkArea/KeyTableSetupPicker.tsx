@@ -3,15 +3,15 @@ import { useMutation, useQuery } from '@apollo/client/react';
 import { Layers } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { 
-  GET_PHOTO_KEYS, 
+  GET_PHOTO_KEYS_FOR_REQUEST, 
   SAVE_REQUEST_TABLES, 
   GET_REQUEST_TABLES
 } from '../../api/requestQueries';
 import { 
   type GetRequestTablesQuery, 
   type GetRequestTablesQueryVariables, 
-  type GetPhotoKeysQuery, 
-  type GetPhotoKeysQueryVariables, 
+  type GetPhotoKeysForRequestQuery, 
+  type GetPhotoKeysForRequestQueryVariables, 
   type SaveRequestTablesMutation, 
   type SaveRequestTablesMutationVariables 
 } from '@/shared/api/generated/graphql';
@@ -36,7 +36,7 @@ export const KeyTableSetupPicker: React.FC<KeyTableSetupPickerProps> = ({ reques
     }
   }, [savedData]);
 
-  const { data: keysData } = useQuery<GetPhotoKeysQuery, GetPhotoKeysQueryVariables>(GET_PHOTO_KEYS, {
+  const { data: keysData } = useQuery<GetPhotoKeysForRequestQuery, GetPhotoKeysForRequestQueryVariables>(GET_PHOTO_KEYS_FOR_REQUEST, {
     variables: { productId: request.productId }
   });
 

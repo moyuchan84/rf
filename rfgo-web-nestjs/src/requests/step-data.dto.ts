@@ -17,11 +17,8 @@ export class CreateStreamInfoInput {
   @Field()
   streamPath: string;
 
-  @Field(() => [String])
-  streamInput: string[];
-
-  @Field(() => [String])
-  streamOutput: string[];
+  @Field({ nullable: true })
+  streamInputOutputFile?: string;
 }
 
 @InputType()

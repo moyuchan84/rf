@@ -14,48 +14,48 @@ services:
     volumes:
       - rfgo-db-data:/var/lib/postgresql/data
 
-  # 2. NestJS API (Primary Backend)
-  rfgo-nestjs-api:
-    build:
-      context: ./rfgo-web-nestjs
-      dockerfile: Dockerfile
-    container_name: rfgo-nestjs-api
-    depends_on:
-      - rfgo-db
-    environment:
-      DATABASE_URL: "postgresql://admin:password123@rfgo-db:5432/photokey_db"
-      NODE_ENV: production
-    ports:
-      - "3000:3000"
+  # # 2. NestJS API (Primary Backend)
+  # rfgo-nestjs-api:
+  #   build:
+  #     context: ./rfgo-web-nestjs
+  #     dockerfile: Dockerfile
+  #   container_name: rfgo-nestjs-api
+  #   depends_on:
+  #     - rfgo-db
+  #   environment:
+  #     DATABASE_URL: "postgresql://admin:password123@rfgo-db:5432/photokey_db"
+  #     NODE_ENV: production
+  #   ports:
+  #     - "3000:3000"
 
-  # 3. FastAPI Service (VSTO/Python Backend)
-  rfgo-fastapi:
-    build:
-      context: ./rfgo-vsto-fastapi
-      dockerfile: Dockerfile
-    container_name: rfgo-fastapi
-    depends_on:
-      - rfgo-db
-    environment:
-      DATABASE_URL: "postgresql://admin:password123@rfgo-db:5432/photokey_db"
-      DB_USER: admin
-      DB_PASSWORD: password123
-      DB_HOST: rfgo-db
-      DB_PORT: 5432
-      DB_NAME: photokey_db
-    ports:
-      - "8000:8000"
+  # # 3. FastAPI Service (VSTO/Python Backend)
+  # rfgo-fastapi:
+  #   build:
+  #     context: ./rfgo-vsto-fastapi
+  #     dockerfile: Dockerfile
+  #   container_name: rfgo-fastapi
+  #   depends_on:
+  #     - rfgo-db
+  #   environment:
+  #     DATABASE_URL: "postgresql://admin:password123@rfgo-db:5432/photokey_db"
+  #     DB_USER: admin
+  #     DB_PASSWORD: password123
+  #     DB_HOST: rfgo-db
+  #     DB_PORT: 5432
+  #     DB_NAME: photokey_db
+  #   ports:
+  #     - "8000:8000"
 
-  # 4. React Web Application (Frontend)
-  rfgo-web-app:
-    build:
-      context: ./rfgo-web-react
-      dockerfile: Dockerfile
-    container_name: rfgo-web-app
-    depends_on:
-      - rfgo-nestjs-api
-    ports:
-      - "80:80"
+  # # 4. React Web Application (Frontend)
+  # rfgo-web-app:
+  #   build:
+  #     context: ./rfgo-web-react
+  #     dockerfile: Dockerfile
+  #   container_name: rfgo-web-app
+  #   depends_on:
+  #     - rfgo-nestjs-api
+  #   ports:
+  #     - "80:80"
 
 volumes:
   rfgo-db-data:

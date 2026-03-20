@@ -167,8 +167,8 @@ export const UPDATE_REQUEST_STEP = gql`
   }
 `;
 
-export const GET_PHOTO_KEYS = gql`
-  query GetPhotoKeys($productId: Int, $beolOptionId: Int, $processPlanId: Int) {
+export const GET_PHOTO_KEYS_FOR_REQUEST = gql`
+  query GetPhotoKeysForRequest($productId: Int, $beolOptionId: Int, $processPlanId: Int) {
     photoKeys(productId: $productId, beolOptionId: $beolOptionId, processPlanId: $processPlanId) {
       id
       tableName
@@ -191,8 +191,7 @@ export const CREATE_STREAM_INFO = gql`
     createStreamInfo(input: $input) {
       id
       streamPath
-      streamInput
-      streamOutput
+      streamInputOutputFile
     }
   }
 `;
@@ -203,8 +202,7 @@ export const GET_STREAM_INFOS_BY_PRODUCT = gql`
       id
       requestId
       streamPath
-      streamInput
-      streamOutput
+      streamInputOutputFile
     }
   }
 `;
@@ -214,8 +212,7 @@ export const GET_STREAM_INFO_BY_REQUEST = gql`
     streamInfoByRequest(requestId: $requestId) {
       id
       streamPath
-      streamInput
-      streamOutput
+      streamInputOutputFile
     }
   }
 `;
