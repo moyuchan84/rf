@@ -23,9 +23,11 @@ createApp({
         });
 
         const loadHierarchy = async () => {
+            console.log('Loading hierarchy...');
             status.value = 'LOADING';
             try {
                 const data = await apiClient.getHierarchy();
+                console.log('Hierarchy loaded:', data);
                 hierarchy.value = data.map(pp => ({
                     ...pp,
                     expanded: false,
@@ -42,16 +44,24 @@ createApp({
         };
 
         const pickFolder = async () => {
+            console.log('Picking folder...');
             try {
-                if (!window.chrome?.webview?.hostObjects?.bridge?.inquiry) return;
+                if (!window.chrome?.webview?.hostObjects?.bridge?.inquiry) {
+                    console.warn('Bridge inquiry object not found');
+                    return;
+                }
                 const path = await window.chrome.webview.hostObjects.bridge.inquiry.SelectFolder();
-                if (path) targetFolderPath.value = path;
+                if (path) {
+                    console.log('Folder selected:', path);
+                    targetFolderPath.value = path;
+                }
             } catch (err) {
                 console.error('Folder selection failed:', err);
             }
         };
 
         const selectProduct = async (product, bo, pp) => {
+            console.log('Selecting product:', product.partid);
             selectedProduct.value = product;
             selectedBO.value = bo;
             selectedPP.value = pp;
@@ -61,6 +71,7 @@ createApp({
             
             try {
                 const data = await apiClient.getPhotoKeysByProduct(product.id);
+                console.log('Photo keys loaded:', data);
                 photoKeys.value = data;
                 status.value = 'READY';
             } catch (error) {

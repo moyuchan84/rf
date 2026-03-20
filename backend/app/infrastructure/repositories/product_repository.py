@@ -54,6 +54,9 @@ class ProductRepository:
     def list_all_products(self):
         return self.db.query(models.Product).all()
 
+    def get_product_by_partid(self, partid: str):
+        return self.db.query(models.Product).filter(models.Product.partid == partid).first()
+
     def get_hierarchy(self):
         return self.db.query(models.ProcessPlan).all()
 

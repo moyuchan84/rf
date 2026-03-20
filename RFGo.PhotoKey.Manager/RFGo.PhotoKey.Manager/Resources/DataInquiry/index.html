@@ -36,6 +36,15 @@
             <p class="mt-4 text-blue-600 font-black text-xs uppercase tracking-[0.2em] animate-pulse">{{ status }} IN PROGRESS...</p>
         </div>
 
+        <!-- Error Overlay -->
+        <div v-if="status === 'ERROR'" 
+             class="fixed inset-0 z-[500] flex flex-col items-center justify-center bg-white/90 backdrop-blur-md">
+            <span class="material-symbols-outlined text-red-500 text-5xl mb-4">error</span>
+            <p class="text-red-600 font-black text-sm uppercase tracking-widest">Failed to load data</p>
+            <p class="text-slate-500 text-xs mt-2">Please check if the backend server (8080) is running.</p>
+            <button @click="loadHierarchy" class="mt-6 px-6 py-2 bg-slate-900 text-white rounded-xl text-[10px] font-black tracking-widest uppercase shadow-lg">Retry</button>
+        </div>
+
         <header class="flex items-center justify-between mb-4 shrink-0">
             <div class="flex items-center gap-2">
                 <span class="material-symbols-outlined text-blue-600">database</span>
@@ -352,5 +361,6 @@
 
     <script src="api.js"></script>
     <script src="app.js"></script>
-</body>
-</html>
+
+    </body>
+    </html>

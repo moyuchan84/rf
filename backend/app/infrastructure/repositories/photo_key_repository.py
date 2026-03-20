@@ -38,3 +38,10 @@ class PhotoKeyRepository:
             models.PhotoKey.table_name == table_name
         ).scalar()
         return result if result is not None else 0
+
+    def check_photo_key_exists(self, product_id: int, table_name: str, rev_no: int) -> bool:
+        return self.db.query(models.PhotoKey).filter(
+            models.PhotoKey.product_id == product_id,
+            models.PhotoKey.table_name == table_name,
+            models.PhotoKey.rev_no == rev_no
+        ).first() is not None
