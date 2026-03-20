@@ -10,6 +10,7 @@ import { RequestsModule } from './requests/requests.module';
 import { LayoutsModule } from './layouts/layouts.module';
 import { KeyDesignModule } from './key-design/key-design.module';
 import { PrismaModule } from './prisma.module';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
@@ -20,8 +21,10 @@ import { PrismaModule } from './prisma.module';
       driver: ApolloDriver,
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
       sortSchema: true,
+      context: ({ req, res }) => ({ req, res }),
     }),
     PrismaModule,
+    AuthModule,
     MasterDataModule,
     RequestsModule,
     LayoutsModule,

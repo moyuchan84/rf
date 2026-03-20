@@ -6,6 +6,9 @@ import { RequestAssignee, RequestStep, PhotoKey } from './workflow.model';
 import { AssignUserInput, UpdateStepInput } from './workflow.dto';
 import { StreamInfo, RequestTableMap } from './step-data.model';
 import { CreateStreamInfoInput, SaveRequestTablesInput } from './step-data.dto';
+import { UseGuards } from '@nestjs/common';
+import { GqlAuthGuard } from '../modules/auth/interface/guards/gql-auth.guard';
+import { CurrentUser } from '../modules/auth/interface/decorators/current-user.decorator';
 
 @Resolver(() => RequestItem)
 export class RequestsResolver {
@@ -27,7 +30,13 @@ export class RequestsResolver {
   }
 
   @Mutation(() => RequestItem)
-  async createRequestItem(@Args('input') input: CreateRequestItemInput) {
+  @UseGuards(GqlAuthGuard)
+  async createRequestItem(
+    @Args('input') input: CreateRequestItemInput,
+    @CurrentUser() user: any,
+  ) {
+    // Inject requesterId from authenticated user
+    input.requesterId = user.userId;
     return this.service.createRequestItem(input);
   }
 
