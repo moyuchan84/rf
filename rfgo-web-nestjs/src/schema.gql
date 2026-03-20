@@ -148,6 +148,7 @@ type PhotoKey {
   photoCategory: String
   processPlanId: Int
   productId: Int!
+  rawBinary: String
   revNo: Int!
   rfgCategory: String
   tableName: String!

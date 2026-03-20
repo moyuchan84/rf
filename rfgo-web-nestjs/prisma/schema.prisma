@@ -38,7 +38,7 @@ model BeolOption {
 
 model Product {
   id           Int           @id @default(autoincrement())
-  partid       String?       @unique @map("partid") @db.VarChar
+  partId       String?       @unique @map("partid") @db.VarChar
   productName  String?       @map("product_name") @db.VarChar
   beolOptionId Int?          @map("beol_option_id")
   createdAt    DateTime?     @default(now()) @map("created_at") @db.Timestamptz(6)

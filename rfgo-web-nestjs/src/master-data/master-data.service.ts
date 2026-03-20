@@ -13,7 +13,7 @@ export class MasterDataService {
 
   // ProcessPlan
   async findAllProcessPlans() {
-    return this.prisma.processPlan.findMany({
+    const results = await this.prisma.processPlan.findMany({
       include: {
         beolOptions: {
           include: {
@@ -29,6 +29,11 @@ export class MasterDataService {
       },
       orderBy: { designRule: 'asc' },
     });
+    console.log('[DEBUG] findAllProcessPlans results count:', results.length);
+    if (results.length > 0) {
+      console.log('[DEBUG] First ProcessPlan ID:', results[0].id);
+    }
+    return results;
   }
 
   async createProcessPlan(input: CreateProcessPlanInput) {

@@ -1,4 +1,4 @@
-import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Args, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { RequestsService } from './requests.service';
 import { RequestItem } from './requests.model';
 import { CreateRequestItemInput, UpdateRequestItemInput } from './requests.dto';
@@ -96,5 +96,17 @@ export class RequestsResolver {
     @Args('type') type: string,
   ) {
     return this.service.findRequestTables(requestId, type);
+  }
+}
+
+@Resolver(() => PhotoKey)
+export class PhotoKeyResolver {
+  @ResolveField(() => String, { nullable: true })
+  rawBinary(@Parent() photoKey: any): string | null {
+    if (!photoKey.rawBinary) return null;
+    if (Buffer.isBuffer(photoKey.rawBinary)) {
+      return photoKey.rawBinary.toString('base64');
+    }
+    return null;
   }
 }
