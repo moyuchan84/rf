@@ -18,6 +18,7 @@ namespace RFGo.PhotoKey.Manager.Domain.Models
         public DateTime LastModified { get; set; }
         public int Revision { get; set; }
         public string SuggestedTableName { get; set; }
+        public string BinaryContent { get; set; }
     }
 
     public class WorksheetData

@@ -9,6 +9,7 @@ class PhotoKeyBase(BaseModel):
     table_name: str
     rev_no: int
     workbook_data: Dict[str, Any]
+    binary_content: Optional[str] = None
     filename: str
     updater: str
     log: Optional[str] = None
@@ -18,6 +19,16 @@ class PhotoKeyCreate(PhotoKeyBase):
     beol_option: str
     partid: str
     product_name: str
+
+class HierarchyBase(BaseModel):
+    processPlan: str
+    beolOption: str
+    partId: str
+    productName: str
+
+class PhotoKeyBatchCreate(BaseModel):
+    hierarchy: HierarchyBase
+    workbooks: List[PhotoKeyCreate]
 
 class PhotoKey(PhotoKeyBase):
     id: int

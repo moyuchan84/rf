@@ -66,6 +66,7 @@ export interface PhotoKey {
   tableName: string;
   revNo: number;
   filename?: string | null;
+  rawBinary?: any;
   updater?: string | null;
   log?: string | null;
   workbookData?: any;

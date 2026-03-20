@@ -79,6 +79,9 @@ export class PhotoKey {
   filename: string;
 
   @Field({ nullable: true })
+  rawBinary?: Buffer;
+
+  @Field({ nullable: true })
   updater?: string;
 
   @Field({ nullable: true })

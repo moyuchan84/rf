@@ -1,11 +1,20 @@
 from sqlalchemy.orm import Session
 from app.domain import models, schemas
+import base64
 
 class PhotoKeyRepository:
     def __init__(self, db: Session):
         self.db = db
 
     def create_photo_key(self, product_id: int, process_plan_id: int, beol_option_id: int, obj_in: schemas.PhotoKeyCreate):
+        # Decode Base64 binary content if present
+        raw_bin = None
+        if obj_in.binary_content:
+            try:
+                raw_bin = base64.b64decode(obj_in.binary_content)
+            except Exception as e:
+                print(f"Error decoding binary content: {e}")
+
         db_obj = models.PhotoKey(
             product_id=product_id,
             process_plan_id=process_plan_id,
@@ -16,6 +25,7 @@ class PhotoKeyRepository:
             table_name=obj_in.table_name,
             rev_no=obj_in.rev_no,
             workbook_data=obj_in.workbook_data,
+            raw_binary=raw_bin,
             filename=obj_in.filename,
             updater=obj_in.updater,
             log=obj_in.log

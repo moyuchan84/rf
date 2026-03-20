@@ -13,9 +13,9 @@ def create_photo_key(data: schemas.PhotoKeyCreate, db: Session = Depends(get_db)
     service = PhotoKeyService(db)
     return service.upload_photo_key(data)
 
-@router.post("/upload-batch", response_model=schemas.PhotoKey)
-def upload_data_batch(data: schemas.PhotoKeyCreate, db: Session = Depends(get_db)):
-    """Upload multiple photo keys (alias for legacy upload)."""
+@router.post("/upload-batch", response_model=List[schemas.PhotoKey])
+def upload_data_batch(data: schemas.PhotoKeyBatchCreate, db: Session = Depends(get_db)):
+    """Upload multiple photo keys."""
     service = PhotoKeyService(db)
     return service.upload_photo_keys(data)
 

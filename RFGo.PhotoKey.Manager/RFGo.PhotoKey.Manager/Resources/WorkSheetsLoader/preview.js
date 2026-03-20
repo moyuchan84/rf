@@ -201,14 +201,28 @@ const app = createApp({
                     .filter(w => selectedWorkbooks.value.includes(w.Meta.FullPath))
                     .map(w => {
                         return {
-                            Meta: w.Meta,
-                            Config: w.config,
-                            Worksheets: w.Worksheets.filter(s => 
-                                selectedSheets.value.includes(`${w.Meta.FullPath}::${s.SheetName}`)
-                            )
+                            rfg_category: w.config.rfgCategory,
+                            photo_category: w.config.photoCategory,
+                            is_reference: w.config.isReference,
+                            table_name: w.config.tableName,
+                            rev_no: w.config.revNo,
+                            workbook_data: {
+                                Meta: w.Meta,
+                                Worksheets: w.Worksheets.filter(s => 
+                                    selectedSheets.value.includes(`${w.Meta.FullPath}::${s.SheetName}`)
+                                )
+                            },
+                            binary_content: w.Meta.BinaryContent,
+                            filename: w.Meta.FileName,
+                            updater: 'Admin', // TODO: Get actual user
+                            log: w.config.log,
+                            process_plan: hierarchy.value.processPlan,
+                            beol_option: hierarchy.value.beolOption,
+                            partid: hierarchy.value.partId,
+                            product_name: hierarchy.value.productName
                         };
                     })
-                    .filter(w => w.Worksheets.length > 0);
+                    .filter(w => w.binary_content || w.workbook_data.Worksheets.length > 0);
 
                 const payload = {
                     hierarchy: hierarchy.value,

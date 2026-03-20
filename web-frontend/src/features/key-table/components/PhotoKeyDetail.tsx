@@ -12,11 +12,15 @@ export const PhotoKeyDetail: React.FC = () => {
 
   const handleDownload = async () => {
     if (!selectedKey) return;
-    try {
-      await ExcelRestoreService.exportToExcel(selectedKey);
-    } catch (err) {
-      console.error('Export failed:', err);
-    }
+    
+    // Direct download from NestJS REST API
+    const downloadUrl = `http://localhost:9999/download/photo-key/${selectedKey.id}`;
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.setAttribute('download', `${selectedKey.tableName}_Rev${selectedKey.revNo}.xlsx`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   if (!selectedKey || !workbook) {

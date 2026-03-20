@@ -37,6 +37,7 @@ namespace RFGo.PhotoKey.Manager.Infrastructure.Excel
                 workbook = excelApp.Workbooks.Open(filePath);
                 workbookData.Meta.FileName = Path.GetFileName(filePath);
                 workbookData.Meta.FullPath = filePath;
+                workbookData.Meta.BinaryContent = GetWorkbookBinary(filePath);
 
                 // Suggested logic: 2nd sheet name as table name
                 if (workbook.Sheets.Count >= 2)
@@ -239,6 +240,7 @@ namespace RFGo.PhotoKey.Manager.Infrastructure.Excel
             {
                 workbookData.Meta.FileName = workbook.Name;
                 workbookData.Meta.FullPath = workbook.FullName;
+                workbookData.Meta.BinaryContent = GetWorkbookBinary(workbook.FullName);
 
                 // Suggested logic: 2nd sheet name as table name
                 if (workbook.Sheets.Count >= 2)
@@ -426,6 +428,17 @@ namespace RFGo.PhotoKey.Manager.Infrastructure.Excel
             {
                 System.Diagnostics.Debug.WriteLine($"PasteStyleFromHtml Error: {ex.Message}");
             }
+        }
+
+        private string GetWorkbookBinary(string filePath)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath)) return null;
+                byte[] bytes = File.ReadAllBytes(filePath);
+                return Convert.ToBase64String(bytes);
+            }
+            catch { return null; }
         }
     }
 }

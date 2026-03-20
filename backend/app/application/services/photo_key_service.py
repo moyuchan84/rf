@@ -17,9 +17,13 @@ class PhotoKeyService:
         # Create PhotoKey with linked hierarchy
         return self.photo_key_repo.create_photo_key(prod.id, pp.id, bo.id, data)
 
-    def upload_photo_keys(self, data: schemas.PhotoKeyCreate):
-        """Batch upload (alias for single upload for now)."""
-        return self.upload_photo_key(data)
+    def upload_photo_keys(self, data: schemas.PhotoKeyBatchCreate):
+        """Batch upload multiple photo keys."""
+        results = []
+        for wb in data.workbooks:
+            res = self.upload_photo_key(wb)
+            results.append(res)
+        return results
 
     def list_products(self):
         """List products that have photo keys."""

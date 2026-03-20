@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Float, DateTime, Text, ARRAY, JSON, Boolean
+from sqlalchemy import Column, Integer, String, ForeignKey, Float, DateTime, Text, ARRAY, JSON, Boolean, LargeBinary
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.domain.models.base import Base
@@ -85,6 +85,7 @@ class PhotoKey(Base):
     table_name = Column(String)
     rev_no = Column(Integer)
     workbook_data = Column(JSON)
+    raw_binary = Column(LargeBinary, nullable=True)
     filename = Column(String)
     updater = Column(String)
     log = Column(Text, nullable=True)

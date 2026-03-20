@@ -21,8 +21,27 @@ export class AppController {
     const photoKeyId = parseInt(id);
     const photoKey = await this.requestsService.findPhotoKeyById(photoKeyId);
     
-    if (!photoKey || !photoKey.workbookData) {
-      return res.status(404).send('PhotoKey not found or no data available');
+    if (!photoKey) {
+      return res.status(404).send('PhotoKey not found');
+    }
+
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename=${encodeURIComponent(photoKey.tableName + '_Rev' + photoKey.revNo + '.xlsx')}`,
+    );
+
+    // 1. Prioritize rawBinary from DB
+    if (photoKey.rawBinary) {
+      return res.send(photoKey.rawBinary);
+    }
+
+    // 2. Fallback to workbookData generation
+    if (!photoKey.workbookData) {
+      return res.status(404).send('No data available for download');
     }
 
     const workbook = new ExcelJS.Workbook();
