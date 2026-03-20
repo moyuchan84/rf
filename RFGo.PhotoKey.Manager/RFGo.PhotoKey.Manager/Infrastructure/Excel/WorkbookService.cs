@@ -435,10 +435,22 @@ namespace RFGo.PhotoKey.Manager.Infrastructure.Excel
             try
             {
                 if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath)) return null;
-                byte[] bytes = File.ReadAllBytes(filePath);
-                return Convert.ToBase64String(bytes);
+
+                // Use FileStream with FileShare.ReadWrite to allow reading while Excel has it open
+                using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                {
+                    using (var ms = new MemoryStream())
+                    {
+                        stream.CopyTo(ms);
+                        return Convert.ToBase64String(ms.ToArray());
+                    }
+                }
             }
-            catch { return null; }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"GetWorkbookBinary Error: {ex.Message}");
+                return null;
+            }
         }
     }
 }
