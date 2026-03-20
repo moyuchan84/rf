@@ -40,10 +40,24 @@ const app = createApp({
         const selectedSheets = ref([]);    
 
         window.initPreview = async (data) => {
-            const workbooks = typeof data.workbooks === 'string' ? JSON.parse(data.workbooks) : data.workbooks;
-            isDetail.value = data.isDetail || false;
-            hierarchy.value = JSON.parse(data.hierarchy);
+            let workbooks = typeof data.workbooks === 'string' ? JSON.parse(data.workbooks) : data.workbooks;
             
+            // Ensure workbooks is an array (Handle single object from Detail View)
+            if (workbooks && !Array.isArray(workbooks)) {
+                workbooks = [workbooks];
+            }
+
+            isDetail.value = data.isDetail || false;
+            
+            // Safe parsing for hierarchy
+            if (typeof data.hierarchy === 'string') {
+                hierarchy.value = JSON.parse(data.hierarchy);
+            } else {
+                hierarchy.value = data.hierarchy;
+            }
+            
+            if (!workbooks) return;
+
             for (const wb of workbooks) {
                 // 1. C#에서 파싱해온 제안된 테이블명 (2번째 시트) 사용
                 const suggestedName = wb.Meta.SuggestedTableName || wb.Meta.FileName;

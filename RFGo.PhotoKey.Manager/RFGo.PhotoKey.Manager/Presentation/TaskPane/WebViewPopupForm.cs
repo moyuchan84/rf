@@ -52,7 +52,13 @@ namespace RFGo.PhotoKey.Manager.Presentation.TaskPane
 
             webView.CoreWebView2.NavigationCompleted += (s, e) =>
             {
-                if (!string.IsNullOrEmpty(_jsonWorkbooks))
+                if (_resourcePath.Contains("edit.html"))
+                {
+                    var payload = new { photoKey = _jsonWorkbooks, hierarchy = _jsonHierarchy };
+                    string script = $"if(window.initEdit) window.initEdit({JsonConvert.SerializeObject(payload)})";
+                    webView.CoreWebView2.ExecuteScriptAsync(script);
+                }
+                else if (!string.IsNullOrEmpty(_jsonWorkbooks))
                 {
                     var payload = new { workbooks = _jsonWorkbooks, hierarchy = _jsonHierarchy, isDetail = _isDetail };
                     string script = $"if(window.initPreview) window.initPreview({JsonConvert.SerializeObject(payload)})";

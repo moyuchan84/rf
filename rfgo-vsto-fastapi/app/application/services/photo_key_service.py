@@ -52,3 +52,9 @@ class PhotoKeyService:
         if not prod:
             return False
         return self.photo_key_repo.check_photo_key_exists(prod.id, table_name, rev_no)
+
+    def update_photo_key(self, key_id: int, data: schemas.PhotoKeyUpdate):
+        return self.photo_key_repo.update_photo_key(key_id, data)
+
+    def delete_photo_key(self, key_id: int):
+        return self.photo_key_repo.delete_photo_key(key_id)

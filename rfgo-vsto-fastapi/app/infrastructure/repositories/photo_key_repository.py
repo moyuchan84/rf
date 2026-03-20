@@ -55,3 +55,25 @@ class PhotoKeyRepository:
             models.PhotoKey.table_name == table_name,
             models.PhotoKey.rev_no == rev_no
         ).first() is not None
+
+    def update_photo_key(self, key_id: int, obj_in: schemas.PhotoKeyUpdate):
+        db_obj = self.get_photo_key_by_id(key_id)
+        if not db_obj:
+            return None
+        
+        update_data = obj_in.dict(exclude_unset=True)
+        for field in update_data:
+            setattr(db_obj, field, update_data[field])
+            
+        self.db.add(db_obj)
+        self.db.commit()
+        self.db.refresh(db_obj)
+        return db_obj
+
+    def delete_photo_key(self, key_id: int):
+        db_obj = self.get_photo_key_by_id(key_id)
+        if db_obj:
+            self.db.delete(db_obj)
+            self.db.commit()
+            return True
+        return False

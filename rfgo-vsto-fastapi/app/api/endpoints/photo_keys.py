@@ -60,3 +60,21 @@ def get_restore_data(key_id: int, db: Session = Depends(get_db)):
     if not data:
         raise HTTPException(status_code=404, detail="PhotoKey not found")
     return data
+
+@router.put("/{key_id}", response_model=schemas.PhotoKey)
+def update_photo_key(key_id: int, data: schemas.PhotoKeyUpdate, db: Session = Depends(get_db)):
+    """Update photo key attributes."""
+    service = PhotoKeyService(db)
+    updated = service.update_photo_key(key_id, data)
+    if not updated:
+        raise HTTPException(status_code=404, detail="Photo Key not found")
+    return updated
+
+@router.delete("/{key_id}")
+def delete_photo_key(key_id: int, db: Session = Depends(get_db)):
+    """Delete a photo key entry."""
+    service = PhotoKeyService(db)
+    success = service.delete_photo_key(key_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Photo Key not found")
+    return {"status": "success"}

@@ -20,6 +20,14 @@ class PhotoKeyCreate(PhotoKeyBase):
     partid: str
     product_name: str
 
+class PhotoKeyUpdate(BaseModel):
+    rfg_category: Optional[str] = None
+    photo_category: Optional[str] = None
+    is_reference: Optional[bool] = None
+    table_name: Optional[str] = None
+    rev_no: Optional[int] = None
+    log: Optional[str] = None
+
 class HierarchyBase(BaseModel):
     processPlan: str
     beolOption: str

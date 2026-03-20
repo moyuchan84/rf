@@ -4,24 +4,24 @@
     <tabs>
       <tab id="tabPhotoKey" label="RFGO">
 
-		<group id="groupMaster" label="Standard Info">
+		<group id="groupMaster" label="기준정보관리">
 			<button id="btnManageMasterData"
-					label="Master Data"
+					label="제품정보"
 					size="large"
 					onAction="OnManageMasterData"
 					imageMso="TableDesign" />
 		</group>
-        <group id="groupManager" label="Data Loader">
-          <button id="btnOpenTaskPane" label="Folder Upload" 
+        <group id="groupManager" label="데이터저장">
+          <button id="btnOpenTaskPane" label="폴더저장" 
                   size="large" onAction="OnOpenTaskPane" 
                   imageMso="FileOpen" />
-          <button id="btnActiveWorkbookUpload" label="Active Upload" 
+          <button id="btnActiveWorkbookUpload" label="엑셀저장" 
                   size="large" onAction="OnActiveWorkbookUpload" 
                   imageMso="FileSaveAs" />
         </group>
-        <group id="groupInquiry" label="Data Inquiry">
+        <group id="groupInquiry" label="데이터관리">
           <button id="btnOpenInquiryTaskPane" 
-                  label="DB Inquiry" 
+                  label="조회수정" 
                   size="large" 
                   onAction="OnOpenInquiryTaskPane" 
                   imageMso="GetExternalDataFromAccess" />

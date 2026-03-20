@@ -24,7 +24,13 @@ namespace RFGo.PhotoKey.Manager.Presentation.TaskPane
         {
             // For now, we reuse WebViewPopupForm which points to WorkSheetsLoader/preview.html
             // We can pass a flag if we want to change behavior
-            var form = new WebViewPopupForm(jsonWorkbookData, jsonHierarchy);
+            var form = new WebViewPopupForm(jsonWorkbookData, jsonHierarchy, true, "PhotoKey Detail View");
+            form.Show();
+        }
+
+        public void ShowEdit(string jsonPhotoKey, string jsonHierarchy)
+        {
+            var form = new WebViewPopupForm(jsonPhotoKey, jsonHierarchy, false, "Edit PhotoKey Attributes", "DataInquiry/edit.html");
             form.Show();
         }
 
