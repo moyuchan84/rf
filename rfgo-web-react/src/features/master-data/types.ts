@@ -43,6 +43,7 @@ export interface RequestItem {
   updatedAt: string;
   assignees?: RequestAssignee[];
   steps?: RequestStep[];
+  product?: Product;
 }
 
 export interface Product {
@@ -50,6 +51,7 @@ export interface Product {
   partId: string;
   productName: string;
   beolOptionId: number;
+  beolOption?: BeolOption;
   metaInfo?: ProductMeta;
   requests?: RequestItem[];
   photoKeys?: PhotoKey[];
@@ -77,6 +79,7 @@ export interface BeolOption {
   id: number;
   optionName: string;
   processPlanId: number;
+  processPlan?: ProcessPlan;
   products: Product[];
 }
 

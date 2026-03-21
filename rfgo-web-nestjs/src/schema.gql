@@ -13,9 +13,16 @@ type BeolOption {
   createdAt: DateTime!
   id: Int!
   optionName: String!
+  processPlan: ProcessPlan
   processPlanId: Int!
   products: [Product!]!
   updatedAt: DateTime!
+}
+
+enum ContentType {
+  HTML
+  MIME
+  TEXT
 }
 
 input CreateBeolOptionInput {
@@ -89,6 +96,11 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+enum DocSecuType {
+  OFFICIAL
+  PERSONAL
+}
+
 """
 The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
 """
@@ -114,6 +126,15 @@ type KeyDesign {
   yAxis: JSON!
 }
 
+input MailRequestDto {
+  contentType: ContentType!
+  contents: String!
+  docSecuType: DocSecuType!
+  recipients: [RecipientDto!]!
+  sender: SenderDto!
+  subject: String!
+}
+
 type Mutation {
   assignUser(input: AssignUserInput!): RequestAssignee!
   createBeolOption(input: CreateBeolOptionInput!): BeolOption!
@@ -131,12 +152,18 @@ type Mutation {
   removeKeyDesign(id: Int!): KeyDesign!
   saveLayout(input: CreateLayoutInput!): ReticleLayout!
   saveRequestTables(input: SaveRequestTablesInput!): [RequestTableMap!]!
+  sendTestMail(input: MailRequestDto!): Boolean!
   updateKeyDesign(id: Int!, input: UpdateKeyDesignInput!): KeyDesign!
   updateLayout(id: Int!, input: UpdateLayoutInput!): ReticleLayout!
   updateProduct(id: Int!, input: UpdateProductInput!): Product!
   updateRequestItem(id: Int!, input: UpdateRequestItemInput!): RequestItem!
   updateRequestStep(input: UpdateStepInput!): RequestStep!
   updateUserRole(roleId: Int!, userId: Int!): UserType!
+}
+
+type PaginatedRequests {
+  items: [RequestItem!]!
+  totalCount: Int!
 }
 
 type PaginatedUsers {
@@ -172,6 +199,7 @@ type ProcessPlan {
 }
 
 type Product {
+  beolOption: BeolOption
   beolOptionId: Int!
   createdAt: DateTime!
   id: Int!
@@ -217,13 +245,18 @@ type Query {
   photoKeys(beolOptionId: Int, processPlanId: Int, productId: Int): [PhotoKey!]!
   processPlans: [ProcessPlan!]!
   requestItem(id: Int!): RequestItem
-  requestItems: [RequestItem!]!
+  requestItems(beolOptionId: Int, processPlanId: Int, requestType: String, search: String, skip: Int! = 0, take: Int! = 10): PaginatedRequests!
   requestItemsByProduct(productId: Int!): [RequestItem!]!
   requestTables(requestId: Int!, type: String!): [RequestTableMap!]!
   roles: [RoleType!]!
   streamInfoByRequest(requestId: Int!): [StreamInfo!]!
   streamInfosByProduct(productId: Int!): [StreamInfo!]!
   users(search: String, skip: Int! = 0, take: Int! = 10): PaginatedUsers!
+}
+
+input RecipientDto {
+  emailAddress: String!
+  recipientType: String! = "TO"
 }
 
 type RequestAssignee {
@@ -241,6 +274,7 @@ type RequestItem {
   edmList: [String!]!
   id: Int!
   pkdVersions: [String!]!
+  product: Product
   productId: Int!
   requestType: String!
   requesterId: String!
@@ -301,6 +335,10 @@ input SaveRequestTablesInput {
   productId: Int!
   requestId: Int!
   type: String!
+}
+
+input SenderDto {
+  emailAddress: String!
 }
 
 type StreamInfo {

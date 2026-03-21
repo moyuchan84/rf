@@ -42,24 +42,18 @@ export class ProductMeta {
 }
 
 @ObjectType()
-export class Product {
+export class ProcessPlan {
   @Field(() => Int)
   id: number;
 
   @Field()
-  partId: string;
+  designRule: string;
 
-  @Field()
-  productName: string;
+  @Field(() => [BeolOption])
+  beolOptions: BeolOption[];
 
-  @Field(() => Int)
-  beolOptionId: number;
-
-  @Field(() => ProductMeta, { nullable: true })
-  metaInfo?: ProductMeta;
-
-  @Field(() => [RequestItem], { nullable: true })
-  requests?: RequestItem[];
+  @Field(() => [KeyDesign], { nullable: true })
+  keyDesigns?: KeyDesign[];
 
   @Field()
   createdAt: Date;
@@ -79,6 +73,9 @@ export class BeolOption {
   @Field(() => Int)
   processPlanId: number;
 
+  @Field(() => ProcessPlan, { nullable: true })
+  processPlan?: ProcessPlan;
+
   @Field(() => [Product])
   products: Product[];
 
@@ -90,18 +87,27 @@ export class BeolOption {
 }
 
 @ObjectType()
-export class ProcessPlan {
+export class Product {
   @Field(() => Int)
   id: number;
 
   @Field()
-  designRule: string;
+  partId: string;
 
-  @Field(() => [BeolOption])
-  beolOptions: BeolOption[];
+  @Field()
+  productName: string;
 
-  @Field(() => [KeyDesign], { nullable: true })
-  keyDesigns?: KeyDesign[];
+  @Field(() => Int)
+  beolOptionId: number;
+
+  @Field(() => BeolOption, { nullable: true })
+  beolOption?: BeolOption;
+
+  @Field(() => ProductMeta, { nullable: true })
+  metaInfo?: ProductMeta;
+
+  @Field(() => [RequestItem], { nullable: true })
+  requests?: RequestItem[];
 
   @Field()
   createdAt: Date;
