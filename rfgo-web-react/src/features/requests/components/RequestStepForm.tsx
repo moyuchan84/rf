@@ -23,6 +23,7 @@ import {
 import { useRequestForm } from '../hooks/useRequestForm';
 import { useUserStore } from '../../auth/store/useUserStore';
 import { type RequestItem } from '../../master-data/types';
+import { REQUEST_TYPE_OPTIONS } from '../types';
 
 const Chip: React.FC<{ label: string; onRemove: () => void }> = ({ label, onRemove }) => (
   <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 px-2 py-1 rounded-md shadow-sm dark:shadow-lg animate-in fade-in zoom-in duration-300 transition-all">
@@ -320,9 +321,9 @@ const RequestStepForm: React.FC<RequestStepFormProps> = ({ initialData, onSucces
                     required
                   >
                     <option value="">Select Request Type</option>
-                    <option value="RFG(신규/변경) 의뢰">RFG(신규/변경) 의뢰</option>
-                    <option value="RFG 개별 제품 Revision 의뢰">RFG 개별 제품 Revision 의뢰</option>
-                    <option value="RFG 개별 제품 Revision 의뢰(Special)">RFG 개별 제품 Revision 의뢰(Special)</option>
+                    {REQUEST_TYPE_OPTIONS.map(opt => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
                   </select>
                   <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                     <ArrowRight className="w-3.5 h-3.5 rotate-90" />
