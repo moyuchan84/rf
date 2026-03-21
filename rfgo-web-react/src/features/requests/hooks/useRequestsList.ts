@@ -8,6 +8,7 @@ import {
 } from '@/shared/api/generated/graphql';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
+import { type RequestItem } from '../../master-data/types';
 
 export const useRequestsList = () => {
   const [search, setSearch] = useState('');
@@ -22,10 +23,10 @@ export const useRequestsList = () => {
       search: search || undefined,
       skip: (page - 1) * pageSize,
       take: pageSize,
-      requestType: requestType || undefined,
-      processPlanId: processPlanId || undefined,
-      beolOptionId: beolOptionId || undefined,
-    },
+      requestType: (requestType as any) || undefined,
+      processPlanId: (processPlanId as any) || undefined,
+      beolOptionId: (beolOptionId as any) || undefined,
+    } as any,
     notifyOnNetworkStatusChange: true
   });
 
@@ -45,11 +46,14 @@ export const useRequestsList = () => {
     }
   };
 
-  const totalCount = data?.requestItems.totalCount || 0;
+  // GraphQL Paginated Response structure mapping
+  const requestItemsData = data?.requestItems as any;
+  const requests = (requestItemsData?.items as RequestItem[]) || [];
+  const totalCount = (requestItemsData?.totalCount as number) || 0;
   const totalPages = Math.ceil(totalCount / pageSize);
 
   return {
-    requests: data?.requestItems.items || [],
+    requests,
     totalCount,
     totalPages,
     loading,

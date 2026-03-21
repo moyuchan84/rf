@@ -111,7 +111,9 @@ export const ReferenceTablePicker: React.FC<ReferenceTablePickerProps> = ({ requ
           >
             <option value="">Select Stream Path Source</option>
             {streamInfosData?.streamInfosByProduct?.map((si: any) => (
-              <option key={si.id} value={si.requestId}>{si.streamPath} (REQ-{si.requestId}: {si.request.title})</option>
+              <option key={si.id} value={si.requestId}>
+                {si.streamPath} (REQ-{si.requestId}: {si.request?.title || 'No Title'})
+              </option>
             ))}
           </select>
         </div>

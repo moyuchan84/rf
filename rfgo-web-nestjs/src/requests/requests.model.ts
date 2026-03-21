@@ -1,5 +1,6 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
 import { RequestAssignee, RequestStep } from './workflow.model';
+import { Product } from '../master-data/master-data.model';
 
 @ObjectType()
 export class RequestItem {
@@ -8,6 +9,9 @@ export class RequestItem {
 
   @Field(() => Int)
   productId: number;
+
+  @Field(() => Product, { nullable: true })
+  product?: Product;
 
   @Field()
   requestType: string;

@@ -15,7 +15,7 @@ const Requests: React.FC = () => {
   const requestsList = useRequestsList();
   const { requests, refetch, deleteRequest } = requestsList;
 
-  const selectedRequest = requests.find(r => r.id === selectedRequestId);
+  const selectedRequest = requests.find((r: RequestItem) => r.id === selectedRequestId);
 
   const handleRequestClick = (req: RequestItem) => {
     setSelectedRequestId(req.id);

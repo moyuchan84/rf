@@ -100,6 +100,30 @@ export const GET_ALL_REQUESTS = gql`
           workerId
           completedAt
         }
+        product {
+          id
+          partId
+          productName
+          metaInfo {
+            id
+            processId
+            mtoDate
+            customer
+            application
+            chipSizeX
+            chipSizeY
+            slSizeX
+            slSizeY
+          }
+          beolOption {
+            id
+            optionName
+            processPlan {
+              id
+              designRule
+            }
+          }
+        }
       }
       totalCount
     }
@@ -134,6 +158,30 @@ export const GET_REQUEST_ITEM = gql`
         workContent
         workerId
         completedAt
+      }
+      product {
+        id
+        partId
+        productName
+        metaInfo {
+          id
+          processId
+          mtoDate
+          customer
+          application
+          chipSizeX
+          chipSizeY
+          slSizeX
+          slSizeY
+        }
+        beolOption {
+          id
+          optionName
+          processPlan {
+            id
+            designRule
+          }
+        }
       }
     }
   }
@@ -206,6 +254,10 @@ export const GET_STREAM_INFOS_BY_PRODUCT = gql`
       requestId
       streamPath
       streamInputOutputFile
+      request {
+        id
+        title
+      }
     }
   }
 `;

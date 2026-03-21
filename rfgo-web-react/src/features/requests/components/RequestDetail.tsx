@@ -8,7 +8,11 @@ import {
   Clock, 
   Edit3, 
   Trash2,
-  FileText
+  FileText,
+  Layers,
+  Cpu,
+  Info,
+  Calendar
 } from 'lucide-react';
 import { type RequestItem } from '../../master-data/types';
 import { WorkflowStepper } from './WorkflowStepper';
@@ -34,6 +38,7 @@ export const RequestDetail: React.FC<RequestDetailProps> = ({
   const [activeStepIndex, setActiveStepIndex] = useState(currentStepIndex === -1 ? 3 : currentStepIndex);
 
   const progress = Math.round((steps.filter(s => s.status === 'DONE').length / 4) * 100);
+  const product = request.product;
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-8 duration-700 space-y-6 pb-16">
@@ -93,8 +98,112 @@ export const RequestDetail: React.FC<RequestDetailProps> = ({
         </div>
       </div>
 
-    
-      {/* 3. Initial Requirements (Full Width - New) */}
+      {/* Product Hierarchy Info (Reorganized Section) */}
+      {product && (
+        <section className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-md p-8 shadow-sm dark:shadow-xl transition-all">
+          <h3 className="text-[8px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-[0.3em] flex items-center gap-1.5 mb-8 transition-colors">
+            <Layers className="w-3.5 h-3.5" /> Product Technical Specification
+          </h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-y-10 gap-x-8">
+            {/* 1. Hierarchy Group */}
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-slate-400 dark:text-slate-500">
+                  <Settings className="w-3 h-3" />
+                  <span className="text-[8px] font-black uppercase tracking-widest">Process Plan</span>
+                </div>
+                <p className="text-sm font-black text-slate-900 dark:text-white pl-5 border-l-2 border-indigo-500/20">
+                  {product.beolOption?.processPlan?.designRule || 'N/A'}
+                </p>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-slate-400 dark:text-slate-500">
+                  <Layers className="w-3 h-3" />
+                  <span className="text-[8px] font-black uppercase tracking-widest">BEOL Option</span>
+                </div>
+                <p className="text-sm font-black text-slate-900 dark:text-white pl-5 border-l-2 border-indigo-500/20">
+                  {product.beolOption?.optionName || 'N/A'}
+                </p>
+              </div>
+            </div>
+
+            {/* 2. Product Identity */}
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-slate-400 dark:text-slate-500">
+                  <Cpu className="w-3 h-3" />
+                  <span className="text-[8px] font-black uppercase tracking-widest">Product / Part ID</span>
+                </div>
+                <p className="text-sm font-black text-slate-900 dark:text-white pl-5 border-l-2 border-indigo-500/20">
+                  {product.productName} <span className="text-xs text-slate-400 font-bold ml-1">({product.partId})</span>
+                </p>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-slate-400 dark:text-slate-500">
+                  <Globe className="w-3 h-3" />
+                  <span className="text-[8px] font-black uppercase tracking-widest">Application</span>
+                </div>
+                <p className="text-sm font-black text-slate-900 dark:text-white pl-5 border-l-2 border-indigo-500/20">
+                  {product.metaInfo?.application || 'N/A'}
+                </p>
+              </div>
+            </div>
+
+            {/* 3. Business Context */}
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-slate-400 dark:text-slate-500">
+                  <User className="w-3 h-3" />
+                  <span className="text-[8px] font-black uppercase tracking-widest">Customer</span>
+                </div>
+                <p className="text-sm font-black text-slate-900 dark:text-white pl-5 border-l-2 border-indigo-500/20">
+                  {product.metaInfo?.customer || 'N/A'}
+                </p>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-slate-400 dark:text-slate-500">
+                  <Calendar className="w-3 h-3" />
+                  <span className="text-[8px] font-black uppercase tracking-widest">MTO Date</span>
+                </div>
+                <p className="text-sm font-black text-slate-900 dark:text-white pl-5 border-l-2 border-indigo-500/20">
+                  {product.metaInfo?.mtoDate ? new Date(product.metaInfo.mtoDate).toLocaleDateString() : 'N/A'}
+                </p>
+              </div>
+            </div>
+
+            {/* 4. Physical Dimensions */}
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-slate-400 dark:text-slate-500">
+                  <Info className="w-3 h-3" />
+                  <span className="text-[8px] font-black uppercase tracking-widest">Chip Size (X/Y)</span>
+                </div>
+                <div className="flex items-baseline gap-1 pl-5 border-l-2 border-indigo-500/20">
+                  <span className="text-sm font-black text-slate-900 dark:text-white">{product.metaInfo?.chipSizeX?.toFixed(2) || '0'}</span>
+                  <span className="text-[10px] font-bold text-slate-400">x</span>
+                  <span className="text-sm font-black text-slate-900 dark:text-white">{product.metaInfo?.chipSizeY?.toFixed(2) || '0'}</span>
+                  <span className="text-[8px] font-bold text-slate-400 ml-1 uppercase">mm</span>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-slate-400 dark:text-slate-500">
+                  <Info className="w-3 h-3" />
+                  <span className="text-[8px] font-black uppercase tracking-widest">SL Size (X/Y)</span>
+                </div>
+                <div className="flex items-baseline gap-1 pl-5 border-l-2 border-indigo-500/20">
+                  <span className="text-sm font-black text-slate-900 dark:text-white">{product.metaInfo?.slSizeX?.toFixed(2) || '0'}</span>
+                  <span className="text-[10px] font-bold text-slate-400">x</span>
+                  <span className="text-sm font-black text-slate-900 dark:text-white">{product.metaInfo?.slSizeY?.toFixed(2) || '0'}</span>
+                  <span className="text-[8px] font-bold text-slate-400 ml-1 uppercase">mm</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* 3. Initial Requirements (Full Width) */}
       <section className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-md p-8 space-y-5 shadow-sm dark:shadow-xl transition-all">
         <h3 className="text-[8px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-[0.3em] flex items-center gap-1.5 transition-colors">
           <FileText className="w-3.5 h-3.5" /> Initial Requirements & Specifications
@@ -105,13 +214,12 @@ export const RequestDetail: React.FC<RequestDetailProps> = ({
         />
       </section>
 
-        {/* 2. Workflow Stepper (Full Width) */}
+      {/* 2. Workflow Stepper (Full Width) */}
       <WorkflowStepper 
         steps={steps} 
         currentStepIndex={activeStepIndex}
         onStepClick={setActiveStepIndex}
       />
-
 
       {/* 4. Technical Info & Sidebar Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
