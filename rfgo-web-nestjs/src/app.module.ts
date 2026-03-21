@@ -11,6 +11,7 @@ import { LayoutsModule } from './layouts/layouts.module';
 import { KeyDesignModule } from './key-design/key-design.module';
 import { PrismaModule } from './prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { MailModule } from './infrastructure/mail/mail.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { AuthModule } from './modules/auth/auth.module';
     RequestsModule,
     LayoutsModule,
     KeyDesignModule,
+    MailModule,
   ],
   controllers: [AppController],
   providers: [AppService],

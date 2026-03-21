@@ -3,10 +3,19 @@ import { PrismaService } from '../prisma.service';
 import { CreateRequestItemInput, UpdateRequestItemInput } from './requests.dto';
 import { AssignUserInput, UpdateStepInput } from './workflow.dto';
 import { CreateStreamInfoInput, SaveRequestTablesInput } from './step-data.dto';
+import { MailerProvider } from '../common/interfaces/mailer.interface';
+import { DocSecuType, ContentType } from '../common/dto/mail-request.dto';
+import { MailTemplateService } from '../infrastructure/mail/template.service';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class RequestsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private mailer: MailerProvider,
+    private mailTemplate: MailTemplateService,
+    private config: ConfigService,
+  ) {}
 
   // Step Data Management
   async createStreamInfo(input: CreateStreamInfoInput) {
@@ -89,15 +98,69 @@ export class RequestsService {
         })),
       });
 
+      // 비동기 메일 발송
+      this.sendNotificationMail(request.id, '신규 의뢰');
+
       return request;
     });
   }
 
   async updateRequestItem(id: number, input: UpdateRequestItemInput) {
-    return this.prisma.requestItem.update({
+    const request = await this.prisma.requestItem.update({
       where: { id },
       data: input,
     });
+    
+    // 비동기 메일 발송
+    this.sendNotificationMail(request.id, '의뢰 수정');
+    
+    return request;
+  }
+
+  private async sendNotificationMail(requestId: number, actionLabel: string) {
+    try {
+      // 상세 데이터 조회 (Email 템플릿용)
+      const request = await this.prisma.requestItem.findUnique({
+        where: { id: requestId },
+        include: {
+          product: {
+            include: {
+              beolOption: {
+                include: { processPlan: true }
+              },
+              metaInfo: true
+            }
+          }
+        }
+      });
+
+      if (!request) return;
+
+      // 프론트엔드 주소 설정 (예: http://localhost:5173)
+      const systemUrl = this.config.get<string>('SYSTEM_URL') || 'http://localhost:5173';
+      
+      const htmlContent = this.mailTemplate.renderRequestNotification({
+        actionLabel,
+        request,
+        product: request.product,
+        systemUrl // 템플릿 내에서 링크 생성에 사용됨
+      });
+
+      const mailRequest = {
+        subject: `[RFGo] ${actionLabel} 알림: ${request.title}`,
+        docSecuType: DocSecuType.OFFICIAL,
+        contentType: ContentType.HTML,
+        contents: htmlContent,
+        sender: { emailAddress: 'rfgo-system@samsung.com' },
+        recipients: [
+          { emailAddress: request.requesterId, recipientType: 'TO' }
+        ],
+      };
+
+      await this.mailer.sendMail(mailRequest);
+    } catch (error) {
+      console.error('[RequestsService] Failed to send notification mail:', error);
+    }
   }
 
   async deleteRequestItem(id: number) {
@@ -110,6 +173,14 @@ export class RequestsService {
       include: {
         assignees: true,
         steps: { orderBy: { stepOrder: 'asc' } },
+        product: {
+          include: {
+            beolOption: {
+              include: { processPlan: true },
+            },
+            metaInfo: true,
+          },
+        },
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -163,6 +234,7 @@ export class RequestsService {
               beolOption: {
                 include: { processPlan: true },
               },
+              metaInfo: true,
             },
           },
         },
@@ -181,6 +253,14 @@ export class RequestsService {
       include: {
         assignees: true,
         steps: { orderBy: { stepOrder: 'asc' } },
+        product: {
+          include: {
+            beolOption: {
+              include: { processPlan: true },
+            },
+            metaInfo: true,
+          },
+        },
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -192,6 +272,14 @@ export class RequestsService {
       include: {
         assignees: true,
         steps: { orderBy: { stepOrder: 'asc' } },
+        product: {
+          include: {
+            beolOption: {
+              include: { processPlan: true },
+            },
+            metaInfo: true,
+          },
+        },
       },
     });
   }
