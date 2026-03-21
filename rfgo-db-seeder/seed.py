@@ -1,7 +1,7 @@
 import os
 import sys
 import random
-from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, DateTime, text, Float, Text, ARRAY, Boolean, JSON
+from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, DateTime, text, Float, Text, ARRAY, Boolean, JSON, LargeBinary
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
@@ -97,6 +97,36 @@ class RequestAssignee(Base):
     category = Column(String, nullable=False)
     user_id = Column(String, nullable=False)
     user_name = Column(String, nullable=False)
+
+class PhotoKey(Base):
+    __tablename__ = "photo_keys"
+    id = Column(Integer, primary_key=True, index=True)
+    product_id = Column(Integer, ForeignKey("products.id", ondelete="CASCADE"))
+    process_plan_id = Column(Integer, ForeignKey("process_plans.id", ondelete="CASCADE"))
+    beol_option_id = Column(Integer, ForeignKey("beol_options.id", ondelete="CASCADE"))
+    rfg_category = Column(String)
+    photo_category = Column(String)
+    is_reference = Column(Boolean, default=False)
+    table_name = Column(String)
+    rev_no = Column(Integer)
+    workbook_data = Column(JSON)
+    raw_binary = Column(LargeBinary, nullable=True)
+    filename = Column(String)
+    updater = Column(String)
+    log = Column(Text, nullable=True)
+    update_date = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+class StreamInfo(Base):
+    __tablename__ = "stream_info"
+    id = Column(Integer, primary_key=True, index=True)
+    request_id = Column(Integer, ForeignKey("request_items.id", ondelete="CASCADE"))
+    product_id = Column(Integer, nullable=False)
+    process_plan_id = Column(Integer, nullable=False)
+    beol_option_id = Column(Integer, nullable=False)
+    stream_path = Column(String, nullable=False)
+    stream_input_output_file = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    update_time = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 # --- Seeding Logic ---
 
@@ -226,6 +256,112 @@ def seed_requests(db):
     db.commit()
     print("Requests seeding finished.")
 
+def create_mock_workbook(filename, table_name):
+    """Generates a simplified WorkbookData JSON structure."""
+    return {
+        "Meta": {
+            "FileName": filename,
+            "FullPath": f"C:\\Users\\Mock\\Documents\\{filename}",
+            "Revision": random.randint(1, 5),
+            "SuggestedTableName": table_name
+        },
+        "Worksheets": [
+            {
+                "SheetName": "HISTORY",
+                "SheetType": "HISTORY",
+                "Origin": {"Row": 1, "Col": 1},
+                "Columns": [
+                    {"Key": "col_0", "Name": "REV", "Index": 0},
+                    {"Key": "col_1", "Name": "DATE", "Index": 1},
+                    {"Key": "col_2", "Name": "AUTHOR", "Index": 2},
+                    {"Key": "col_3", "Name": "LOG", "Index": 3}
+                ],
+                "TableData": [
+                    {"col_0": "1.0", "col_1": "2024-01-01", "col_2": "admin", "col_3": "Initial Setup"},
+                    {"col_0": "1.1", "col_1": "2024-02-15", "col_2": "rfg_manager", "col_3": "Updated ALIGN markers"}
+                ],
+                "MetaInfo": {}
+            },
+            {
+                "SheetName": "DATA_SHEET",
+                "SheetType": "DATA",
+                "Origin": {"Row": 1, "Col": 1},
+                "PhotoCategory": "key",
+                "MetaInfo": {
+                    "Product": "MOCK_PROD",
+                    "Step": "PHOTO_STEP_01",
+                    "Revision": "1.1"
+                },
+                "Columns": [
+                    {"Key": "col_0", "Name": "KEY_ID", "Index": 0},
+                    {"Key": "col_1", "Name": "POS_X", "Index": 1},
+                    {"Key": "col_2", "Name": "POS_Y", "Index": 2},
+                    {"Key": "col_3", "Name": "TYPE", "Index": 3},
+                    {"Key": "col_4", "Name": "SIZE", "Index": 4}
+                ],
+                "TableData": [
+                    {"col_0": "K101", "col_1": 10.523, "col_2": -42.112, "col_3": "ALIGN", "col_4": 80.0},
+                    {"col_0": "K102", "col_1": 50.112, "col_2": 12.887, "col_3": "ALIGN", "col_4": 80.0},
+                    {"col_0": "OVL1", "col_1": -12.000, "col_2": -5.500, "col_3": "OVERLAY", "col_4": 45.0},
+                    {"col_0": "OVL2", "col_1": 112.44, "col_2": 88.33, "col_3": "OVERLAY", "col_4": 45.0}
+                ]
+            }
+        ]
+    }
+
+def seed_photo_keys(db):
+    print("--- Seeding Photo Keys ---")
+    products = db.query(Product).all()
+    beol_options = {b.id: b.process_plan_id for b in db.query(BeolOption).all()}
+    
+    for prod in random.sample(products, 15):  # Seed for 15 products
+        plan_id = beol_options[prod.beol_option_id]
+        
+        # Create 2-3 PhotoKeys per product
+        for i in range(random.randint(2, 3)):
+            table_name = f"PK_{prod.partid}_{['ALIGN', 'OVERLAY', 'META'][i % 3]}"
+            filename = f"PHOTO_KEY_{prod.partid}_R{i+1}.xlsx"
+            
+            pk = PhotoKey(
+                product_id=prod.id,
+                process_plan_id=plan_id,
+                beol_option_id=prod.beol_option_id,
+                rfg_category=random.choice(["common", "option"]),
+                photo_category=random.choice(["key", "info"]),
+                is_reference=(i == 0),
+                table_name=table_name,
+                rev_no=i + 1,
+                workbook_data=create_mock_workbook(filename, table_name),
+                raw_binary=b"dummy binary content",
+                filename=filename,
+                updater="admin_user",
+                log=f"Auto-generated mock data for {prod.partid} rev {i+1}"
+            )
+            db.add(pk)
+    db.commit()
+
+def seed_stream_info(db):
+    print("--- Seeding Stream Info ---")
+    requests = db.query(RequestItem).all()
+    products = {p.id: p for p in db.query(Product).all()}
+    beol_options = {b.id: b.process_plan_id for b in db.query(BeolOption).all()}
+
+    # Seed for 50 requests
+    for req in random.sample(requests, 50):
+        prod = products[req.product_id]
+        plan_id = beol_options[prod.beol_option_id]
+        
+        si = StreamInfo(
+            request_id=req.id,
+            product_id=prod.id,
+            process_plan_id=plan_id,
+            beol_option_id=prod.beol_option_id,
+            stream_path=f"//NAS/GDS/STREAM/{prod.partid}/{req.id}_output.gds",
+            stream_input_output_file=f"STREAM_INFO_FOR_REQUEST_{req.id}\nVERSION: 1.0\nLAYERS: 1, 2, 3, 4, 5\nPROCESS: {plan_id}"
+        )
+        db.add(si)
+    db.commit()
+
 def run_seed():
     db = SessionLocal()
     try:
@@ -233,6 +369,8 @@ def run_seed():
         seed_users(db)
         seed_master_data(db)
         seed_requests(db)
+        seed_photo_keys(db)
+        seed_stream_info(db)
         print("\nAll Seeding completed successfully!")
     except Exception as e:
         print(f"Error seeding database: {e}")
