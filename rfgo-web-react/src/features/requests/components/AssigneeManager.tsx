@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { UserPlus, X, User } from 'lucide-react';
+import { UserPlus, X, User, CheckCircle2 } from 'lucide-react';
 import { type RequestAssignee } from '../../master-data/types';
 import { useMutation } from '@apollo/client/react';
 import { ASSIGN_USER, REMOVE_ASSIGNEE } from '../api/requestQueries';
 import toast from 'react-hot-toast';
+import { EmployeeSearch } from '../../employee/components/EmployeeSearch';
+import { Employee } from '../../employee/store/useEmployeeStore';
 
 interface AssigneeManagerProps {
   requestId: number;
@@ -18,16 +20,14 @@ export const AssigneeManager: React.FC<AssigneeManagerProps> = ({
 }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [category, setCategory] = useState('RFG_TASK');
-  const [userId, setUserId] = useState('');
-  const [userName, setUserName] = useState('');
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
 
   const [assignUserMutation] = useMutation(ASSIGN_USER, {
     onCompleted: () => {
       toast.success('Assignee added');
       onUpdate();
       setIsAdding(false);
-      setUserId('');
-      setUserName('');
+      setSelectedEmployee(null);
     }
   });
 
@@ -39,10 +39,15 @@ export const AssigneeManager: React.FC<AssigneeManagerProps> = ({
   });
 
   const handleAdd = async () => {
-    if (!userId || !userName) return;
+    if (!selectedEmployee) return;
     await assignUserMutation({
       variables: {
-        input: { requestId, category, userId, userName }
+        input: { 
+          requestId, 
+          category, 
+          userId: selectedEmployee.userId, 
+          userName: selectedEmployee.fullName 
+        }
       }
     });
   };
@@ -56,43 +61,66 @@ export const AssigneeManager: React.FC<AssigneeManagerProps> = ({
       <div className="flex items-center justify-between">
         <h3 className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-[0.3em]">Task Assignees</h3>
         <button 
-          onClick={() => setIsAdding(!isAdding)}
-          className="p-2 bg-indigo-50 dark:bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 rounded-md hover:bg-indigo-100 dark:hover:bg-indigo-600/20 border border-indigo-200 dark:border-indigo-500/20 transition-all active:scale-90"
+          onClick={() => {
+            setIsAdding(!isAdding);
+            setSelectedEmployee(null);
+          }}
+          className={`p-2 rounded-md border transition-all active:scale-90 ${
+            isAdding 
+              ? 'bg-red-50 dark:bg-red-600/10 text-red-600 dark:text-red-400 border-red-200 dark:border-red-500/20' 
+              : 'bg-indigo-50 dark:bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-500/20'
+          }`}
         >
-          <UserPlus className="w-4 h-4" />
+          {isAdding ? <X className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />}
         </button>
       </div>
 
       {isAdding && (
-        <div className="p-4 bg-white dark:bg-slate-950 rounded-md border border-slate-200 dark:border-slate-800 space-y-4 animate-in slide-in-from-top-2 duration-300 shadow-sm">
-          <select 
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md px-4 py-2 text-[10px] font-bold text-slate-900 dark:text-white outline-none"
-          >
-            <option value="RFG_TASK">RFG Task</option>
-            <option value="KEY_TABLE_TASK">Key Table Task</option>
-            <option value="INNO_TASK">Innovation Task</option>
-          </select>
-          <div className="grid grid-cols-2 gap-2">
-            <input 
-              type="text" 
-              placeholder="User ID (EMP...)"
-              value={userId}
-              onChange={(e) => setUserId(e.target.value)}
-              className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md px-4 py-2 text-[10px] font-bold text-slate-900 dark:text-white outline-none placeholder:text-slate-400 dark:placeholder:text-slate-700"
-            />
-            <input 
-              type="text" 
-              placeholder="Full Name"
-              value={userName}
-              onChange={(e) => setUserName(e.target.value)}
-              className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md px-4 py-2 text-[10px] font-bold text-slate-900 dark:text-white outline-none placeholder:text-slate-400 dark:placeholder:text-slate-700"
+        <div className="p-5 bg-white dark:bg-slate-950 rounded-md border border-slate-200 dark:border-slate-800 space-y-5 animate-in slide-in-from-top-2 duration-300 shadow-sm">
+          <div className="space-y-1.5">
+            <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Task Category</label>
+            <select 
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md px-4 py-2 text-[10px] font-bold text-slate-900 dark:text-white outline-none focus:border-indigo-500 transition-colors"
+            >
+              <option value="RFG_TASK">RFG Task</option>
+              <option value="KEY_TABLE_TASK">Key Table Task</option>
+              <option value="INNO_TASK">Innovation Task</option>
+            </select>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Search Employee</label>
+            <EmployeeSearch 
+              onSelect={setSelectedEmployee}
+              placeholder="Search by Name or ID..."
             />
           </div>
+
+          {selectedEmployee && (
+            <div className="flex items-center justify-between p-3 bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-500/10 rounded-md animate-in fade-in zoom-in-95 duration-200">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-white dark:bg-slate-900 rounded-md flex items-center justify-center border border-indigo-200 dark:border-indigo-500/20 shadow-sm">
+                  <User className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                </div>
+                <div>
+                  <p className="text-xs font-black text-slate-900 dark:text-white">{selectedEmployee.fullName}</p>
+                  <p className="text-[9px] font-bold text-slate-500 uppercase tracking-tight">{selectedEmployee.departmentName} ({selectedEmployee.userId})</p>
+                </div>
+              </div>
+              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+            </div>
+          )}
+
           <button 
             onClick={handleAdd}
-            className="w-full py-2 bg-indigo-600 text-white rounded-md text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-colors shadow-sm"
+            disabled={!selectedEmployee}
+            className={`w-full py-2.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all shadow-sm ${
+              selectedEmployee 
+                ? 'bg-indigo-600 text-white hover:bg-indigo-700' 
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed'
+            }`}
           >
             Add Assignee
           </button>

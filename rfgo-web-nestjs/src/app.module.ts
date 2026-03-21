@@ -12,6 +12,7 @@ import { KeyDesignModule } from './key-design/key-design.module';
 import { PrismaModule } from './prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { MailModule } from './infrastructure/mail/mail.module';
+import { EmployeeModule } from './modules/employee/employee.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { MailModule } from './infrastructure/mail/mail.module';
     LayoutsModule,
     KeyDesignModule,
     MailModule,
+    EmployeeModule,
   ],
   controllers: [AppController],
   providers: [AppService],
