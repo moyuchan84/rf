@@ -69,6 +69,44 @@ export class AuthService {
     });
   }
 
+  async findAllUsers(search?: string, skip: number = 0, take: number = 10) {
+    const where = search
+      ? {
+          OR: [
+            { userId: { contains: search, mode: 'insensitive' as any } },
+            { fullName: { contains: search, mode: 'insensitive' as any } },
+          ],
+        }
+      : {};
+
+    const [items, totalCount] = await Promise.all([
+      this.prisma.user.findMany({
+        where,
+        include: { role: true },
+        orderBy: { fullName: 'asc' },
+        skip,
+        take,
+      }),
+      this.prisma.user.count({ where }),
+    ]);
+
+    return { items, totalCount };
+  }
+
+  async findAllRoles() {
+    return this.prisma.role.findMany({
+      orderBy: { name: 'asc' },
+    });
+  }
+
+  async updateUserRole(userId: number, roleId: number) {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { roleId },
+      include: { role: true },
+    });
+  }
+
   getLoginUrl() {
     return this.ssoAdapter.getLoginUrl();
   }

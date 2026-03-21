@@ -5,7 +5,8 @@ import {
   Palette, 
   Table2, 
   Layers, 
-  Search 
+  Search,
+  Users
 } from 'lucide-react';
 
 export const navItems = [
@@ -16,4 +17,5 @@ export const navItems = [
   { icon: Table2, label: '키테이블', path: '/key-table' },
   { icon: Layers, label: '레이아웃', path: '/layout' },
   { icon: Search, label: 'R-BOT', path: '/rag' },
+  { icon: Users, label: '사용자관리', path: '/admin/users', roles: ['ADMIN'] },
 ];

@@ -35,3 +35,12 @@ export class UserType {
   @Field(() => RoleType)
   role: RoleType;
 }
+
+@ObjectType()
+export class PaginatedUsers {
+  @Field(() => [UserType])
+  items: UserType[];
+
+  @Field(() => Int)
+  totalCount: number;
+}

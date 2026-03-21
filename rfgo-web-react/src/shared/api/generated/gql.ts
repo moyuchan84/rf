@@ -15,6 +15,9 @@ import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-
  */
 type Documents = {
     "\n  query GetMe {\n    me {\n      id\n      epId\n      userId\n      fullName\n      deptName\n      email\n      role {\n        id\n        name\n      }\n    }\n  }\n": typeof types.GetMeDocument,
+    "\n  query GetUsers($search: String, $skip: Int, $take: Int) {\n    users(search: $search, skip: $skip, take: $take) {\n      items {\n        id\n        epId\n        userId\n        fullName\n        deptName\n        email\n        role {\n          id\n          name\n        }\n      }\n      totalCount\n    }\n  }\n": typeof types.GetUsersDocument,
+    "\n  query GetRoles {\n    roles {\n      id\n      name\n      description\n    }\n  }\n": typeof types.GetRolesDocument,
+    "\n  mutation UpdateUserRole($userId: Int!, $roleId: Int!) {\n    updateUserRole(userId: $userId, roleId: $roleId) {\n      id\n      role {\n        id\n        name\n      }\n    }\n  }\n": typeof types.UpdateUserRoleDocument,
     "\n  query GetKeyDesigns {\n    keyDesigns {\n      id\n      name\n      keyType\n      sizeX\n      sizeY\n      isVertical\n      isHorizontal\n      rotation\n      description\n      gdsPath\n      edmList\n      xAxis\n      yAxis\n      images\n      processPlans {\n        id\n        designRule\n      }\n      createdAt\n      updatedAt\n    }\n  }\n": typeof types.GetKeyDesignsDocument,
     "\n  mutation CreateKeyDesign($input: CreateKeyDesignInput!) {\n    createKeyDesign(input: $input) {\n      id\n      name\n    }\n  }\n": typeof types.CreateKeyDesignDocument,
     "\n  mutation UpdateKeyDesign($id: Int!, $input: UpdateKeyDesignInput!) {\n    updateKeyDesign(id: $id, input: $input) {\n      id\n      name\n    }\n  }\n": typeof types.UpdateKeyDesignDocument,
@@ -46,6 +49,9 @@ type Documents = {
 };
 const documents: Documents = {
     "\n  query GetMe {\n    me {\n      id\n      epId\n      userId\n      fullName\n      deptName\n      email\n      role {\n        id\n        name\n      }\n    }\n  }\n": types.GetMeDocument,
+    "\n  query GetUsers($search: String, $skip: Int, $take: Int) {\n    users(search: $search, skip: $skip, take: $take) {\n      items {\n        id\n        epId\n        userId\n        fullName\n        deptName\n        email\n        role {\n          id\n          name\n        }\n      }\n      totalCount\n    }\n  }\n": types.GetUsersDocument,
+    "\n  query GetRoles {\n    roles {\n      id\n      name\n      description\n    }\n  }\n": types.GetRolesDocument,
+    "\n  mutation UpdateUserRole($userId: Int!, $roleId: Int!) {\n    updateUserRole(userId: $userId, roleId: $roleId) {\n      id\n      role {\n        id\n        name\n      }\n    }\n  }\n": types.UpdateUserRoleDocument,
     "\n  query GetKeyDesigns {\n    keyDesigns {\n      id\n      name\n      keyType\n      sizeX\n      sizeY\n      isVertical\n      isHorizontal\n      rotation\n      description\n      gdsPath\n      edmList\n      xAxis\n      yAxis\n      images\n      processPlans {\n        id\n        designRule\n      }\n      createdAt\n      updatedAt\n    }\n  }\n": types.GetKeyDesignsDocument,
     "\n  mutation CreateKeyDesign($input: CreateKeyDesignInput!) {\n    createKeyDesign(input: $input) {\n      id\n      name\n    }\n  }\n": types.CreateKeyDesignDocument,
     "\n  mutation UpdateKeyDesign($id: Int!, $input: UpdateKeyDesignInput!) {\n    updateKeyDesign(id: $id, input: $input) {\n      id\n      name\n    }\n  }\n": types.UpdateKeyDesignDocument,
@@ -94,6 +100,18 @@ export function gql(source: string): unknown;
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(source: "\n  query GetMe {\n    me {\n      id\n      epId\n      userId\n      fullName\n      deptName\n      email\n      role {\n        id\n        name\n      }\n    }\n  }\n"): (typeof documents)["\n  query GetMe {\n    me {\n      id\n      epId\n      userId\n      fullName\n      deptName\n      email\n      role {\n        id\n        name\n      }\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(source: "\n  query GetUsers($search: String, $skip: Int, $take: Int) {\n    users(search: $search, skip: $skip, take: $take) {\n      items {\n        id\n        epId\n        userId\n        fullName\n        deptName\n        email\n        role {\n          id\n          name\n        }\n      }\n      totalCount\n    }\n  }\n"): (typeof documents)["\n  query GetUsers($search: String, $skip: Int, $take: Int) {\n    users(search: $search, skip: $skip, take: $take) {\n      items {\n        id\n        epId\n        userId\n        fullName\n        deptName\n        email\n        role {\n          id\n          name\n        }\n      }\n      totalCount\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(source: "\n  query GetRoles {\n    roles {\n      id\n      name\n      description\n    }\n  }\n"): (typeof documents)["\n  query GetRoles {\n    roles {\n      id\n      name\n      description\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(source: "\n  mutation UpdateUserRole($userId: Int!, $roleId: Int!) {\n    updateUserRole(userId: $userId, roleId: $roleId) {\n      id\n      role {\n        id\n        name\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation UpdateUserRole($userId: Int!, $roleId: Int!) {\n    updateUserRole(userId: $userId, roleId: $roleId) {\n      id\n      role {\n        id\n        name\n      }\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

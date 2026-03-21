@@ -136,6 +136,12 @@ type Mutation {
   updateProduct(id: Int!, input: UpdateProductInput!): Product!
   updateRequestItem(id: Int!, input: UpdateRequestItemInput!): RequestItem!
   updateRequestStep(input: UpdateStepInput!): RequestStep!
+  updateUserRole(roleId: Int!, userId: Int!): UserType!
+}
+
+type PaginatedUsers {
+  items: [UserType!]!
+  totalCount: Int!
 }
 
 type PhotoKey {
@@ -214,8 +220,10 @@ type Query {
   requestItems: [RequestItem!]!
   requestItemsByProduct(productId: Int!): [RequestItem!]!
   requestTables(requestId: Int!, type: String!): [RequestTableMap!]!
+  roles: [RoleType!]!
   streamInfoByRequest(requestId: Int!): [StreamInfo!]!
   streamInfosByProduct(productId: Int!): [StreamInfo!]!
+  users(search: String, skip: Int! = 0, take: Int! = 10): PaginatedUsers!
 }
 
 type RequestAssignee {

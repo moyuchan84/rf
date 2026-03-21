@@ -1,8 +1,9 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Layers } from 'lucide-react';
+import { Layers, LogOut } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
 import { navItems } from './navItems';
+import { useUserStore } from '@/features/auth/store/useUserStore';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -10,6 +11,12 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
   const location = useLocation();
+  const { user, role, logout } = useUserStore();
+
+  const filteredNavItems = navItems.filter(item => {
+    if (!item.roles) return true;
+    return role ? (item.roles as any[]).includes(role) : false;
+  });
 
   return (
     <aside className={cn(
@@ -33,7 +40,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
 
       {/* Navigation */}
       <nav className="flex-1 px-2.5 space-y-0.5 overflow-y-auto overflow-x-hidden">
-        {navItems.map((item) => {
+        {filteredNavItems.map((item) => {
           const isActive = location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path));
           return (
             <Link
@@ -65,14 +72,23 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
           "bg-white dark:bg-slate-900/50 rounded-md border border-slate-200/60 dark:border-slate-800 flex items-center gap-3 transition-all shadow-sm",
           isCollapsed ? "p-1.5 justify-center" : "p-3"
         )}>
-          <div className="w-8 h-8 bg-indigo-500/10 rounded-md flex items-center justify-center border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-black text-[10px] shrink-0">
-            AD
+          <div className="w-8 h-8 bg-indigo-500/10 rounded-md flex items-center justify-center border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-black text-[10px] shrink-0 uppercase">
+            {user?.fullName?.substring(0, 2) || '??'}
           </div>
           {!isCollapsed && (
             <div className="flex-1 min-w-0 animate-in fade-in duration-300">
-              <p className="text-[10px] font-black text-slate-900 dark:text-slate-200 truncate uppercase tracking-widest">Admin User</p>
-              <p className="text-[8px] text-slate-600 font-bold truncate">admin@samsung.com</p>
+              <p className="text-[10px] font-black text-slate-900 dark:text-slate-200 truncate uppercase tracking-widest">{user?.fullName || 'Guest User'}</p>
+              <p className="text-[8px] text-slate-600 font-bold truncate">{user?.email || 'Not logged in'}</p>
             </div>
+          )}
+          {!isCollapsed && (
+            <button 
+              onClick={() => logout()}
+              className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-slate-400 hover:text-red-500 transition-colors"
+              title="Logout"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+            </button>
           )}
         </div>
       </div>

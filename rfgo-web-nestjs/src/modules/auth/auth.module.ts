@@ -5,11 +5,14 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthService } from './application/auth.service';
 import { AuthController } from './interface/auth.controller';
 import { AuthResolver } from './interface/resolvers/auth.resolver';
+import { UserManagementResolver } from './interface/resolvers/user-management.resolver';
 import { JwtStrategy } from './infrastructure/strategies/jwt.strategy';
 import { SsoAdapter } from './infrastructure/adapters/sso.adapter';
 import { DevSsoAdapter } from './infrastructure/adapters/dev-sso.adapter';
 import { InternalSsoAdapter } from './infrastructure/adapters/internal-sso.adapter';
 import { PrismaModule } from '../../prisma.module';
+import { GqlAuthGuard } from './interface/guards/gql-auth.guard';
+import { RolesGuard } from './interface/guards/roles.guard';
 
 @Module({
   imports: [
@@ -30,6 +33,9 @@ import { PrismaModule } from '../../prisma.module';
   providers: [
     AuthService,
     AuthResolver,
+    UserManagementResolver,
+    GqlAuthGuard,
+    RolesGuard,
     JwtStrategy,
     {
       provide: SsoAdapter,
