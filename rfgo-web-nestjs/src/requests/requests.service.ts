@@ -115,6 +115,67 @@ export class RequestsService {
     });
   }
 
+  async findPaginated(
+    skip: number = 0,
+    take: number = 10,
+    search?: string,
+    requestType?: string,
+    processPlanId?: number,
+    beolOptionId?: number,
+  ) {
+    const where: any = {};
+
+    if (requestType) {
+      where.requestType = requestType;
+    }
+
+    if (processPlanId || beolOptionId) {
+      where.product = {
+        beolOption: {
+          id: beolOptionId || undefined,
+          processPlanId: processPlanId || undefined,
+        },
+      };
+    }
+
+    if (search) {
+      where.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        {
+          requester: {
+            OR: [
+              { fullName: { contains: search, mode: 'insensitive' } },
+              { userId: { contains: search, mode: 'insensitive' } },
+            ],
+          },
+        },
+      ];
+    }
+
+    const [items, totalCount] = await Promise.all([
+      this.prisma.requestItem.findMany({
+        where,
+        include: {
+          assignees: true,
+          steps: { orderBy: { stepOrder: 'asc' } },
+          product: {
+            include: {
+              beolOption: {
+                include: { processPlan: true },
+              },
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take,
+      }),
+      this.prisma.requestItem.count({ where }),
+    ]);
+
+    return { items, totalCount };
+  }
+
   async findAll() {
     return this.prisma.requestItem.findMany({
       include: {

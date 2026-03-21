@@ -39,3 +39,12 @@ export class RequestItem {
   @Field()
   updatedAt: Date;
 }
+
+@ObjectType()
+export class PaginatedRequests {
+  @Field(() => [RequestItem])
+  items: RequestItem[];
+
+  @Field(() => Int)
+  totalCount: number;
+}

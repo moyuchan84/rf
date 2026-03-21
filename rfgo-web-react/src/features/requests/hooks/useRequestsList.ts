@@ -1,20 +1,35 @@
 import { useQuery, useMutation } from '@apollo/client/react';
-import { GET_REQUESTS_BY_PRODUCT, GET_ALL_REQUESTS, DELETE_REQUEST_ITEM } from '../api/requestQueries';
-import { type RequestItem } from '../../master-data/types';
+import { GET_ALL_REQUESTS, DELETE_REQUEST_ITEM } from '../api/requestQueries';
+import { 
+  GetAllRequestsQuery, 
+  GetAllRequestsQueryVariables,
+  DeleteRequestItemMutation, 
+  DeleteRequestItemMutationVariables 
+} from '@/shared/api/generated/graphql';
+import { useState } from 'react';
 import toast from 'react-hot-toast';
 
-export const useRequestsList = (productId?: number | null) => {
-  const query = productId ? GET_REQUESTS_BY_PRODUCT : GET_ALL_REQUESTS;
-  const variables = productId ? { productId } : {};
+export const useRequestsList = () => {
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [requestType, setRequestType] = useState<string | null>(null);
+  const [processPlanId, setProcessPlanId] = useState<number | null>(null);
+  const [beolOptionId, setBeolOptionId] = useState<number | null>(null);
 
-  const { data, loading, error, refetch } = useQuery<{ requestItemsByProduct?: RequestItem[], requestItems?: RequestItem[] }>(
-    query,
-    {
-      variables,
-    }
-  );
+  const { data, loading, refetch } = useQuery<GetAllRequestsQuery, GetAllRequestsQueryVariables>(GET_ALL_REQUESTS, {
+    variables: {
+      search: search || undefined,
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      requestType: requestType || undefined,
+      processPlanId: processPlanId || undefined,
+      beolOptionId: beolOptionId || undefined,
+    },
+    notifyOnNetworkStatusChange: true
+  });
 
-  const [deleteRequestMutation] = useMutation(DELETE_REQUEST_ITEM, {
+  const [deleteRequestMutation] = useMutation<DeleteRequestItemMutation, DeleteRequestItemMutationVariables>(DELETE_REQUEST_ITEM, {
     onCompleted: () => {
       toast.success('Request deleted successfully');
       refetch();
@@ -30,11 +45,28 @@ export const useRequestsList = (productId?: number | null) => {
     }
   };
 
+  const totalCount = data?.requestItems.totalCount || 0;
+  const totalPages = Math.ceil(totalCount / pageSize);
+
   return {
-    requests: productId ? data?.requestItemsByProduct || [] : data?.requestItems || [],
+    requests: data?.requestItems.items || [],
+    totalCount,
+    totalPages,
     loading,
-    error,
     refetch,
     deleteRequest,
+    // State & Setters
+    search,
+    setSearch: (val: string) => { setSearch(val); setPage(1); },
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    requestType,
+    setRequestType: (val: string | null) => { setRequestType(val); setPage(1); },
+    processPlanId,
+    setProcessPlanId: (val: number | null) => { setProcessPlanId(val); setPage(1); setBeolOptionId(null); },
+    beolOptionId,
+    setBeolOptionId: (val: number | null) => { setBeolOptionId(val); setPage(1); }
   };
 };

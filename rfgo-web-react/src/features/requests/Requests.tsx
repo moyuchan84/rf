@@ -12,7 +12,8 @@ import { type RequestItem } from '../master-data/types';
 const Requests: React.FC = () => {
   const [view, setView] = useState<'list' | 'create' | 'detail' | 'edit'>('list');
   const [selectedRequestId, setSelectedRequestId] = useState<number | null>(null);
-  const { requests, loading, deleteRequest, refetch } = useRequestsList(null);
+  const requestsList = useRequestsList();
+  const { requests, refetch, deleteRequest } = requestsList;
 
   const selectedRequest = requests.find(r => r.id === selectedRequestId);
 
@@ -97,8 +98,7 @@ const Requests: React.FC = () => {
           />
         ) : (
           <RequestList 
-            requests={requests}
-            loading={loading}
+            requestsList={requestsList}
             onRequestClick={handleRequestClick}
             onEditClick={handleEditClick}
             onDeleteClick={handleDeleteClick}

@@ -71,34 +71,37 @@ export const GET_REQUESTS_BY_PRODUCT = gql`
 `;
 
 export const GET_ALL_REQUESTS = gql`
-  query GetAllRequests {
-    requestItems {
-      id
-      requestType
-      title
-      description
-      edmList
-      pkdVersions
-      requesterId
-      createdAt
-      updatedAt
-      productId
-      assignees {
+  query GetAllRequests($search: String, $skip: Int, $take: Int, $requestType: String, $processPlanId: Int, $beolOptionId: Int) {
+    requestItems(search: $search, skip: $skip, take: $take, requestType: $requestType, processPlanId: $processPlanId, beolOptionId: $beolOptionId) {
+      items {
         id
-        category
-        userId
-        userName
+        requestType
+        title
+        description
+        edmList
+        pkdVersions
+        requesterId
+        createdAt
+        updatedAt
+        productId
+        assignees {
+          id
+          category
+          userId
+          userName
+        }
+        steps {
+          id
+          requestId
+          stepOrder
+          stepName
+          status
+          workContent
+          workerId
+          completedAt
+        }
       }
-      steps {
-        id
-        requestId
-        stepOrder
-        stepName
-        status
-        workContent
-        workerId
-        completedAt
-      }
+      totalCount
     }
   }
 `;

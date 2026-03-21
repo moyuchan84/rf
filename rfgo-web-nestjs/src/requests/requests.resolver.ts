@@ -1,6 +1,6 @@
 import { Args, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { RequestsService } from './requests.service';
-import { RequestItem } from './requests.model';
+import { RequestItem, PaginatedRequests } from './requests.model';
 import { CreateRequestItemInput, UpdateRequestItemInput } from './requests.dto';
 import { RequestAssignee, RequestStep, PhotoKey } from './workflow.model';
 import { AssignUserInput, UpdateStepInput } from './workflow.dto';
@@ -19,9 +19,16 @@ export class RequestsResolver {
     return this.service.findRequestItemsByProduct(productId);
   }
 
-  @Query(() => [RequestItem])
-  async requestItems() {
-    return this.service.findAll();
+  @Query(() => PaginatedRequests)
+  async requestItems(
+    @Args('search', { type: () => String, nullable: true }) search?: string,
+    @Args('skip', { type: () => Int, defaultValue: 0 }) skip: number = 0,
+    @Args('take', { type: () => Int, defaultValue: 10 }) take: number = 10,
+    @Args('requestType', { type: () => String, nullable: true }) requestType?: string,
+    @Args('processPlanId', { type: () => Int, nullable: true }) processPlanId?: number,
+    @Args('beolOptionId', { type: () => Int, nullable: true }) beolOptionId?: number,
+  ) {
+    return this.service.findPaginated(skip, take, search, requestType, processPlanId, beolOptionId);
   }
 
   @Query(() => RequestItem, { nullable: true })
