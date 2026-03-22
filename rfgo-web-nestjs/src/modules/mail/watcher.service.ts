@@ -13,8 +13,12 @@ export interface WatcherInfo extends EmployeeDto {
 export class WatcherService {
   constructor(private prisma: PrismaService) {}
 
-  async getWatchers(requestId: number): Promise<WatcherInfo[]> {
-    const watcherRecord = await this.prisma.requestWatcher.findUnique({
+  private getClient(tx?: any) {
+    return tx || this.prisma;
+  }
+
+  async getWatchers(requestId: number, tx?: any): Promise<WatcherInfo[]> {
+    const watcherRecord = await this.getClient(tx).requestWatcher.findUnique({
       where: { requestId },
     });
 
@@ -22,8 +26,8 @@ export class WatcherService {
     return (watcherRecord.watchers as any) as WatcherInfo[];
   }
 
-  async addWatcher(requestId: number, watcher: EmployeeDto, type: WatcherType) {
-    const existingWatchers = await this.getWatchers(requestId);
+  async addWatcher(requestId: number, watcher: EmployeeDto, type: WatcherType, tx?: any) {
+    const existingWatchers = await this.getWatchers(requestId, tx);
     
     // Check if already exists
     const alreadyExists = existingWatchers.some(
@@ -35,7 +39,7 @@ export class WatcherService {
     const newWatcher: WatcherInfo = { ...watcher, type };
     const updatedWatchers = [...existingWatchers, newWatcher];
 
-    await this.prisma.requestWatcher.upsert({
+    await this.getClient(tx).requestWatcher.upsert({
       where: { requestId },
       update: { watchers: updatedWatchers as any },
       create: {
@@ -45,12 +49,12 @@ export class WatcherService {
     });
   }
 
-  async getMergedRecipients(requestId: number, category: string = 'PHOTO_DEFAULT'): Promise<EmployeeDto[]> {
+  async getMergedRecipients(requestId: number, category: string = 'PHOTO_DEFAULT', tx?: any): Promise<EmployeeDto[]> {
     // 1. Get Watchers from Request
-    const watchers = await this.getWatchers(requestId);
+    const watchers = await this.getWatchers(requestId, tx);
     
     // 2. Get System Default Mailers
-    const systemDefault = await this.prisma.systemDefaultMailer.findUnique({
+    const systemDefault = await this.getClient(tx).systemDefaultMailer.findUnique({
       where: { category },
     });
     
@@ -70,10 +74,10 @@ export class WatcherService {
     return Array.from(uniqueMap.values());
   }
 
-  async initWatchers(requestId: number, initialWatchers: EmployeeDto[]) {
+  async initWatchers(requestId: number, initialWatchers: EmployeeDto[], tx?: any) {
     const watchers: WatcherInfo[] = initialWatchers.map(w => ({ ...w, type: 'SUBSCRIBER' }));
     
-    await this.prisma.requestWatcher.upsert({
+    await this.getClient(tx).requestWatcher.upsert({
       where: { requestId },
       update: { watchers: watchers as any },
       create: {

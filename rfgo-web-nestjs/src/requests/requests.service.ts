@@ -105,7 +105,7 @@ export class RequestsService {
 
       // Initialize Watchers
       if (initialWatchers && initialWatchers.length > 0) {
-        await this.watcherService.initWatchers(request.id, initialWatchers);
+        await this.watcherService.initWatchers(request.id, initialWatchers, tx);
       }
 
       // 비동기 메일 발송 (New Workflow)
