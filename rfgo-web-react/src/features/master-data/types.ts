@@ -17,6 +17,7 @@ export interface RequestAssignee {
   category: string;
   userId: string;
   userName: string;
+  user?: any;
 }
 
 export interface RequestStep {

@@ -40,13 +40,18 @@ export const AssigneeManager: React.FC<AssigneeManagerProps> = ({
 
   const handleAdd = async () => {
     if (!selectedEmployee) return;
+
+    // Remove __typename for clean JSON storage
+    const { __typename, ...employeeData } = selectedEmployee as any;
+
     await assignUserMutation({
       variables: {
         input: { 
           requestId, 
           category, 
           userId: selectedEmployee.userId, 
-          userName: selectedEmployee.fullName 
+          userName: selectedEmployee.fullName,
+          user: employeeData
         }
       }
     });
@@ -86,7 +91,7 @@ export const AssigneeManager: React.FC<AssigneeManagerProps> = ({
             >
               <option value="RFG_TASK">RFG Task</option>
               <option value="KEY_TABLE_TASK">Key Table Task</option>
-              <option value="INNO_TASK">Innovation Task</option>
+              {/* <option value="INNO_TASK">Innovation Task</option> */}
             </select>
           </div>
 

@@ -55,6 +55,7 @@ export const GET_REQUESTS_BY_PRODUCT = gql`
         category
         userId
         userName
+        user
       }
       steps {
         id
@@ -89,6 +90,7 @@ export const GET_ALL_REQUESTS = gql`
           category
           userId
           userName
+          user
         }
         steps {
           id
@@ -148,6 +150,7 @@ export const GET_REQUEST_ITEM = gql`
         category
         userId
         userName
+        user
       }
       steps {
         id
@@ -194,6 +197,7 @@ export const ASSIGN_USER = gql`
       category
       userId
       userName
+      user
     }
   }
 `;

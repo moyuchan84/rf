@@ -17,6 +17,9 @@ export class RequestAssignee {
 
   @Field()
   userName: string;
+
+  @Field(() => GraphQLJSON, { nullable: true })
+  user?: any;
 }
 
 @ObjectType()

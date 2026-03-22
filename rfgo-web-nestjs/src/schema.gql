@@ -5,6 +5,7 @@
 input AssignUserInput {
   category: String!
   requestId: Int!
+  user: EmployeeInput!
   userId: String!
   userName: String!
 }
@@ -305,6 +306,7 @@ type RequestAssignee {
   category: String!
   id: Int!
   requestId: Int!
+  user: JSON
   userId: String!
   userName: String!
 }

@@ -302,9 +302,18 @@ export class RequestsService {
 
   // Workflow Actions
   async assignUser(input: AssignUserInput) {
-    return this.prisma.requestAssignee.create({
-      data: input,
+    const { user, ...data } = input;
+    const assignee = await this.prisma.requestAssignee.create({
+      data: {
+        ...data,
+        user: user as any,
+      },
     });
+
+    // Add to watchers
+    await this.watcherService.addWatcher(input.requestId, user, 'ASSIGNEE');
+
+    return assignee;
   }
 
   async removeAssignee(id: number) {

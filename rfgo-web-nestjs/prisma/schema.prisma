@@ -161,6 +161,7 @@ model RequestAssignee {
   category  String @db.VarChar
   userId    String @map("user_id") @db.VarChar
   userName  String @map("user_name") @db.VarChar
+  user      Json?
 
   request   RequestItem @relation(fields: [requestId], references: [id], onDelete: Cascade)
 

@@ -1,4 +1,5 @@
 import { Field, InputType, Int } from '@nestjs/graphql';
+import { EmployeeDto } from '../employee/interface/dto/employee.dto';
 
 @InputType()
 export class AssignUserInput {
@@ -13,6 +14,9 @@ export class AssignUserInput {
 
   @Field()
   userName: string;
+
+  @Field(() => EmployeeDto)
+  user: EmployeeDto;
 }
 
 @InputType()
