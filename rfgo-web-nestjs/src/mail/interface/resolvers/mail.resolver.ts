@@ -8,6 +8,11 @@ import {
 } from '../dto/mail.dto';
 import { MailingService } from '../../application/mailing.service';
 import { EmployeeDto } from '../../../employee/interface/dto/employee.dto';
+import { UseGuards } from '@nestjs/common';
+import { GqlAuthGuard } from '../../../auth/interface/guards/gql-auth.guard';
+import { RolesGuard } from '../../../auth/interface/guards/roles.guard';
+import { Roles } from '../../../auth/interface/decorators/roles.decorator';
+import { RoleName } from '../../../auth/domain/role.enum';
 
 @Resolver()
 export class MailResolver {
@@ -77,6 +82,8 @@ export class MailResolver {
 
   // System Default Mailers (Admin)
   @Query(() => [SystemDefaultMailerDto])
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles(RoleName.ADMIN)
   async allSystemDefaultMailers(): Promise<SystemDefaultMailerDto[]> {
     const defaults = await this.mailingService.getAllSystemDefaults();
     return defaults.map(d => ({
@@ -86,6 +93,8 @@ export class MailResolver {
   }
 
   @Mutation(() => SystemDefaultMailerDto)
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles(RoleName.ADMIN)
   async updateSystemDefaultMailer(
     @Args('category') category: string,
     @Args('recipients', { type: () => [EmployeeDto] }) recipients: EmployeeDto[]

@@ -48,7 +48,7 @@ export class WatcherService {
     });
   }
 
-  async getMergedRecipients(requestId: number, category: string = 'PHOTO_DEFAULT', tx?: any): Promise<EmployeeDto[]> {
+  async getMergedRecipients(requestId: number, category: string = 'REQUEST_NOTIFICATION', tx?: any): Promise<EmployeeDto[]> {
     // 1. Get Watchers from Request
     const watchers = await this.getWatchers(requestId, tx);
     
@@ -74,7 +74,30 @@ export class WatcherService {
   }
 
   async initWatchers(requestId: number, initialWatchers: EmployeeDto[], tx?: any) {
-    const watchers: WatcherInfo[] = initialWatchers.map(w => ({ ...w, type: 'SUBSCRIBER' }));
+    // 1. Get System Default recipients for REQUEST_NOTIFICATION
+    const systemDefault = await this.getClient(tx).systemDefaultMailer.findUnique({
+      where: { category: 'REQUEST_NOTIFICATION' },
+    });
+    const defaultRecipients = systemDefault ? (systemDefault.recipients as any as EmployeeDto[]) : [];
+
+    // 2. Merge initial watchers (Subscribers) and system defaults
+    const uniqueMap = new Map<string, WatcherInfo>();
+
+    // Add initial watchers as SUBSCRIBERs
+    initialWatchers.forEach(w => {
+      const key = w.epId || w.emailAddress;
+      if (key) uniqueMap.set(key, { ...w, type: 'SUBSCRIBER' });
+    });
+
+    // Add system defaults as SUBSCRIBERs (don't overwrite if already there)
+    defaultRecipients.forEach(w => {
+      const key = w.epId || w.emailAddress;
+      if (key && !uniqueMap.has(key)) {
+        uniqueMap.set(key, { ...w, type: 'SUBSCRIBER' });
+      }
+    });
+
+    const watchers = Array.from(uniqueMap.values());
     
     await this.getClient(tx).requestWatcher.upsert({
       where: { requestId },

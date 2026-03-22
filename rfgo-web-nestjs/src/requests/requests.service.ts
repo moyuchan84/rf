@@ -162,15 +162,24 @@ export class RequestsService {
         systemUrl // 템플릿 내에서 링크 생성에 사용됨
       });
 
+      // Get recipients (watchers + system defaults)
+      const recipients = await this.watcherService.getMergedRecipients(requestId);
+
+      if (recipients.length === 0) {
+        console.warn(`[RequestsService] No recipients found for request notification: ${requestId}`);
+        return;
+      }
+
       const mailRequest = {
         subject: `[RFGo] ${actionLabel} 알림: ${request.title}`,
         docSecuType: DocSecuType.OFFICIAL,
         contentType: ContentType.HTML,
         contents: htmlContent,
         sender: { emailAddress: 'rfgo-system@samsung.com' },
-        recipients: [
-          { emailAddress: request.requesterId, recipientType: 'TO' }
-        ],
+        recipients: recipients.map(r => ({
+          emailAddress: r.emailAddress || '',
+          recipientType: 'TO' as const,
+        })).filter(r => r.emailAddress !== ''),
       };
 
       await this.mailer.sendMail(mailRequest);
