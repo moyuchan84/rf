@@ -24,7 +24,8 @@ export const useMergedWatchers = () => {
       }
     });
 
-    return Array.from(uniqueMap.values());
+    // 4. Clean objects for GraphQL Input (remove __typename, metadata)
+    return Array.from(uniqueMap.values()).map(({ __typename, addedAt, isMute, ...rest }: any) => rest);
   };
 
   return { getMergedInitialWatchers };
