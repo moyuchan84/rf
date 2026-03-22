@@ -3,23 +3,17 @@ import {
   GET_USERS, 
   GET_ROLES, 
   UPDATE_USER_ROLE 
-} from '../api/authQueries';
-import { 
-  GetUsersQuery, 
-  GetUsersQueryVariables,
-  GetRolesQuery, 
-  UpdateUserRoleMutation, 
-  UpdateUserRoleMutationVariables 
-} from '@/shared/api/generated/graphql';
-import { useState, useMemo } from 'react';
+} from '../api/adminQueries';
+import { useState } from 'react';
 import toast from 'react-hot-toast';
+import { AdminUser, AdminRole, PaginatedUsers } from '../types';
 
 export const useUserManagement = () => {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  const { data: usersData, loading: usersLoading, refetch: refetchUsers } = useQuery<GetUsersQuery, GetUsersQueryVariables>(GET_USERS, {
+  const { data: usersData, loading: usersLoading, refetch: refetchUsers } = useQuery<{ users: PaginatedUsers }>(GET_USERS, {
     variables: {
       search: search || undefined,
       skip: (page - 1) * pageSize,
@@ -28,8 +22,8 @@ export const useUserManagement = () => {
     notifyOnNetworkStatusChange: true
   });
 
-  const { data: rolesData, loading: rolesLoading } = useQuery<GetRolesQuery>(GET_ROLES);
-  const [updateRoleMutation] = useMutation<UpdateUserRoleMutation, UpdateUserRoleMutationVariables>(UPDATE_USER_ROLE);
+  const { data: rolesData, loading: rolesLoading } = useQuery<{ roles: AdminRole[] }>(GET_ROLES);
+  const [updateRoleMutation] = useMutation(UPDATE_USER_ROLE);
 
   const [updatingId, setUpdatingId] = useState<number | null>(null);
 

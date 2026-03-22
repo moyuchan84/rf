@@ -1,4 +1,4 @@
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 import RootLayout from '../../components/layout/RootLayout';
 import HomePage from '../../pages/HomePage';
 import RequestsPage from '../../pages/RequestsPage';
@@ -8,7 +8,8 @@ import KeyTablePage from '../../pages/KeyTablePage';
 import KeyLayoutPage from '../../pages/KeyLayoutPage';
 import RagSearchPage from '../../pages/RagSearchPage';
 import MailingPage from '../../pages/MailingPage';
-import { UserManagement } from '../../pages/admin/UserManagement';
+import { UserManagementPage } from '@/features/admin/pages/UserManagementPage';
+import { SystemMailingPage } from '@/features/admin/pages/SystemMailingPage';
 import { PermissionGate } from '@/features/auth/components/PermissionGate';
 
 const router = createBrowserRouter([
@@ -25,10 +26,22 @@ const router = createBrowserRouter([
       { path: 'mailing', element: <MailingPage /> },
       { path: 'rag', element: <RagSearchPage /> },
       { 
+        path: 'admin', 
+        element: <Navigate to="/admin/users" replace /> 
+      },
+      { 
         path: 'admin/users', 
         element: (
           <PermissionGate allowedRoles={['ADMIN']}>
-            <UserManagement />
+            <UserManagementPage />
+          </PermissionGate>
+        ) 
+      },
+      { 
+        path: 'admin/system-mailing', 
+        element: (
+          <PermissionGate allowedRoles={['ADMIN']}>
+            <SystemMailingPage />
           </PermissionGate>
         ) 
       },

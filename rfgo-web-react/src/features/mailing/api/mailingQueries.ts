@@ -55,35 +55,3 @@ export const DELETE_MAIL_GROUP = gql`
     deleteMailGroup(id: $id, userId: $userId)
   }
 `;
-
-export const GET_ALL_SYSTEM_DEFAULT_MAILERS = gql`
-  query GetAllSystemDefaultMailers {
-    allSystemDefaultMailers {
-      id
-      category
-      recipients {
-        epId
-        fullName
-        userId
-        departmentName
-        emailAddress
-      }
-    }
-  }
-`;
-
-export const UPDATE_SYSTEM_DEFAULT_MAILER = gql`
-  mutation UpdateSystemDefaultMailer($category: String!, $recipients: [EmployeeInput!]!) {
-    updateSystemDefaultMailer(category: $category, recipients: $recipients) {
-      id
-      category
-      recipients {
-        epId
-        fullName
-        userId
-        departmentName
-        emailAddress
-      }
-    }
-  }
-`;
