@@ -122,7 +122,7 @@ export const RequestList: React.FC<RequestListProps> = ({
         </div>
       ) : requests.length > 0 ? (
         <>
-          <div className="grid gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {requests.map((req: RequestItem) => (
               <RequestItemCard 
                 key={req.id}
