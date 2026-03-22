@@ -10,9 +10,9 @@ import { RequestsModule } from './requests/requests.module';
 import { LayoutsModule } from './layouts/layouts.module';
 import { KeyDesignModule } from './key-design/key-design.module';
 import { PrismaModule } from './prisma.module';
-import { AuthModule } from './modules/auth/auth.module';
-import { MailModule } from './infrastructure/mail/mail.module';
-import { EmployeeModule } from './modules/employee/employee.module';
+import { AuthModule } from './auth/auth.module';
+import { MailModule } from './mail/mail.module';
+import { EmployeeModule } from './employee/employee.module';
 
 @Module({
   imports: [

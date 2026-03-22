@@ -3,12 +3,12 @@ import { PrismaService } from '../prisma.service';
 import { CreateRequestItemInput, UpdateRequestItemInput } from './requests.dto';
 import { AssignUserInput, UpdateStepInput } from './workflow.dto';
 import { CreateStreamInfoInput, SaveRequestTablesInput } from './step-data.dto';
-import { MailerProvider } from '../common/interfaces/mailer.interface';
-import { DocSecuType, ContentType } from '../common/dto/mail-request.dto';
-import { MailTemplateService } from '../infrastructure/mail/template.service';
+import { MailerProvider } from '../mail/domain/mailer.interface';
+import { DocSecuType, ContentType } from '../mail/interface/dto/mail.dto';
+import { MailTemplateService } from '../mail/application/template.service';
 import { ConfigService } from '@nestjs/config';
-import { WatcherService } from '../modules/mail/watcher.service';
-import { MailWorkflowService, MailType } from '../modules/mail/mail-workflow.service';
+import { WatcherService } from '../mail/application/watcher.service';
+import { MailWorkflowService, MailType } from '../mail/application/mail-workflow.service';
 
 @Injectable()
 export class RequestsService {

@@ -7,8 +7,8 @@ import { AssignUserInput, UpdateStepInput } from './workflow.dto';
 import { StreamInfo, RequestTableMap } from './step-data.model';
 import { CreateStreamInfoInput, SaveRequestTablesInput } from './step-data.dto';
 import { UseGuards } from '@nestjs/common';
-import { GqlAuthGuard } from '../modules/auth/interface/guards/gql-auth.guard';
-import { CurrentUser } from '../modules/auth/interface/decorators/current-user.decorator';
+import { GqlAuthGuard } from '../auth/interface/guards/gql-auth.guard';
+import { CurrentUser } from '../auth/interface/decorators/current-user.decorator';
 
 @Resolver(() => RequestItem)
 export class RequestsResolver {

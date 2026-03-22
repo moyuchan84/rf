@@ -1,5 +1,5 @@
 import { Field, InputType, Int } from '@nestjs/graphql';
-import { EmployeeSearchInput, EmployeeDto } from '../common/dto/employee-search.dto';
+import { EmployeeSearchInput, EmployeeDto } from '../employee/interface/dto/employee.dto';
 
 @InputType()
 export class CreateRequestItemInput {
