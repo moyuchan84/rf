@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Layers, LogOut } from 'lucide-react';
+import { Layers, LogOut, ChevronDown, ChevronRight } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
-import { navItems } from './navItems';
+import { navItems, type NavItem } from './navItems';
 import { useUserStore } from '@/features/auth/store/useUserStore';
 
 interface SidebarProps {
@@ -12,11 +12,81 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
   const location = useLocation();
   const { user, role, logout } = useUserStore();
+  const [expandedItems, setExpandedItems] = useState<string[]>([]);
+
+  const toggleExpand = (label: string) => {
+    setExpandedItems(prev => 
+      prev.includes(label) 
+        ? prev.filter(item => item !== label) 
+        : [...prev, label]
+    );
+  };
 
   const filteredNavItems = navItems.filter(item => {
     if (!item.roles) return true;
     return role ? (item.roles as any[]).includes(role) : false;
   });
+
+  const renderNavItem = (item: NavItem, isChild = false) => {
+    const isActive = location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path));
+    const hasChildren = item.children && item.children.length > 0;
+    const isExpanded = expandedItems.includes(item.label);
+
+    if (hasChildren && !isCollapsed) {
+      return (
+        <div key={item.label} className="space-y-0.5">
+          <button
+            onClick={() => toggleExpand(item.label)}
+            className={cn(
+              'w-full flex items-center gap-3 px-3.5 py-2.5 rounded-md transition-all group relative',
+              isActive 
+                ? 'text-indigo-600 dark:text-indigo-400 font-black' 
+                : 'text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-900 hover:text-indigo-600 dark:hover:text-slate-200'
+            )}
+          >
+            <item.icon className={cn('w-4 h-4 transition-transform group-hover:scale-110 shrink-0', isActive ? 'text-indigo-600' : 'text-slate-400 dark:text-slate-500')} />
+            <span className="text-xs font-bold tracking-tight flex-1 text-left">
+              {item.label}
+            </span>
+            {isExpanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+          </button>
+          
+          {isExpanded && (
+            <div className="pl-4 space-y-0.5 animate-in slide-in-from-top-1 duration-200">
+              {item.children?.map(child => renderNavItem(child as NavItem, true))}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // For items without children OR collapsed sidebar, use Link
+    return (
+      <Link
+        key={item.path}
+        to={item.path}
+        title={isCollapsed ? item.label : ''}
+        className={cn(
+          'flex items-center gap-3 px-3.5 py-2.5 rounded-md transition-all group relative',
+          isActive 
+            ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20' 
+            : 'text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-900 hover:text-indigo-600 dark:hover:text-slate-200',
+          isCollapsed && "justify-center px-0",
+          isChild && "py-2"
+        )}
+      >
+        <item.icon className={cn('w-4 h-4 transition-transform group-hover:scale-110 shrink-0', isActive ? 'text-white' : 'text-slate-400 dark:text-slate-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400')} />
+        {!isCollapsed && (
+          <span className={cn(
+            "text-xs font-bold tracking-tight animate-in fade-in slide-in-from-left-2 duration-300",
+            isChild && "text-[11px]"
+          )}>
+            {item.label}
+          </span>
+        )}
+      </Link>
+    );
+  };
 
   return (
     <aside className={cn(
@@ -40,30 +110,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
 
       {/* Navigation */}
       <nav className="flex-1 px-2.5 space-y-0.5 overflow-y-auto overflow-x-hidden">
-        {filteredNavItems.map((item) => {
-          const isActive = location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path));
-          return (
-            <Link
-              key={item.path}
-              to={item.path}
-              title={isCollapsed ? item.label : ''}
-              className={cn(
-                'flex items-center gap-3 px-3.5 py-2.5 rounded-md transition-all group relative',
-                isActive 
-                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20' 
-                  : 'text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-900 hover:text-indigo-600 dark:hover:text-slate-200',
-                isCollapsed && "justify-center px-0"
-              )}
-            >
-              <item.icon className={cn('w-4 h-4 transition-transform group-hover:scale-110 shrink-0', isActive ? 'text-white' : 'text-slate-400 dark:text-slate-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400')} />
-              {!isCollapsed && (
-                <span className="text-xs font-bold tracking-tight animate-in fade-in slide-in-from-left-2 duration-300">
-                  {item.label}
-                </span>
-              )}
-            </Link>
-          );
-        })}
+        {filteredNavItems.map((item) => renderNavItem(item))}
       </nav>
 
       {/* Sidebar User Profile */}
