@@ -1,5 +1,6 @@
 import { Field, ObjectType, InputType, Int } from '@nestjs/graphql';
 
+@InputType('EmployeeInput')
 @ObjectType()
 export class EmployeeDto {
   @Field(() => String, { nullable: true })

@@ -7,17 +7,25 @@ import { KnoxMailerProvider } from './knox-mailer.provider';
 import { DevMailerProvider } from './dev-mailer.provider';
 import { MailResolver } from '../../interface/mail/mail.resolver';
 import { MailTemplateService } from './template.service';
+import { PrismaService } from '../../prisma.service';
+import { WatcherService } from '../../modules/mail/watcher.service';
+import { MailWorkflowService } from '../../modules/mail/mail-workflow.service';
+import { MailingService } from '../../modules/mail/mailing.service';
 
 @Module({
   imports: [HttpModule, ConfigModule],
   providers: [
+    PrismaService,
     {
       provide: MailerProvider,
       useClass: process.env.NODE_ENV === 'production' ? KnoxMailerProvider : DevMailerProvider,
     },
     MailResolver,
     MailTemplateService,
+    WatcherService,
+    MailWorkflowService,
+    MailingService,
   ],
-  exports: [MailerProvider, MailTemplateService],
+  exports: [MailerProvider, MailTemplateService, WatcherService, MailWorkflowService, MailingService],
 })
 export class MailModule {}

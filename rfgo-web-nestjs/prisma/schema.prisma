@@ -120,9 +120,39 @@ model RequestItem {
   steps       RequestStep[]
   streamInfo  StreamInfo[]
   tableMaps   RequestTableMap[]
+  watcher     RequestWatcher?
 
   @@index([id], map: "ix_request_items_id")
   @@map("request_items")
+}
+
+model UserMailGroup {
+  id          Int      @id @default(autoincrement())
+  userId      String   @map("user_id") // EP User ID
+  groupName   String   @map("group_name") @db.VarChar
+  members     Json     // [{ epId, fullName, email, userId }]
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("user_mail_groups")
+}
+
+model SystemDefaultMailer {
+  id          Int      @id @default(autoincrement())
+  category    String   @unique @db.VarChar
+  recipients  Json     // [{ epId, fullName, email, userId }]
+  
+  @@map("system_default_mailers")
+}
+
+model RequestWatcher {
+  id          Int      @id @default(autoincrement())
+  requestId   Int      @unique @map("request_id")
+  watchers    Json     // [{ epId, fullName, email, userId, type: 'REQUESTER' | 'ASSIGNEE' | 'WORKER' | 'SUBSCRIBER' }]
+  updatedAt   DateTime @updatedAt @map("update_time") @db.Timestamptz(6)
+
+  request     RequestItem @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@map("request_watchers")
 }
 
 model RequestAssignee {

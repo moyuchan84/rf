@@ -75,6 +75,7 @@ input CreateProductInput {
 input CreateRequestItemInput {
   description: String!
   edmList: [String!]!
+  initialWatchers: [EmployeeInput!]
   pkdVersions: [String!]!
   productId: Int!
   requestType: String!
@@ -91,6 +92,11 @@ input CreateStreamInfoInput {
   streamPath: String!
 }
 
+input CreateUserMailGroupInput {
+  groupName: String!
+  members: [EmployeeInput!]!
+}
+
 """
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
@@ -102,6 +108,14 @@ enum DocSecuType {
 }
 
 type EmployeeDto {
+  departmentName: String
+  emailAddress: String
+  epId: String
+  fullName: String
+  userId: String
+}
+
+input EmployeeInput {
   departmentName: String
   emailAddress: String
   epId: String
@@ -160,12 +174,14 @@ type Mutation {
   assignUser(input: AssignUserInput!): RequestAssignee!
   createBeolOption(input: CreateBeolOptionInput!): BeolOption!
   createKeyDesign(input: CreateKeyDesignInput!): KeyDesign!
+  createMailGroup(input: CreateUserMailGroupInput!, userId: String!): UserMailGroupDto!
   createProcessPlan(input: CreateProcessPlanInput!): ProcessPlan!
   createProduct(input: CreateProductInput!): Product!
   createRequestItem(input: CreateRequestItemInput!): RequestItem!
   createStreamInfo(input: CreateStreamInfoInput!): StreamInfo!
   deleteBeolOption(id: Int!): BeolOption!
   deleteLayout(id: Int!): ReticleLayout!
+  deleteMailGroup(id: Int!, userId: String!): Boolean!
   deleteProcessPlan(id: Int!): ProcessPlan!
   deleteProduct(id: Int!): Product!
   deleteRequestItem(id: Int!): RequestItem!
@@ -176,9 +192,11 @@ type Mutation {
   sendTestMail(input: MailRequestDto!): Boolean!
   updateKeyDesign(id: Int!, input: UpdateKeyDesignInput!): KeyDesign!
   updateLayout(id: Int!, input: UpdateLayoutInput!): ReticleLayout!
+  updateMailGroup(id: Int!, input: CreateUserMailGroupInput!, userId: String!): UserMailGroupDto!
   updateProduct(id: Int!, input: UpdateProductInput!): Product!
   updateRequestItem(id: Int!, input: UpdateRequestItemInput!): RequestItem!
   updateRequestStep(input: UpdateStepInput!): RequestStep!
+  updateSystemDefaultMailer(category: String!, recipients: [EmployeeInput!]!): SystemDefaultMailerDto!
   updateUserRole(roleId: Int!, userId: Int!): UserType!
 }
 
@@ -258,11 +276,13 @@ input ProductMetaInput {
 }
 
 type Query {
+  allSystemDefaultMailers: [SystemDefaultMailerDto!]!
   keyDesign(id: Int!): KeyDesign!
   keyDesigns: [KeyDesign!]!
   layout(id: Int!): ReticleLayout
   layouts(productId: Int!): [ReticleLayout!]!
   me: UserType
+  myMailGroups(userId: String!): [UserMailGroupDto!]!
   photoKeys(beolOptionId: Int, processPlanId: Int, productId: Int): [PhotoKey!]!
   processPlans: [ProcessPlan!]!
   requestItem(id: Int!): RequestItem
@@ -376,6 +396,12 @@ type StreamInfo {
   updatedAt: DateTime!
 }
 
+type SystemDefaultMailerDto {
+  category: String!
+  id: Int!
+  recipients: [EmployeeDto!]!
+}
+
 input UpdateKeyDesignInput {
   description: String
   edmList: [String!]
@@ -425,6 +451,14 @@ input UpdateStepInput {
   stepId: Int!
   workContent: String
   workerId: String
+}
+
+type UserMailGroupDto {
+  createdAt: DateTime!
+  groupName: String!
+  id: Int!
+  members: [EmployeeDto!]!
+  userId: String!
 }
 
 type UserType {

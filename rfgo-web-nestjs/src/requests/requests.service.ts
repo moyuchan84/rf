@@ -7,6 +7,8 @@ import { MailerProvider } from '../common/interfaces/mailer.interface';
 import { DocSecuType, ContentType } from '../common/dto/mail-request.dto';
 import { MailTemplateService } from '../infrastructure/mail/template.service';
 import { ConfigService } from '@nestjs/config';
+import { WatcherService } from '../modules/mail/watcher.service';
+import { MailWorkflowService, MailType } from '../modules/mail/mail-workflow.service';
 
 @Injectable()
 export class RequestsService {
@@ -15,6 +17,8 @@ export class RequestsService {
     private mailer: MailerProvider,
     private mailTemplate: MailTemplateService,
     private config: ConfigService,
+    private watcherService: WatcherService,
+    private mailWorkflow: MailWorkflowService,
   ) {}
 
   // Step Data Management
@@ -76,9 +80,10 @@ export class RequestsService {
   }
 
   async createRequestItem(input: CreateRequestItemInput) {
+    const { initialWatchers, ...rest } = input;
     return this.prisma.$transaction(async (tx) => {
       const request = await tx.requestItem.create({
-        data: input,
+        data: rest,
       });
 
       // Initialize default 5 steps
@@ -98,8 +103,19 @@ export class RequestsService {
         })),
       });
 
-      // 비동기 메일 발송
-      this.sendNotificationMail(request.id, '신규 의뢰');
+      // Initialize Watchers
+      if (initialWatchers && initialWatchers.length > 0) {
+        await this.watcherService.initWatchers(request.id, initialWatchers);
+      }
+
+      // 비동기 메일 발송 (New Workflow)
+      this.mailWorkflow.sendWorkflowMail(request.id, MailType.REQUEST_CREATED, {
+        subject: `신규 의뢰 등록: ${request.title}`,
+        title: request.title,
+        senderName: request.requesterId,
+        senderEmail: 'rfgo-system@samsung.com',
+        description: request.description || '',
+      });
 
       return request;
     });
@@ -297,13 +313,25 @@ export class RequestsService {
 
   async updateStep(input: UpdateStepInput) {
     const { stepId, ...data } = input;
-    return this.prisma.requestStep.update({
+    const step = await this.prisma.requestStep.update({
       where: { id: stepId },
       data: {
         ...data,
         completedAt: data.status === 'DONE' ? new Date() : null,
       },
     });
+
+    if (data.status === 'DONE') {
+      this.mailWorkflow.sendWorkflowMail(step.requestId, MailType.DEFAULT, {
+        subject: `단계 완료 알림: ${step.stepName}`,
+        title: `${step.stepName} 단계 완료`,
+        senderName: '시스템',
+        senderEmail: 'rfgo-system@samsung.com',
+        content: `${step.stepName} 단계가 완료되었습니다.`,
+      });
+    }
+
+    return step;
   }
 
   async findPhotoKeys(filters: { productId?: number; beolOptionId?: number; processPlanId?: number }) {

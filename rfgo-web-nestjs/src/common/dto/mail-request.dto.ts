@@ -1,5 +1,5 @@
-// src/common/dto/mail-request.dto.ts
-import { Field, InputType, registerEnumType } from '@nestjs/graphql';
+import { Field, InputType, ObjectType, Int, registerEnumType } from '@nestjs/graphql';
+import { EmployeeDto } from './employee-search.dto';
 
 export enum DocSecuType {
   PERSONAL = 'PERSONAL',
@@ -48,4 +48,43 @@ export class MailRequestDto {
   
   @Field(() => [RecipientDto])
   recipients: RecipientDto[];
+}
+
+@ObjectType()
+export class UserMailGroupDto {
+  @Field(() => Int)
+  id: number;
+  
+  @Field()
+  userId: string;
+  
+  @Field()
+  groupName: string;
+  
+  @Field(() => [EmployeeDto])
+  members: EmployeeDto[];
+  
+  @Field()
+  createdAt: Date;
+}
+
+@ObjectType()
+export class SystemDefaultMailerDto {
+  @Field(() => Int)
+  id: number;
+  
+  @Field()
+  category: string;
+  
+  @Field(() => [EmployeeDto])
+  recipients: EmployeeDto[];
+}
+
+@InputType()
+export class CreateUserMailGroupInput {
+  @Field()
+  groupName: string;
+  
+  @Field(() => [EmployeeDto])
+  members: EmployeeDto[];
 }

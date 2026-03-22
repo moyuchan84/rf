@@ -15,12 +15,24 @@ export const EmployeeSearch: React.FC<EmployeeSearchProps> = ({
   className = "" 
 }) => {
   const [query, setQuery] = useState('');
+  const [subFilter, setSubFilter] = useState('');
   const [condition, setCondition] = useState<'FullName' | 'Organization' | 'Title'>('FullName');
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   
   const { employees, loading } = useEmployeeSearch(query, condition);
   const { recentSearches, addRecent, clearRecents } = useEmployeeStore();
+
+  // Secondary filtering logic
+  const filteredResults = React.useMemo(() => {
+    if (!subFilter.trim()) return employees;
+    const sf = subFilter.toLowerCase();
+    return employees.filter(emp => 
+      emp.userId?.toLowerCase().includes(sf) || 
+      emp.departmentName?.toLowerCase().includes(sf) ||
+      emp.fullName?.toLowerCase().includes(sf)
+    );
+  }, [employees, subFilter]);
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -110,39 +122,63 @@ export const EmployeeSearch: React.FC<EmployeeSearchProps> = ({
           )}
 
           {/* Search Results */}
-          <div className="max-h-[240px] overflow-y-auto p-1">
-            {query.length >= 2 ? (
-              employees.length > 0 ? (
-                employees.map((emp) => (
-                  <button
-                    key={emp.userId}
-                    onClick={() => handleSelect(emp)}
-                    className="w-full text-left p-3 rounded hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all flex items-center gap-4 group"
-                  >
-                    <div className="w-8 h-8 rounded-md bg-slate-100 dark:bg-slate-800 flex items-center justify-center border border-slate-200 dark:border-slate-700 group-hover:border-indigo-500/50 transition-colors">
-                      <User className="w-4 h-4 text-slate-400 group-hover:text-indigo-500" />
+          <div className="max-h-[350px] overflow-y-auto p-1 custom-scrollbar">
+            {query.length >= 2 && (
+              <React.Fragment>
+                {/* Local Secondary Filter (Visible when many results) */}
+                {employees.length > 5 && (
+                  <div className="p-2 border-b border-slate-100 dark:border-slate-800 sticky top-0 bg-white dark:bg-slate-900 z-10">
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={subFilter}
+                        onChange={(e) => setSubFilter(e.target.value)}
+                        placeholder="Filter results by ID or Dept..."
+                        className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded px-8 py-1.5 text-[9px] font-bold outline-none focus:border-indigo-500"
+                      />
+                      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400" />
+                      {subFilter && (
+                        <button onClick={() => setSubFilter('')} className="absolute right-2 top-1/2 -translate-y-1/2">
+                          <X className="w-3 h-3 text-slate-400 hover:text-red-500" />
+                        </button>
+                      )}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="text-[10px] font-black text-slate-900 dark:text-white truncate">{emp.fullName}</p>
-                        <span className="text-[9px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded uppercase">{emp.userId}</span>
+                  </div>
+                )}
+
+                {filteredResults.length > 0 ? (
+                  filteredResults.map((emp) => (
+                    <button
+                      key={emp.userId}
+                      onClick={() => handleSelect(emp)}
+                      className="w-full text-left p-3 rounded-md hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all flex items-center gap-4 group border border-transparent hover:border-indigo-100 dark:hover:border-indigo-900/50 my-0.5"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center border border-slate-200 dark:border-slate-700 group-hover:border-indigo-500 group-hover:bg-white dark:group-hover:bg-slate-900 transition-all shadow-sm">
+                        <User className="w-5 h-5 text-slate-400 group-hover:text-indigo-600 transition-colors" />
                       </div>
-                      <div className="flex items-center gap-3 mt-0.5">
-                        <div className="flex items-center gap-1 text-slate-400">
-                          <Users className="w-2.5 h-2.5" />
-                          <span className="text-[9px] font-bold truncate">{emp.departmentName}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-[11px] font-black text-slate-900 dark:text-white truncate">{emp.fullName}</p>
+                          <span className="text-[9px] font-black text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 px-2 py-0.5 rounded uppercase tracking-tighter shadow-sm border border-indigo-100 dark:border-indigo-900/20">
+                            {emp.userId}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3 mt-1">
+                          <div className="flex items-center gap-1.5 text-slate-400 group-hover:text-slate-500 transition-colors">
+                            <Users className="w-3 h-3" />
+                            <span className="text-[9px] font-bold truncate tracking-tight">{emp.departmentName}</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </button>
-                ))
-              ) : (
-                !loading && <div className="p-8 text-center text-slate-400 text-[10px] font-bold uppercase italic">No results found</div>
-              )
-            ) : (
-              recentSearches.length === 0 && (
-                <div className="p-8 text-center text-slate-400 text-[10px] font-bold uppercase italic">Type at least 2 characters</div>
-              )
+                    </button>
+                  ))
+                ) : (
+                  !loading && <div className="p-12 text-center flex flex-col items-center gap-2">
+                    <Search className="w-8 h-8 text-slate-200 stroke-[1]" />
+                    <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest italic">No filtered results</p>
+                  </div>
+                )}
+              </React.Fragment>
             )}
             
             {loading && employees.length === 0 && (

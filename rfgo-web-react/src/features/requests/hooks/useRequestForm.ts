@@ -4,11 +4,15 @@ import { GET_PROCESS_PLANS } from '../../master-data/api/masterDataQueries';
 import { CREATE_REQUEST_ITEM, UPDATE_REQUEST_ITEM } from '../api/requestQueries';
 import { type ProcessPlan, type RequestItem } from '../../master-data/types';
 import toast from 'react-hot-toast';
+import { useMailSelectorStore } from '../../mailing/store/useMailSelectorStore';
+import { useMergedWatchers } from '../../mailing/hooks/useMergedWatchers';
 
 export const useRequestForm = (initialData?: RequestItem | null) => {
   const { data, loading, error } = useQuery<{ processPlans: ProcessPlan[] }>(GET_PROCESS_PLANS);
   const [createRequestMutation] = useMutation(CREATE_REQUEST_ITEM);
   const [updateRequestMutation] = useMutation(UPDATE_REQUEST_ITEM);
+  const resetMailStore = useMailSelectorStore((state) => state.reset);
+  const { getMergedInitialWatchers } = useMergedWatchers();
 
   // Selection state
   const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null);
@@ -105,6 +109,7 @@ export const useRequestForm = (initialData?: RequestItem | null) => {
     setPkdVersions([]);
     setRequesterId('');
     setIsSubmitted(false);
+    resetMailStore();
   };
 
   const submitRequest = async () => {
@@ -120,7 +125,8 @@ export const useRequestForm = (initialData?: RequestItem | null) => {
       description,
       edmList,
       pkdVersions,
-      requesterId
+      requesterId,
+      initialWatchers: getMergedInitialWatchers()
     };
 
     try {

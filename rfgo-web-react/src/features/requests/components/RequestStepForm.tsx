@@ -24,6 +24,7 @@ import { useRequestForm } from '../hooks/useRequestForm';
 import { useUserStore } from '../../auth/store/useUserStore';
 import { type RequestItem } from '../../master-data/types';
 import { REQUEST_TYPE_OPTIONS } from '../types';
+import { MailSelector } from '../../mailing/components/MailSelector';
 
 const Chip: React.FC<{ label: string; onRemove: () => void }> = ({ label, onRemove }) => (
   <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 px-2 py-1 rounded-md shadow-sm dark:shadow-lg animate-in fade-in zoom-in duration-300 transition-all">
@@ -487,6 +488,11 @@ const RequestStepForm: React.FC<RequestStepFormProps> = ({ initialData, onSucces
                   {pkdVersions.length === 0 && <span className="text-[8px] font-bold text-slate-300 dark:text-slate-700 uppercase italic ml-1 transition-colors">No versions added</span>}
                 </div>
               </div>
+            </div>
+
+            {/* Mailing List Selection */}
+            <div className="space-y-3">
+              <MailSelector />
             </div>
 
             <div className="pt-8">

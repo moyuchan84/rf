@@ -1,4 +1,5 @@
 import { Field, InputType, Int } from '@nestjs/graphql';
+import { EmployeeSearchInput, EmployeeDto } from '../common/dto/employee-search.dto';
 
 @InputType()
 export class CreateRequestItemInput {
@@ -22,6 +23,9 @@ export class CreateRequestItemInput {
 
   @Field()
   requesterId: string;
+
+  @Field(() => [EmployeeDto], { nullable: true })
+  initialWatchers?: EmployeeDto[];
 }
 
 @InputType()
