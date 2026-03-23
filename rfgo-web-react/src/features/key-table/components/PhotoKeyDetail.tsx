@@ -36,7 +36,8 @@ export const PhotoKeyDetail: React.FC = () => {
     if (!selectedKey) return;
     
     // Direct download from NestJS REST API
-    const downloadUrl = `http://localhost:9999/download/photo-key/${selectedKey.id}`;
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:9999';
+    const downloadUrl = `${baseUrl}/download/photo-key/${selectedKey.id}`;
     const link = document.createElement('a');
     link.href = downloadUrl;
     link.setAttribute('download', `${selectedKey.tableName}_Rev${selectedKey.revNo}.xlsx`);

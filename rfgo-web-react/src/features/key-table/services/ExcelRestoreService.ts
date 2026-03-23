@@ -4,7 +4,7 @@ import { type PhotoKey } from '../../master-data/types';
 
 export class ExcelRestoreService {
   static async downloadBinaryFromApi(id: number, tableName: string, revNo: number) {
-    const baseUrl = 'http://localhost:9999';
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:9999';
     const response = await fetch(`${baseUrl}/download/photo-key/${id}`);
 
     if (!response.ok) {
