@@ -1,22 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { useMutation, useQuery } from '@apollo/client/react';
-import { Layers } from 'lucide-react';
-import toast from 'react-hot-toast';
-import { 
-  GET_PHOTO_KEYS_FOR_REQUEST, 
-  SAVE_REQUEST_TABLES, 
-  GET_REQUEST_TABLES
-} from '../../api/requestQueries';
-import { 
-  type GetRequestTablesQuery, 
-  type GetRequestTablesQueryVariables, 
-  type GetPhotoKeysForRequestQuery, 
-  type GetPhotoKeysForRequestQueryVariables, 
-  type SaveRequestTablesMutation, 
-  type SaveRequestTablesMutationVariables 
-} from '@/shared/api/generated/graphql';
-import { type PhotoKey } from '@/features/master-data/types';
-import { KeyListSection } from './shared/KeyListSection';
+import React from 'react';
+import { Save, Loader2, Settings2 } from 'lucide-react';
+import { useKeyTableSetupSelection } from '../../hooks/useKeyTableSetupSelection';
+import { useKeyTableSetupStore } from '../../store/useKeyTableSetupStore';
+
+// Components
+import { KeyTableSetupBucketSelector } from './KeyTableSetupPicker/KeyTableSetupBucketSelector';
+import { PhotoKeyPreviewModal } from './KeyTableSetupPicker/PhotoKeyPreviewModal';
 
 interface KeyTableSetupPickerProps {
   request: any;
@@ -24,74 +13,66 @@ interface KeyTableSetupPickerProps {
 }
 
 export const KeyTableSetupPicker: React.FC<KeyTableSetupPickerProps> = ({ request, onSave }) => {
-  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const { 
+    loadingSaved, 
+    saving, 
+    handleSave 
+  } = useKeyTableSetupSelection(request, onSave);
 
-  const { data: savedData, refetch: refetchSaved } = useQuery<GetRequestTablesQuery, GetRequestTablesQueryVariables>(GET_REQUEST_TABLES, {
-    variables: { requestId: request.id, type: 'SETUP' }
-  });
+  const { previewTable, setPreviewTable } = useKeyTableSetupStore();
 
-  useEffect(() => {
-    if (savedData?.requestTables) {
-      setSelectedIds(savedData.requestTables.map((m: any) => m.photoKeyId));
-    }
-  }, [savedData]);
-
-  const { data: keysData } = useQuery<GetPhotoKeysForRequestQuery, GetPhotoKeysForRequestQueryVariables>(GET_PHOTO_KEYS_FOR_REQUEST, {
-    variables: { productId: request.productId }
-  });
-
-  const [saveTables] = useMutation<SaveRequestTablesMutation, SaveRequestTablesMutationVariables>(SAVE_REQUEST_TABLES);
-
-  const availableKeys: PhotoKey[] = keysData?.photoKeys || [];
-
-  const handleToggle = (id: number) => {
-    setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
-  };
-
-  const handleFinalSave = async () => {
-    await saveTables({
-      variables: {
-        input: {
-          requestId: request.id,
-          productId: request.productId,
-          processPlanId: availableKeys[0]?.processPlanId || 0,
-          beolOptionId: availableKeys[0]?.beolOptionId || 0,
-          photoKeyIds: selectedIds,
-          type: 'SETUP'
-        }
-      }
-    });
-    toast.success("Setup tables saved");
-    onSave();
-    refetchSaved();
-  };
-
-  const splitByPhoto = (keys: PhotoKey[]) => {
-    const info = keys.filter(k => k.photoCategory === 'info');
-    const key = keys.filter(k => k.photoCategory === 'key');
-    return { info, key };
-  };
-
-  const { info, key: keysOnly } = splitByPhoto(availableKeys);
+  if (loadingSaved) {
+    return (
+      <div className="flex items-center justify-center p-12">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6 p-6 border border-slate-200 dark:border-slate-800 rounded-md bg-slate-50/30 dark:bg-slate-950/20">
-      <div className="flex items-center gap-3 mb-4">
-        <Layers className="w-4 h-4 text-emerald-500" />
-        <h4 className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-white">Final KeyTable Setup</h4>
+    <div className="space-y-6 p-6 border border-slate-200 dark:border-slate-800 rounded-md bg-white dark:bg-slate-950/40 shadow-sm relative overflow-hidden transition-all">
+      {/* Background Glow */}
+      <div className="absolute -top-12 -right-12 w-48 h-48 bg-emerald-500/5 blur-[80px] rounded-full pointer-events-none"></div>
+      
+      <header className="flex items-center justify-between relative z-10">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-md bg-emerald-600 flex items-center justify-center shadow-md shadow-emerald-600/20">
+            <Settings2 className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tighter">Key Table Setup</h3>
+            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Manage photo-key tables for setup configuration</p>
+          </div>
+        </div>
+      </header>
+
+      <div className="grid grid-cols-1 gap-6 relative z-10">
+        {/* Bucket Selector Area */}
+        <KeyTableSetupBucketSelector />
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
-        <KeyListSection title="Info Tables" keys={info} selectedIds={selectedIds} onToggle={handleToggle} />
-        <KeyListSection title="Key Tables" keys={keysOnly} selectedIds={selectedIds} onToggle={handleToggle} />
-      </div>
+      <footer className="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end relative z-10">
+        <button 
+          onClick={handleSave}
+          disabled={saving}
+          className="flex items-center gap-2.5 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-300 dark:disabled:bg-slate-800 text-white rounded-md text-[10px] font-black uppercase tracking-[0.15em] shadow-lg shadow-emerald-600/10 hover:shadow-emerald-600/20 transition-all active:scale-[0.98] group"
+        >
+          {saving ? (
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+          ) : (
+            <Save className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+          )}
+          {saving ? "Saving..." : "Apply Selection"}
+        </button>
+      </footer>
 
-      <button 
-        onClick={handleFinalSave}
-        className="w-full py-3 bg-emerald-600 text-white rounded-md text-[10px] font-black uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-md active:scale-[0.98]"
-      >
-        Save Setup Selection
-      </button>
+      {/* Preview Modal */}
+      {previewTable && (
+        <PhotoKeyPreviewModal 
+          table={previewTable} 
+          onClose={() => setPreviewTable(null)} 
+        />
+      )}
     </div>
   );
 };
