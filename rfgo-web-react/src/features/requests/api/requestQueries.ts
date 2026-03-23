@@ -282,6 +282,39 @@ export const SAVE_REQUEST_TABLES = gql`
       id
       photoKeyId
       type
+      photoKey {
+        id
+        tableName
+        revNo
+        rfgCategory
+        photoCategory
+        isReference
+        filename
+        updateDate
+        productId
+        processPlanId
+        beolOptionId
+        workbookData
+      }
+    }
+  }
+`;
+
+export const SEARCH_PHOTO_KEYS_BY_STREAM = gql`
+  query SearchPhotoKeysByStream($query: String!) {
+    searchPhotoKeysByStream(query: $query) {
+      id
+      tableName
+      revNo
+      rfgCategory
+      photoCategory
+      isReference
+      filename
+      updateDate
+      productId
+      processPlanId
+      beolOptionId
+      workbookData
     }
   }
 `;
@@ -292,6 +325,20 @@ export const GET_REQUEST_TABLES = gql`
       id
       photoKeyId
       type
+      photoKey {
+        id
+        tableName
+        revNo
+        rfgCategory
+        photoCategory
+        isReference
+        filename
+        updateDate
+        productId
+        processPlanId
+        beolOptionId
+        workbookData
+      }
     }
   }
 `;

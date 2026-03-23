@@ -113,6 +113,11 @@ export class RequestsResolver {
   ) {
     return this.service.findRequestTables(requestId, type);
   }
+
+  @Query(() => [PhotoKey])
+  async searchPhotoKeysByStream(@Args('query') query: string) {
+    return this.service.searchPhotoKeysByStream(query);
+  }
 }
 
 @Resolver(() => PhotoKey)

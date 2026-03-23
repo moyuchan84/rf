@@ -374,4 +374,36 @@ export class RequestsService {
       where: { id },
     });
   }
+
+  async searchPhotoKeysByStream(query: string) {
+    // 1. Find stream infos that match the query
+    const streamInfos = await this.prisma.streamInfo.findMany({
+      where: {
+        OR: [
+          { streamPath: { contains: query, mode: 'insensitive' } },
+          { streamInputOutputFile: { contains: query, mode: 'insensitive' } },
+        ],
+      },
+      select: { productId: true },
+    });
+
+    const productIds = [...new Set(streamInfos.map((si) => si.productId))];
+
+    if (productIds.length === 0) {
+      return [];
+    }
+
+    // 2. Find photo keys for those products (limit to SETUP tables as usually these are for SETUP)
+    return this.prisma.photoKey.findMany({
+      where: {
+        productId: { in: productIds },
+      },
+      include: {
+        product: true,
+        processPlan: true,
+        beolOption: true,
+      },
+      orderBy: { updateDate: 'desc' },
+    });
+  }
 }

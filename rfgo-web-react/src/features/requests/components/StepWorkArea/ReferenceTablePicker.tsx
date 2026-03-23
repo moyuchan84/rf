@@ -1,26 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { useMutation, useQuery } from '@apollo/client/react';
-import { Database } from 'lucide-react';
+import { Database, Save, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { 
-  GET_PHOTO_KEYS_FOR_REQUEST, 
-  SAVE_REQUEST_TABLES, 
   GET_REQUEST_TABLES,
-  GET_STREAM_INFOS_BY_PRODUCT
+  SAVE_REQUEST_TABLES,
+  GET_PHOTO_KEYS_FOR_REQUEST
 } from '../../api/requestQueries';
 import { 
   GetRequestTablesQuery, 
   GetRequestTablesQueryVariables, 
-  GetPhotoKeysForRequestQuery, 
-  GetPhotoKeysForRequestQueryVariables, 
-  GetStreamInfosByProductQuery, 
-  GetStreamInfosByProductQueryVariables, 
   SaveRequestTablesMutation, 
-  SaveRequestTablesMutationVariables 
+  SaveRequestTablesMutationVariables,
+  GetPhotoKeysForRequestQuery,
+  GetPhotoKeysForRequestQueryVariables
 } from '@/shared/api/generated/graphql';
 import { RequestType } from '../../types';
-import { type PhotoKey } from '@/features/master-data/types';
-import { KeyListSection } from './shared/KeyListSection';
+import { PhotoKey } from '@/features/master-data/types';
+import { useReferenceTableStore } from '../../store/useReferenceTableStore';
+
+// Components
+import { ScenarioSelector } from './ReferenceTablePicker/ScenarioSelector';
+import { StreamSearchPanel } from './ReferenceTablePicker/StreamSearchPanel';
+import { ProcessSearchPanel } from './ReferenceTablePicker/ProcessSearchPanel';
+import { TableBucketSelector } from './ReferenceTablePicker/TableBucketSelector';
+import { PhotoKeyPreviewModal } from './ReferenceTablePicker/PhotoKeyPreviewModal';
 
 interface ReferenceTablePickerProps {
   request: any;
@@ -28,108 +32,144 @@ interface ReferenceTablePickerProps {
 }
 
 export const ReferenceTablePicker: React.FC<ReferenceTablePickerProps> = ({ request, onSave }) => {
-  const [selectedIds, setSelectedIds] = useState<number[]>([]);
-  const [selectedStreamRequestId, setSelectedStreamRequestId] = useState<number | null>(null);
+  const { 
+    scenario, 
+    setScenario, 
+    selectedTables, 
+    setSelectedTables,
+    previewTable,
+    setPreviewTable,
+    reset
+  } = useReferenceTableStore();
 
-  const { data: savedData, refetch: refetchSaved } = useQuery<GetRequestTablesQuery, GetRequestTablesQueryVariables>(GET_REQUEST_TABLES, {
-    variables: { requestId: request.id, type: 'REFERENCE' }
-  });
+  const [availableKeys, setAvailableKeys] = useState<PhotoKey[]>([]);
 
+  // 0. Reset store on unmount
+  useEffect(() => {
+    return () => reset();
+  }, [reset]);
+
+  // 1. Load saved tables
+  const { data: savedData, loading: savedLoading } = useQuery<GetRequestTablesQuery, GetRequestTablesQueryVariables>(
+    GET_REQUEST_TABLES, 
+    {
+      variables: { requestId: request.id, type: 'REFERENCE' },
+      fetchPolicy: 'network-only'
+    }
+  );
+
+  // 2. Fetch all details for saved tables
   useEffect(() => {
     if (savedData?.requestTables) {
-      setSelectedIds(savedData.requestTables.map((m: any) => m.photoKeyId));
+      const keys = savedData.requestTables
+        .map((rt: any) => rt.photoKey)
+        .filter(Boolean) as PhotoKey[];
+      
+      // Only set if we don't have a selection already or if we just loaded
+      setSelectedTables(keys);
     }
-  }, [savedData]);
+  }, [savedData, setSelectedTables]);
 
-  const { data: streamInfosData } = useQuery<GetStreamInfosByProductQuery, GetStreamInfosByProductQueryVariables>(GET_STREAM_INFOS_BY_PRODUCT, {
-    variables: { productId: request.productId },
-    skip: request.requestType !== RequestType.NEW
-  });
+  // Initial scenario based on request type
+  useEffect(() => {
+    if (request.requestType === RequestType.NEW) {
+      setScenario('STREAM');
+    } else {
+      setScenario('PROCESS');
+    }
+  }, [request.requestType, setScenario]);
 
-  const isNew = request.requestType === RequestType.NEW;
-
-  const { data: setupKeysData } = useQuery<GetRequestTablesQuery, GetRequestTablesQueryVariables>(GET_REQUEST_TABLES, {
-    variables: { requestId: selectedStreamRequestId as number, type: 'SETUP' },
-    skip: !isNew || !selectedStreamRequestId
-  });
-
-  const { data: directKeysData } = useQuery<GetPhotoKeysForRequestQuery, GetPhotoKeysForRequestQueryVariables>(GET_PHOTO_KEYS_FOR_REQUEST, {
-    variables: { productId: request.productId },
-    skip: isNew
-  });
-
-  const availableKeys: PhotoKey[] = isNew 
-    ? (setupKeysData?.requestTables?.map((m: any) => m.photoKey) || [])
-    : (directKeysData?.photoKeys || []);
-
-  const [saveTables] = useMutation<SaveRequestTablesMutation, SaveRequestTablesMutationVariables>(SAVE_REQUEST_TABLES);
-
-  const handleToggle = (id: number) => {
-    setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
-  };
+  // 3. Save mutation
+  const [saveTables, { loading: saving }] = useMutation<SaveRequestTablesMutation, SaveRequestTablesMutationVariables>(SAVE_REQUEST_TABLES);
 
   const handleFinalSave = async () => {
-    await saveTables({
-      variables: {
-        input: {
-          requestId: request.id,
-          productId: request.productId,
-          processPlanId: availableKeys[0]?.processPlanId || 0,
-          beolOptionId: availableKeys[0]?.beolOptionId || 0,
-          photoKeyIds: selectedIds,
-          type: 'REFERENCE'
+    if (selectedTables.length === 0) {
+      toast.error("Please select at least one reference table");
+      return;
+    }
+
+    try {
+      await saveTables({
+        variables: {
+          input: {
+            requestId: request.id,
+            productId: request.productId,
+            processPlanId: selectedTables[0]?.processPlanId || 0,
+            beolOptionId: selectedTables[0]?.beolOptionId || 0,
+            photoKeyIds: selectedTables.map(t => t.id),
+            type: 'REFERENCE'
+          }
         }
-      }
-    });
-    toast.success("Reference tables saved");
-    onSave();
-    refetchSaved();
+      });
+      toast.success("Reference tables updated successfully");
+      onSave();
+    } catch (error) {
+      toast.error("Failed to save reference tables");
+    }
   };
-
-  const splitByRfg = (keys: PhotoKey[]) => {
-    const common = keys.filter(k => k.rfgCategory === 'common');
-    const option = keys.filter(k => k.rfgCategory !== 'common');
-    return { common, option };
-  };
-
-  const { common, option } = splitByRfg(availableKeys);
 
   return (
-    <div className="space-y-6 p-6 border border-slate-200 dark:border-slate-800 rounded-md bg-slate-50/30 dark:bg-slate-950/20">
-      <div className="flex items-center gap-3 mb-4">
-        <Database className="w-4 h-4 text-indigo-500" />
-        <h4 className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-white">Reference Table Selection</h4>
-      </div>
-
-      {isNew && (
-        <div className="space-y-3">
-          <label className="text-[8px] font-black uppercase text-slate-500">Source StreamInfo</label>
-          <select 
-            className="w-full p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs font-bold"
-            onChange={(e) => setSelectedStreamRequestId(Number(e.target.value))}
-            value={selectedStreamRequestId || ''}
-          >
-            <option value="">Select Stream Path Source</option>
-            {streamInfosData?.streamInfosByProduct?.map((si: any) => (
-              <option key={si.id} value={si.requestId}>
-                {si.streamPath} (REQ-{si.requestId}: {si.request?.title || 'No Title'})
-              </option>
-            ))}
-          </select>
+    <div className="space-y-6 p-6 border border-slate-200 dark:border-slate-800 rounded-md bg-white dark:bg-slate-950/40 shadow-sm relative overflow-hidden transition-all">
+      {/* Background Glow */}
+      <div className="absolute -top-12 -right-12 w-48 h-48 bg-indigo-500/5 blur-[80px] rounded-full pointer-events-none"></div>
+      
+      <header className="flex items-center justify-between relative z-10">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-md bg-indigo-600 flex items-center justify-center shadow-md shadow-indigo-600/20">
+            <Database className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tighter">Reference Configuration</h3>
+            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Select and manage reference photo-key tables</p>
+          </div>
         </div>
-      )}
+        
+        <ScenarioSelector />
+      </header>
 
-      <div className="grid grid-cols-2 gap-6">
-        <KeyListSection title="Common Keys" keys={common} selectedIds={selectedIds} onToggle={handleToggle} />
-        <KeyListSection title="Option Keys" keys={option} selectedIds={selectedIds} onToggle={handleToggle} />
+      <div className="grid grid-cols-1 gap-6 relative z-10">
+        {/* Search/Selection Area */}
+        <div className="p-4 bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 rounded-md shadow-inner">
+          {scenario === 'STREAM' ? (
+            <StreamSearchPanel 
+              productId={request.productId} 
+              onResultsFound={setAvailableKeys} 
+              onClear={() => setAvailableKeys([])}
+            />
+          ) : (
+            <ProcessSearchPanel 
+              onResultsFound={setAvailableKeys}
+              onClear={() => setAvailableKeys([])}
+            />
+          )}
+        </div>
+
+        {/* Bucket Selector Area */}
+        <TableBucketSelector availableKeys={availableKeys} />
       </div>
 
-      <button 
-        onClick={handleFinalSave}
-        className="w-full py-3 bg-indigo-600 text-white rounded-md text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-md active:scale-[0.98]"
-      >
-        Save Table Selection
-      </button>
+      <footer className="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end relative z-10">
+        <button 
+          onClick={handleFinalSave}
+          disabled={saving}
+          className="flex items-center gap-2.5 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-300 dark:disabled:bg-slate-800 text-white rounded-md text-[10px] font-black uppercase tracking-[0.15em] shadow-lg shadow-indigo-600/10 hover:shadow-indigo-600/20 transition-all active:scale-[0.98] group"
+        >
+          {saving ? (
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+          ) : (
+            <Save className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+          )}
+          {saving ? "Saving..." : "Apply Selection"}
+        </button>
+      </footer>
+
+      {/* Preview Modal */}
+      {previewTable && (
+        <PhotoKeyPreviewModal 
+          table={previewTable} 
+          onClose={() => setPreviewTable(null)} 
+        />
+      )}
     </div>
   );
 };

@@ -292,6 +292,7 @@ type Query {
   requestTables(requestId: Int!, type: String!): [RequestTableMap!]!
   roles: [RoleType!]!
   searchEmployees(input: EmployeeSearchInput!): EmployeeSearchResponseDto!
+  searchPhotoKeysByStream(query: String!): [PhotoKey!]!
   streamInfoByRequest(requestId: Int!): [StreamInfo!]!
   streamInfosByProduct(productId: Int!): [StreamInfo!]!
   users(search: String, skip: Int! = 0, take: Int! = 10): PaginatedUsers!
@@ -314,7 +315,7 @@ type RequestAssignee {
 type RequestItem {
   assignees: [RequestAssignee!]
   createdAt: DateTime!
-  description: String!
+  description: String
   edmList: [String!]!
   id: Int!
   pkdVersions: [String!]!

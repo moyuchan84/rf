@@ -19,8 +19,8 @@ export class RequestItem {
   @Field()
   title: string;
 
-  @Field()
-  description: string;
+  @Field({ nullable: true })
+  description?: string;
 
   @Field(() => [String])
   edmList: string[];
