@@ -1,5 +1,23 @@
 import { gql } from '@apollo/client';
 
+export const CREATE_GDS_PATH_INFO = gql`
+  mutation CreateGdsPathInfo($input: CreateGdsPathInfoInput!) {
+    createGdsPathInfo(input: $input) {
+      id
+      gdsPathList
+    }
+  }
+`;
+
+export const GET_GDS_PATH_INFO_BY_REQUEST = gql`
+  query GetGdsPathInfoByRequest($requestId: Int!) {
+    gdsPathInfoByRequest(requestId: $requestId) {
+      id
+      gdsPathList
+    }
+  }
+`;
+
 export const CREATE_REQUEST_ITEM = gql`
   mutation CreateRequestItem($input: CreateRequestItemInput!) {
     createRequestItem(input: $input) {
