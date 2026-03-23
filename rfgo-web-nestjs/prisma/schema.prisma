@@ -119,6 +119,7 @@ model RequestItem {
   assignees   RequestAssignee[]
   steps       RequestStep[]
   streamInfo  StreamInfo[]
+  gdsPathInfo GdsPathInfo[]
   tableMaps   RequestTableMap[]
   watcher     RequestWatcher?
 
@@ -271,6 +272,22 @@ model StreamInfo {
 
   @@index([id], map: "ix_stream_info_id")
   @@map("stream_info")
+}
+
+model GdsPathInfo {
+  id            Int       @id @default(autoincrement())
+  requestId     Int       @map("request_id")
+  productId     Int       @map("product_id")
+  processPlanId Int       @map("process_plan_id")
+  beolOptionId  Int       @map("beol_option_id")
+  gdsPathList   String[]  @map("gds_path_list") @db.VarChar
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime  @default(now()) @updatedAt @map("update_time") @db.Timestamptz(6)
+
+  request       RequestItem @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@index([id], map: "ix_gds_path_info_id")
+  @@map("gds_path_info")
 }
 
 model RequestTableMap {

@@ -4,8 +4,8 @@ import { RequestItem, PaginatedRequests } from './requests.model';
 import { CreateRequestItemInput, UpdateRequestItemInput } from './requests.dto';
 import { RequestAssignee, RequestStep, PhotoKey } from './workflow.model';
 import { AssignUserInput, UpdateStepInput } from './workflow.dto';
-import { StreamInfo, RequestTableMap } from './step-data.model';
-import { CreateStreamInfoInput, SaveRequestTablesInput } from './step-data.dto';
+import { StreamInfo, RequestTableMap, GdsPathInfo } from './step-data.model';
+import { CreateStreamInfoInput, SaveRequestTablesInput, CreateGdsPathInfoInput } from './step-data.dto';
 import { UseGuards } from '@nestjs/common';
 import { GqlAuthGuard } from '../auth/interface/guards/gql-auth.guard';
 import { CurrentUser } from '../auth/interface/decorators/current-user.decorator';
@@ -99,6 +99,21 @@ export class RequestsResolver {
   @Query(() => [StreamInfo])
   async streamInfoByRequest(@Args('requestId', { type: () => Int }) requestId: number) {
     return this.service.findStreamInfoByRequest(requestId);
+  }
+
+  @Mutation(() => GdsPathInfo)
+  async createGdsPathInfo(@Args('input') input: CreateGdsPathInfoInput) {
+    return this.service.createGdsPathInfo(input);
+  }
+
+  @Query(() => [GdsPathInfo])
+  async gdsPathInfosByProduct(@Args('productId', { type: () => Int }) productId: number) {
+    return this.service.findGdsPathInfosByProduct(productId);
+  }
+
+  @Query(() => [GdsPathInfo])
+  async gdsPathInfoByRequest(@Args('requestId', { type: () => Int }) requestId: number) {
+    return this.service.findGdsPathInfoByRequest(requestId);
   }
 
   @Mutation(() => [RequestTableMap])

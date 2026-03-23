@@ -41,3 +41,21 @@ export class SaveRequestTablesInput {
   @Field()
   type: string; // REFERENCE, SETUP
 }
+
+@InputType()
+export class CreateGdsPathInfoInput {
+  @Field(() => Int)
+  requestId: number;
+
+  @Field(() => Int)
+  productId: number;
+
+  @Field(() => Int)
+  processPlanId: number;
+
+  @Field(() => Int)
+  beolOptionId: number;
+
+  @Field(() => [String])
+  gdsPathList: string[];
+}

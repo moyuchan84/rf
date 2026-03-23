@@ -61,3 +61,33 @@ export class RequestTableMap {
   @Field()
   type: string; // REFERENCE, SETUP
 }
+
+@ObjectType()
+export class GdsPathInfo {
+  @Field(() => Int)
+  id: number;
+
+  @Field(() => Int)
+  requestId: number;
+
+  @Field(() => RequestItem, { nullable: true })
+  request?: RequestItem;
+
+  @Field(() => Int)
+  productId: number;
+
+  @Field(() => Int)
+  processPlanId: number;
+
+  @Field(() => Int)
+  beolOptionId: number;
+
+  @Field(() => [String])
+  gdsPathList: string[];
+
+  @Field()
+  createdAt: Date;
+
+  @Field()
+  updatedAt: Date;
+}

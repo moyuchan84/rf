@@ -1,6 +1,7 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
 import { RequestAssignee, RequestStep } from './workflow.model';
 import { Product } from '../master-data/master-data.model';
+import { StreamInfo, GdsPathInfo } from './step-data.model';
 
 @ObjectType()
 export class RequestItem {
@@ -36,6 +37,12 @@ export class RequestItem {
 
   @Field(() => [RequestStep], { nullable: true })
   steps?: RequestStep[];
+
+  @Field(() => [StreamInfo], { nullable: true })
+  streamInfo?: StreamInfo[];
+
+  @Field(() => [GdsPathInfo], { nullable: true })
+  gdsPathInfo?: GdsPathInfo[];
 
   @Field()
   createdAt: Date;

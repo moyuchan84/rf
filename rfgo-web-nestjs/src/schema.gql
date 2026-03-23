@@ -31,6 +31,14 @@ input CreateBeolOptionInput {
   processPlanId: Int!
 }
 
+input CreateGdsPathInfoInput {
+  beolOptionId: Int!
+  gdsPathList: [String!]!
+  processPlanId: Int!
+  productId: Int!
+  requestId: Int!
+}
+
 input CreateKeyDesignInput {
   description: String
   edmList: [String!]! = []
@@ -137,6 +145,18 @@ type EmployeeSearchResponseDto {
   totalPage: Int!
 }
 
+type GdsPathInfo {
+  beolOptionId: Int!
+  createdAt: DateTime!
+  gdsPathList: [String!]!
+  id: Int!
+  processPlanId: Int!
+  productId: Int!
+  request: RequestItem
+  requestId: Int!
+  updatedAt: DateTime!
+}
+
 """
 The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
 """
@@ -174,6 +194,7 @@ input MailRequestDto {
 type Mutation {
   assignUser(input: AssignUserInput!): RequestAssignee!
   createBeolOption(input: CreateBeolOptionInput!): BeolOption!
+  createGdsPathInfo(input: CreateGdsPathInfoInput!): GdsPathInfo!
   createKeyDesign(input: CreateKeyDesignInput!): KeyDesign!
   createMailGroup(input: CreateUserMailGroupInput!, userId: String!): UserMailGroupDto!
   createProcessPlan(input: CreateProcessPlanInput!): ProcessPlan!
@@ -278,6 +299,8 @@ input ProductMetaInput {
 
 type Query {
   allSystemDefaultMailers: [SystemDefaultMailerDto!]!
+  gdsPathInfoByRequest(requestId: Int!): [GdsPathInfo!]!
+  gdsPathInfosByProduct(productId: Int!): [GdsPathInfo!]!
   keyDesign(id: Int!): KeyDesign!
   keyDesigns: [KeyDesign!]!
   layout(id: Int!): ReticleLayout
@@ -317,6 +340,7 @@ type RequestItem {
   createdAt: DateTime!
   description: String
   edmList: [String!]!
+  gdsPathInfo: [GdsPathInfo!]
   id: Int!
   pkdVersions: [String!]!
   product: Product
@@ -324,6 +348,7 @@ type RequestItem {
   requestType: String!
   requesterId: String!
   steps: [RequestStep!]
+  streamInfo: [StreamInfo!]
   title: String!
   updatedAt: DateTime!
 }

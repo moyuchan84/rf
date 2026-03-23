@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { CreateRequestItemInput, UpdateRequestItemInput } from './requests.dto';
 import { AssignUserInput, UpdateStepInput } from './workflow.dto';
-import { CreateStreamInfoInput, SaveRequestTablesInput } from './step-data.dto';
+import { CreateGdsPathInfoInput, CreateStreamInfoInput, SaveRequestTablesInput } from './step-data.dto';
 import { MailerProvider } from '../mail/domain/mailer.interface';
 import { DocSecuType, ContentType } from '../mail/interface/dto/mail.dto';
 import { MailTemplateService } from '../mail/application/template.service';
@@ -23,8 +23,11 @@ export class RequestsService {
 
   // Step Data Management
   async createStreamInfo(input: CreateStreamInfoInput) {
-    return this.prisma.streamInfo.create({
-      data: input,
+    return this.prisma.$transaction(async (tx) => {
+      await tx.streamInfo.deleteMany({ where: { requestId: input.requestId } });
+      return tx.streamInfo.create({
+        data: input,
+      });
     });
   }
 
@@ -38,6 +41,29 @@ export class RequestsService {
 
   async findStreamInfoByRequest(requestId: number) {
     return this.prisma.streamInfo.findMany({
+      where: { requestId },
+    });
+  }
+
+  async createGdsPathInfo(input: CreateGdsPathInfoInput) {
+    return this.prisma.$transaction(async (tx) => {
+      await tx.gdsPathInfo.deleteMany({ where: { requestId: input.requestId } });
+      return tx.gdsPathInfo.create({
+        data: input,
+      });
+    });
+  }
+
+  async findGdsPathInfosByProduct(productId: number) {
+    return this.prisma.gdsPathInfo.findMany({
+      where: { productId },
+      include: { request: true },
+      orderBy: { updatedAt: 'desc' },
+    });
+  }
+
+  async findGdsPathInfoByRequest(requestId: number) {
+    return this.prisma.gdsPathInfo.findMany({
       where: { requestId },
     });
   }
