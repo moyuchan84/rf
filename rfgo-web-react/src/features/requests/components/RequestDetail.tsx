@@ -214,12 +214,7 @@ export const RequestDetail: React.FC<RequestDetailProps> = ({
         />
       </section>
 
-      {/* 2. Workflow Stepper (Full Width) */}
-      <WorkflowStepper 
-        steps={steps} 
-        currentStepIndex={activeStepIndex}
-        onStepClick={setActiveStepIndex}
-      />
+     
 
       {/* 4. Technical Info & Sidebar Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -284,6 +279,13 @@ export const RequestDetail: React.FC<RequestDetailProps> = ({
           </div>
         </div>
       </div>
+
+       {/* 2. Workflow Stepper (Full Width) */}
+      <WorkflowStepper 
+        steps={steps} 
+        currentStepIndex={activeStepIndex}
+        onStepClick={setActiveStepIndex}
+      />
 
       {/* 5. Active Step Work Area (Full Width) */}
       <div className="w-full">

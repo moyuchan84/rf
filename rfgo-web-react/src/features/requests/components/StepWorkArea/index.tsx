@@ -19,6 +19,7 @@ import { useStepWorkStore } from '../../store/useStepWorkStore';
 import { ReferenceTablePicker } from './ReferenceTablePicker';
 import { KeyTableSetupPicker } from './KeyTableSetupPicker';
 import { StreamInfoForm } from './StreamInfoForm';
+import { GdsPathForm } from './GdsPathForm';
 
 interface StepWorkAreaProps {
   step: RequestStep;
@@ -78,6 +79,8 @@ export const StepWorkArea: React.FC<StepWorkAreaProps> = ({ step, onUpdate }) =>
         return <ReferenceTablePicker request={request} onSave={() => handleSave()} />;
       case 'KeyTableSetup':
         return <KeyTableSetupPicker request={request} onSave={() => handleSave()} />;
+      case 'GDSPath':
+        return <GdsPathForm request={request} onSave={() => handleSave()} />;
       case 'StreamInfo':
         return <StreamInfoForm request={request} onSave={() => handleSave()} />;
       default:
