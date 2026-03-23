@@ -13,7 +13,7 @@ import {
 } from '@/shared/api/generated/graphql';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
-import { Save, CheckCircle2, PlayCircle } from 'lucide-react';
+import { Save, CheckCircle2, PlayCircle, RotateCcw } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useStepWorkStore } from '../../store/useStepWorkStore';
 import { ReferenceTablePicker } from './ReferenceTablePicker';
@@ -95,30 +95,30 @@ export const StepWorkArea: React.FC<StepWorkAreaProps> = ({ step, onUpdate }) =>
           </p>
         </div>
         <div className="flex gap-2.5">
-          {status !== 'DONE' && (
-            <>
-              {status === 'TODO' && (
-                <button 
-                  onClick={() => handleSave('IN_PROGRESS')}
-                  className="flex items-center gap-1.5 px-5 py-2.5 bg-indigo-50 dark:bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20 rounded-md text-[8px] font-black uppercase hover:bg-indigo-100 dark:hover:bg-indigo-600/20 transition-all shadow-sm"
-                >
-                  <PlayCircle className="w-3.5 h-3.5" /> Start Work
-                </button>
-              )}
-              <button 
-                onClick={() => handleSave('DONE')}
-                className="flex items-center gap-1.5 px-5 py-2.5 bg-emerald-50 dark:bg-emerald-600/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 rounded-md text-[8px] font-black uppercase hover:bg-emerald-100 dark:hover:bg-emerald-600/20 transition-all shadow-sm"
-              >
-                <CheckCircle2 className="w-3.5 h-3.5" /> Mark as Done
-              </button>
-            </>
+          {status === 'TODO' && (
+            <button 
+              onClick={() => handleSave('IN_PROGRESS')}
+              className="flex items-center gap-1.5 px-5 py-2.5 bg-indigo-50 dark:bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20 rounded-md text-[8px] font-black uppercase hover:bg-indigo-100 dark:hover:bg-indigo-600/20 transition-all shadow-sm"
+            >
+              <PlayCircle className="w-3.5 h-3.5" /> Start Work
+            </button>
           )}
-          <button 
-            onClick={() => handleSave()}
-            className="flex items-center gap-1.5 px-5 py-2.5 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-md text-[8px] font-black uppercase hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm"
-          >
-            <Save className="w-3.5 h-3.5" /> Save Draft
-          </button>
+          {status === 'IN_PROGRESS' && (
+            <button 
+              onClick={() => handleSave('DONE')}
+              className="flex items-center gap-1.5 px-5 py-2.5 bg-emerald-50 dark:bg-emerald-600/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 rounded-md text-[8px] font-black uppercase hover:bg-emerald-100 dark:hover:bg-emerald-600/20 transition-all shadow-sm"
+            >
+              <CheckCircle2 className="w-3.5 h-3.5" /> Mark as Done
+            </button>
+          )}
+          {status === 'DONE' && (
+            <button 
+              onClick={() => handleSave('IN_PROGRESS')}
+              className="flex items-center gap-1.5 px-5 py-2.5 bg-amber-50 dark:bg-amber-600/10 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-500/20 rounded-md text-[8px] font-black uppercase hover:bg-amber-100 dark:hover:bg-amber-600/20 transition-all shadow-sm"
+            >
+              <RotateCcw className="w-3.5 h-3.5" /> Rollback to In Progress
+            </button>
+          )}
         </div>
       </div>
 
@@ -135,6 +135,16 @@ export const StepWorkArea: React.FC<StepWorkAreaProps> = ({ step, onUpdate }) =>
             onChange={setContent}
             placeholder="Document your findings, table mappings, or verification results here..."
           />
+        </div>
+        
+        {/* Save Draft Button Moved Here */}
+        <div className="flex justify-end pt-2">
+          <button 
+            onClick={() => handleSave()}
+            className="flex items-center gap-1.5 px-6 py-2.5 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-md text-[9px] font-black uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm group"
+          >
+            <Save className="w-4 h-4 group-hover:scale-110 transition-transform" /> Save Draft & Sync Work
+          </button>
         </div>
       </div>
 
