@@ -12,6 +12,10 @@ interface ReferenceTableState {
   setSelectedTables: (tables: PhotoKey[]) => void;
   addTable: (table: PhotoKey) => void;
   removeTable: (id: number) => void;
+
+  // Search Results
+  availableKeys: PhotoKey[];
+  setAvailableKeys: (keys: PhotoKey[]) => void;
   
   // Scenario 2 Context
   processPlanId: number | null;
@@ -40,6 +44,9 @@ export const useReferenceTableStore = create<ReferenceTableState>((set) => ({
   removeTable: (id) => set((state) => ({ 
     selectedTables: state.selectedTables.filter(t => t.id !== id) 
   })),
+
+  availableKeys: [],
+  setAvailableKeys: (availableKeys) => set({ availableKeys }),
   
   processPlanId: null,
   beolOptionId: null,
@@ -54,6 +61,7 @@ export const useReferenceTableStore = create<ReferenceTableState>((set) => ({
   reset: () => set({
     scenario: 'PROCESS',
     selectedTables: [],
+    availableKeys: [],
     processPlanId: null,
     beolOptionId: null,
     productId: null,

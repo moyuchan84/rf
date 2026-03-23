@@ -1,43 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { useLazyQuery } from '@apollo/client/react';
+import React from 'react';
 import { Search, Loader2, Database, AlertCircle, X } from 'lucide-react';
-import { SEARCH_PHOTO_KEYS_BY_STREAM } from '../../../api/requestQueries';
-import { PhotoKey } from '@/features/master-data/types';
+import { useStreamSearch } from '../../../hooks/useStreamSearch';
 
-interface StreamSearchPanelProps {
-  productId: number;
-  onResultsFound: (keys: PhotoKey[]) => void;
-  onClear: () => void;
-}
-
-export const StreamSearchPanel: React.FC<StreamSearchPanelProps> = ({ 
-  productId, 
-  onResultsFound,
-  onClear
-}) => {
-  const [query, setQuery] = useState('');
-  
-  const [search, { loading, data, error }] = useLazyQuery<{ searchPhotoKeysByStream: PhotoKey[] }, { query: string }>(
-    SEARCH_PHOTO_KEYS_BY_STREAM, 
-    { fetchPolicy: 'network-only' }
-  );
-
-  useEffect(() => {
-    if (data?.searchPhotoKeysByStream) {
-      onResultsFound(data.searchPhotoKeysByStream);
-    }
-  }, [data, onResultsFound]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (query.trim().length >= 2) {
-        search({ variables: { query } });
-      } else if (query.trim().length === 0) {
-        onClear();
-      }
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [query, search, onClear]);
+export const StreamSearchPanel: React.FC = () => {
+  const { query, setQuery, loading, error, results } = useStreamSearch();
 
   return (
     <div className="space-y-3">
@@ -68,7 +34,7 @@ export const StreamSearchPanel: React.FC<StreamSearchPanelProps> = ({
         </div>
         {query && (
           <button 
-            onClick={() => { setQuery(''); onClear(); }}
+            onClick={() => { setQuery(''); }}
             className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-300 hover:text-red-500 transition-colors"
           >
             <X className="w-3.5 h-3.5" />
@@ -83,7 +49,7 @@ export const StreamSearchPanel: React.FC<StreamSearchPanelProps> = ({
         </div>
       )}
 
-      {!loading && query.length >= 2 && data?.searchPhotoKeysByStream?.length === 0 && (
+      {!loading && query.length >= 2 && results.length === 0 && (
         <div className="p-4 text-center border border-dashed border-slate-100 dark:border-slate-800 rounded-md">
           <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest italic">No Setup Tables found for this stream info</p>
         </div>

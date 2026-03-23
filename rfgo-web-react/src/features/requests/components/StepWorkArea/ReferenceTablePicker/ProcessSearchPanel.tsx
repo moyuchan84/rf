@@ -1,61 +1,28 @@
-import React, { useState, useEffect } from 'react';
-import { useQuery, useLazyQuery } from '@apollo/client/react';
-import { ChevronRight, Database, Loader2, Search, Filter } from 'lucide-react';
-import { GET_PROCESS_PLANS } from '@/features/master-data/api/masterDataQueries';
-import { GET_PHOTO_KEYS_FOR_REQUEST } from '../../../api/requestQueries';
-import { useReferenceTableStore } from '../../../store/useReferenceTableStore';
-import { PhotoKey, ProcessPlan } from '@/features/master-data/types';
+import React from 'react';
+import { Loader2, Filter } from 'lucide-react';
+import { useProcessHierarchySearch } from '../../../hooks/useProcessHierarchySearch';
 
-interface ProcessSearchPanelProps {
-  onResultsFound: (keys: PhotoKey[]) => void;
-  onClear: () => void;
-}
+export const ProcessSearchPanel: React.FC = () => {
+  const {
+    hierarchy,
+    loadingHierarchy,
+    loadingKeys,
+    selectedPlan,
+    selectedOption,
+    processPlanId,
+    beolOptionId,
+    productId,
+    setProcessContext
+  } = useProcessHierarchySearch();
 
-interface ProcessPlansData {
-  processPlans: ProcessPlan[];
-}
-
-interface PhotoKeysData {
-  photoKeys: PhotoKey[];
-}
-
-interface PhotoKeysVars {
-  productId?: number | null;
-  beolOptionId?: number | null;
-  processPlanId?: number | null;
-}
-
-export const ProcessSearchPanel: React.FC<ProcessSearchPanelProps> = ({ onResultsFound, onClear }) => {
-  const { processPlanId, beolOptionId, productId, setProcessContext } = useReferenceTableStore();
-
-  const { data: hierarchy, loading: hierarchyLoading } = useQuery<ProcessPlansData>(GET_PROCESS_PLANS);
-  const [fetchKeys, { data: keysData, loading: keysLoading }] = useLazyQuery<PhotoKeysData, PhotoKeysVars>(GET_PHOTO_KEYS_FOR_REQUEST);
-
-  useEffect(() => {
-    if (keysData?.photoKeys) {
-      onResultsFound(keysData.photoKeys);
-    }
-  }, [keysData, onResultsFound]);
-
-  const selectedPlan = hierarchy?.processPlans?.find((p) => p.id === processPlanId);
-  const selectedOption = selectedPlan?.beolOptions?.find((o) => o.id === beolOptionId);
-  const selectedProduct = selectedOption?.products?.find((p) => p.id === productId);
-
-  useEffect(() => {
-    if (productId || beolOptionId) {
-      fetchKeys({
-        variables: {
-          processPlanId,
-          beolOptionId,
-          productId
-        }
-      });
-    } else {
-      onClear();
-    }
-  }, [processPlanId, beolOptionId, productId, fetchKeys, onClear]);
-
-  if (hierarchyLoading) return <div className="flex items-center gap-2 p-6 justify-center text-slate-400"><Loader2 className="w-4 h-4 animate-spin" /> <span className="text-[9px] font-black uppercase tracking-widest">Loading Hierarchy...</span></div>;
+  if (loadingHierarchy) {
+    return (
+      <div className="flex items-center gap-2 p-6 justify-center text-slate-400">
+        <Loader2 className="w-4 h-4 animate-spin" /> 
+        <span className="text-[9px] font-black uppercase tracking-widest">Loading Hierarchy...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -79,7 +46,7 @@ export const ProcessSearchPanel: React.FC<ProcessSearchPanelProps> = ({ onResult
             className="w-full bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-md px-3 py-1.5 text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-indigo-500 transition-all shadow-sm"
           >
             <option value="">Select Plan...</option>
-            {hierarchy?.processPlans?.map((p) => (
+            {hierarchy.map((p) => (
               <option key={p.id} value={p.id}>{p.designRule}</option>
             ))}
           </select>
@@ -118,7 +85,7 @@ export const ProcessSearchPanel: React.FC<ProcessSearchPanelProps> = ({ onResult
         </div>
       </div>
 
-      {(keysLoading) && (
+      {loadingKeys && (
         <div className="flex items-center gap-2 justify-center py-2">
           <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-500" />
           <span className="text-[8px] font-black uppercase text-slate-400">Filtering Tables...</span>

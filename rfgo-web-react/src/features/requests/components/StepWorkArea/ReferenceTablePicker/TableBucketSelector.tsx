@@ -32,12 +32,9 @@ const formatDate = (dateInput: string | Date) => {
   return `${yy}.${mm}.${dd} ${hh}:${min}`;
 };
 
-interface TableBucketSelectorProps {
-  availableKeys: PhotoKey[];
-}
-
-export const TableBucketSelector: React.FC<TableBucketSelectorProps> = ({ availableKeys }) => {
+export const TableBucketSelector: React.FC = () => {
   const { 
+    availableKeys,
     selectedTables, 
     addTable, 
     removeTable, 
