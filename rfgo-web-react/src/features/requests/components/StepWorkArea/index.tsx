@@ -21,7 +21,8 @@ import { KeyTableSetupPicker } from './KeyTableSetupPicker';
 import { StreamInfoForm } from './StreamInfoForm';
 import { GdsPathForm } from './GdsPathForm';
 import { ApprovalSubmissionForm } from './Approval/ApprovalSubmissionForm';
-import { useUserStore, RoleName } from '../../auth/store/useUserStore';
+import { useUserStore, RoleName } from '@/features/auth/store/useUserStore';
+import { PermissionGate } from '@/features/auth/components/PermissionGate';
 
 interface StepWorkAreaProps {
   step: RequestStep;

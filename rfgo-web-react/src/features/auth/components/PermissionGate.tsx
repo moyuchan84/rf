@@ -3,13 +3,13 @@ import { useUserStore, RoleName } from '../store/useUserStore';
 
 interface PermissionGateProps {
   allowedRoles: RoleName[];
-  children: React.ReactNode;
+  children?: React.ReactNode;
   fallback?: React.ReactNode;
 }
 
 export const PermissionGate: React.FC<PermissionGateProps> = ({
   allowedRoles,
-  children,
+  children = null,
   fallback = null,
 }) => {
   const hasRole = useUserStore((state) => state.hasRole);

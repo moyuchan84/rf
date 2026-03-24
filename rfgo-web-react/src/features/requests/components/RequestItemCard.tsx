@@ -11,8 +11,8 @@ import {
 } from 'lucide-react';
 import { type RequestItem } from '../../master-data/types';
 import { REQUEST_TYPE_LABELS, RequestType } from '../types';
-import { useUserStore } from '../../auth/store/useUserStore';
-import { PermissionGate } from '../../auth/components/PermissionGate';
+import { useUserStore } from '@/features/auth/store/useUserStore';
+import { PermissionGate } from '@/features/auth/components/PermissionGate';
 
 interface RequestItemCardProps {
   request: RequestItem;
