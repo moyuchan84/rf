@@ -5,6 +5,8 @@ using System.IO;
 using System.Collections.Generic;
 using RFGo.PhotoKey.Manager.Application.Interfaces;
 using RFGo.PhotoKey.Manager.Infrastructure.Excel;
+using RFGo.PhotoKey.Manager.Infrastructure.Auth;
+using Newtonsoft.Json;
 
 namespace RFGo.PhotoKey.Manager.Presentation.TaskPane
 {
@@ -85,6 +87,13 @@ namespace RFGo.PhotoKey.Manager.Presentation.TaskPane
             return "https://api.your-production-server.com/api/v1"; 
 #endif
         }
+
+        public string GetUserInfo() 
+        {
+            return JsonConvert.SerializeObject(AuthService.Instance.CurrentUser);
+        }
+
+        public string GetAuthToken() => AuthService.Instance.CurrentUser?.JwtToken;
 
         public object loader => _modules.ContainsKey("loader") ? _modules["loader"] : null;
         public object inquiry => _modules.ContainsKey("inquiry") ? _modules["inquiry"] : null;
