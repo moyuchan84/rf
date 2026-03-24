@@ -46,8 +46,10 @@ namespace RFGo.PhotoKey.Manager.Presentation.TaskPane
             await webView.EnsureCoreWebView2Async(environment);
 
             var bridge = new WebViewBridge();
-            bridge.RegisterModule(new WorkSheetsLoaderModule(new Infrastructure.Excel.WorkbookService()));
-            bridge.RegisterModule(new DataInquiryModule(new Infrastructure.Excel.WorkbookService()));
+            var workbookService = new Infrastructure.Excel.WorkbookService();
+            bridge.RegisterModule(new WorkSheetsLoaderModule(workbookService));
+            bridge.RegisterModule(new DataInquiryModule(workbookService));
+            bridge.RegisterModule(new RequestSetupModule(workbookService));
             webView.CoreWebView2.AddHostObjectToScript("bridge", bridge);
 
             webView.CoreWebView2.NavigationCompleted += (s, e) =>

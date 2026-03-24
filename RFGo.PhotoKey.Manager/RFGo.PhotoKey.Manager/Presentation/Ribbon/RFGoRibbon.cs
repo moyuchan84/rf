@@ -50,6 +50,12 @@ namespace RFGo.PhotoKey.Manager.Presentation.Ribbon
             form.Show();
         }
 
+        public void OnRequestSetupInquiry(Office.IRibbonControl control)
+        {
+            var form = new WebViewPopupForm(null, null, false, "Request Setup Inquiry", "RequestSetupInquiry/index.html");
+            form.Show();
+        }
+
         public void OnManageMasterData(Office.IRibbonControl control)
         {
             var form = new WebViewPopupForm(null, null, false, "Manage Hierarchy Master Data", "MasterData/index.html");

@@ -50,6 +50,7 @@ namespace RFGo.PhotoKey.Manager.Presentation.TaskPane
                 var bridge = new WebViewBridge();
                 bridge.RegisterModule(new WorkSheetsLoaderModule(_workbookService));
                 bridge.RegisterModule(new DataInquiryModule(_workbookService));
+                bridge.RegisterModule(new RequestSetupModule(_workbookService));
                 
                 webView.CoreWebView2.AddHostObjectToScript("bridge", bridge);
                 
@@ -78,5 +79,6 @@ namespace RFGo.PhotoKey.Manager.Presentation.TaskPane
 
         public object loader => _modules.ContainsKey("loader") ? _modules["loader"] : null;
         public object inquiry => _modules.ContainsKey("inquiry") ? _modules["inquiry"] : null;
+        public object request => _modules.ContainsKey("request") ? _modules["request"] : null;
     }
 }

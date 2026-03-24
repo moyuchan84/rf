@@ -326,6 +326,72 @@ namespace RFGo.PhotoKey.Manager.Infrastructure.Excel
             }
         }
 
+        public void LoadToActiveWorkbook(WorkbookData data)
+        {
+            if (data == null || data.Meta == null || string.IsNullOrEmpty(data.Meta.BinaryContent))
+                throw new Exception("No binary content found in WorkbookData.");
+
+            MSExcel.Application excelApp = Globals.ThisAddIn.Application;
+            MSExcel.Workbook activeWb = excelApp.ActiveWorkbook;
+            if (activeWb == null)
+            {
+                activeWb = excelApp.Workbooks.Add();
+            }
+
+            string tempPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N") + ".xlsx");
+            try
+            {
+                byte[] bytes = Convert.FromBase64String(data.Meta.BinaryContent);
+                File.WriteAllBytes(tempPath, bytes);
+
+                MSExcel.Workbook refWb = excelApp.Workbooks.Open(tempPath);
+                try
+                {
+                    for (int i = 1; i <= refWb.Sheets.Count; i++)
+                    {
+                        MSExcel.Worksheet sheet = refWb.Sheets[i] as MSExcel.Worksheet;
+                        if (sheet != null)
+                        {
+                            // Ensure unique name in target workbook
+                            string baseName = sheet.Name;
+                            int suffix = 1;
+                            string targetName = baseName;
+                            
+                            bool nameExists = true;
+                            while (nameExists)
+                            {
+                                nameExists = false;
+                                foreach (MSExcel.Worksheet s in activeWb.Sheets)
+                                {
+                                    if (s.Name.Equals(targetName, StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        targetName = $"{baseName}_{suffix++}";
+                                        nameExists = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            sheet.Name = targetName;
+                            sheet.Copy(After: activeWb.Sheets[activeWb.Sheets.Count]);
+                        }
+                    }
+                }
+                finally
+                {
+                    refWb.Close(false);
+                    System.Runtime.InteropServices.Marshal.ReleaseComObject(refWb);
+                }
+            }
+            finally
+            {
+                if (File.Exists(tempPath))
+                {
+                    try { File.Delete(tempPath); } catch { }
+                }
+            }
+        }
+
         private string GetWorkbookBinary(string filePath)
         {
             try

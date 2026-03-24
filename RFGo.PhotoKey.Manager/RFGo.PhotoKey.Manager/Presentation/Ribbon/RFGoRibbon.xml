@@ -18,6 +18,11 @@
           <button id="btnActiveWorkbookUpload" label="엑셀저장" 
                   size="large" onAction="OnActiveWorkbookUpload" 
                   imageMso="FileSaveAs" />
+		<button id="btnRequestSetupInquiry"
+				label="의뢰셋업"
+				size="large"
+				onAction="OnRequestSetupInquiry"
+				imageMso="DataValidation" />
         </group>
         <group id="groupInquiry" label="데이터관리">
           <button id="btnOpenInquiryTaskPane" 
@@ -25,6 +30,7 @@
                   size="large" 
                   onAction="OnOpenInquiryTaskPane" 
                   imageMso="GetExternalDataFromAccess" />
+       
         </group>
 
       </tab>
