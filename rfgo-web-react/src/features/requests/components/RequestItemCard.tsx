@@ -11,6 +11,8 @@ import {
 } from 'lucide-react';
 import { type RequestItem } from '../../master-data/types';
 import { REQUEST_TYPE_LABELS, RequestType } from '../types';
+import { useUserStore } from '../../auth/store/useUserStore';
+import { PermissionGate } from '../../auth/components/PermissionGate';
 
 interface RequestItemCardProps {
   request: RequestItem;
@@ -25,6 +27,28 @@ export const RequestItemCard: React.FC<RequestItemCardProps> = ({
   onEdit, 
   onDelete 
 }) => {
+  const user = useUserStore((state) => state.user);
+  
+  // Author check: updater == user.id (as requested) or requesterId == user.userId
+  const isAuthor = (request as any).updater === user?.id || request.requesterId === user?.userId;
+
+  const actionButtons = (
+    <>
+      <button 
+        onClick={(e) => onEdit(e, request)}
+        className="p-1.5 bg-white dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800 rounded-md text-slate-400 dark:text-slate-600 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-500/30 transition-all shadow-sm opacity-0 group-hover:opacity-100"
+      >
+        <Edit3 className="w-3 h-3" />
+      </button>
+      <button 
+        onClick={(e) => onDelete(e, request.id)}
+        className="p-1.5 bg-white dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800 rounded-md text-slate-400 dark:text-slate-600 hover:text-red-600 dark:hover:text-red-400 hover:border-red-500/30 transition-all shadow-sm opacity-0 group-hover:opacity-100"
+      >
+        <Trash2 className="w-3 h-3" />
+      </button>
+    </>
+  );
+
   return (
     <article 
       onClick={() => onClick(request)}
@@ -63,18 +87,9 @@ export const RequestItemCard: React.FC<RequestItemCardProps> = ({
           </div>
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
-          <button 
-            onClick={(e) => onEdit(e, request)}
-            className="p-1.5 bg-white dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800 rounded-md text-slate-400 dark:text-slate-600 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-500/30 transition-all shadow-sm opacity-0 group-hover:opacity-100"
-          >
-            <Edit3 className="w-3 h-3" />
-          </button>
-          <button 
-            onClick={(e) => onDelete(e, request.id)}
-            className="p-1.5 bg-white dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800 rounded-md text-slate-400 dark:text-slate-600 hover:text-red-600 dark:hover:text-red-400 hover:border-red-500/30 transition-all shadow-sm opacity-0 group-hover:opacity-100"
-          >
-            <Trash2 className="w-3 h-3" />
-          </button>
+          <PermissionGate allowedRoles={['ADMIN']} fallback={isAuthor ? actionButtons : null}>
+            {actionButtons}
+          </PermissionGate>
           <div className="p-2 rounded-full bg-slate-50 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800 group-hover:bg-indigo-600/10 group-hover:border-indigo-500/30 transition-all shadow-sm">
             <ArrowRight className="w-3 h-3 text-slate-300 dark:text-slate-700 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors" />
           </div>
