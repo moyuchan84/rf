@@ -5,14 +5,14 @@ import { clsx } from 'clsx';
 import { useNavigate } from 'react-router-dom';
 
 interface RequestItem {
-  id: number;
+  id: number | string;
   title: string;
   requestType: string;
-  createdAt: string;
+  createdAt: any;
   requesterId: string;
   product?: {
     productName: string;
-  };
+  } | null;
 }
 
 interface RecentRequestsProps {
@@ -23,7 +23,7 @@ interface RecentRequestsProps {
 export const RecentRequests: React.FC<RecentRequestsProps> = ({ requests, loading }) => {
   const navigate = useNavigate();
 
-  const handleRowClick = (id: number) => {
+  const handleRowClick = (id: number | string) => {
     navigate(`/requests?id=${id}`);
   };
 

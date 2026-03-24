@@ -1,5 +1,5 @@
 import React from 'react';
-import { Zap, ShieldCheck, Database, Layers } from 'lucide-react';
+import { Zap, ShieldCheck, Layers } from 'lucide-react';
 import { clsx } from 'clsx';
 
 interface StatsGridProps {

@@ -1,8 +1,14 @@
 import { useQuery } from '@apollo/client/react';
 import { GET_DASHBOARD_DATA, GET_RECENT_REQUESTS } from '../api/dashboardQueries';
-import { subMonths, isAfter, parseISO } from 'date-fns';
+import { subMonths, isAfter } from 'date-fns';
 import { useDashboardStore } from '../store/useDashboardStore';
 import { useEffect } from 'react';
+import { 
+  type GetDashboardDataQuery, 
+  type GetDashboardDataQueryVariables,
+  type GetRecentRequestsQuery,
+  type GetRecentRequestsQueryVariables
+} from '@/shared/api/generated/graphql';
 
 export const useDashboard = () => {
   const { setLastRefreshedAt } = useDashboardStore();
@@ -13,7 +19,7 @@ export const useDashboard = () => {
     loading: statsLoading, 
     error: statsError, 
     refetch: refetchStats 
-  } = useQuery(GET_DASHBOARD_DATA, {
+  } = useQuery<GetDashboardDataQuery, GetDashboardDataQueryVariables>(GET_DASHBOARD_DATA, {
     notifyOnNetworkStatusChange: true,
   });
 
@@ -22,7 +28,7 @@ export const useDashboard = () => {
     loading: recentLoading, 
     error: recentError,
     refetch: refetchRecent
-  } = useQuery(GET_RECENT_REQUESTS, {
+  } = useQuery<GetRecentRequestsQuery, GetRecentRequestsQueryVariables>(GET_RECENT_REQUESTS, {
     variables: { take: 10 },
   });
 
