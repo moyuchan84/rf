@@ -6,6 +6,15 @@ import { CreateKeyDesignInput, UpdateKeyDesignInput } from './key-design.dto';
 export class KeyDesignService {
   constructor(private prisma: PrismaService) {}
 
+  private transformKeyDesign(design: any) {
+    if (!design) return null;
+    const { processPlanMaps, ...rest } = design;
+    return {
+      ...rest,
+      processPlans: processPlanMaps?.map((map) => map.processPlan) || [],
+    };
+  }
+
   async findAll(search?: string, keyType?: string, processPlanId?: number) {
     const where: any = {};
 
@@ -21,55 +30,87 @@ export class KeyDesignService {
     }
 
     if (processPlanId) {
-      where.processPlans = {
-        some: { id: processPlanId },
+      where.processPlanMaps = {
+        some: { processPlanId },
       };
     }
 
-    return this.prisma.keyDesign.findMany({
+    const designs = await this.prisma.keyDesign.findMany({
       where,
-      include: { processPlans: true },
+      include: {
+        processPlanMaps: {
+          include: { processPlan: true },
+        },
+      },
       orderBy: { updatedAt: 'desc' },
     });
+
+    return designs.map((d) => this.transformKeyDesign(d));
   }
 
   async findOne(id: number) {
     const design = await this.prisma.keyDesign.findUnique({
       where: { id },
-      include: { processPlans: true },
+      include: {
+        processPlanMaps: {
+          include: { processPlan: true },
+        },
+      },
     });
     if (!design) throw new NotFoundException(`KeyDesign with ID ${id} not found`);
-    return design;
+    return this.transformKeyDesign(design);
   }
 
   async create(input: CreateKeyDesignInput) {
     const { processPlanIds, ...data } = input;
-    return this.prisma.keyDesign.create({
+    const design = await this.prisma.keyDesign.create({
       data: {
         ...data,
-        processPlans: {
-          connect: processPlanIds.map((id) => ({ id })),
+        processPlanMaps: {
+          create: processPlanIds.map((id) => ({ processPlanId: id })),
         },
       },
-      include: { processPlans: true },
+      include: {
+        processPlanMaps: {
+          include: { processPlan: true },
+        },
+      },
     });
+    return this.transformKeyDesign(design);
   }
 
   async update(id: number, input: UpdateKeyDesignInput) {
     const { processPlanIds, ...data } = input;
-    
-    const updateData: any = { ...data };
-    
-    if (processPlanIds) {
-      updateData.processPlans = {
-        set: processPlanIds.map((id) => ({ id })),
-      };
-    }
 
-    return this.prisma.keyDesign.update({
-      where: { id },
-      data: updateData,
-      include: { processPlans: true },
+    return this.prisma.$transaction(async (tx) => {
+      if (processPlanIds) {
+        // 기존 매핑 삭제
+        await tx.keyDesignProcessPlanMap.deleteMany({
+          where: { keyDesignId: id },
+        });
+
+        // 새 매핑 생성
+        if (processPlanIds.length > 0) {
+          await tx.keyDesignProcessPlanMap.createMany({
+            data: processPlanIds.map((ppId) => ({
+              keyDesignId: id,
+              processPlanId: ppId,
+            })),
+          });
+        }
+      }
+
+      const design = await tx.keyDesign.update({
+        where: { id },
+        data: data,
+        include: {
+          processPlanMaps: {
+            include: { processPlan: true },
+          },
+        },
+      });
+
+      return this.transformKeyDesign(design);
     });
   }
 

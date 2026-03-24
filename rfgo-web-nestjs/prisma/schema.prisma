@@ -42,7 +42,7 @@ model ProcessPlan {
   
   beolOptions BeolOption[]
   photoKeys   PhotoKey[]
-  keyDesigns  KeyDesign[]  @relation("KeyDesignToProcessPlan")
+  keyDesignMaps KeyDesignProcessPlanMap[]
 
   @@index([id], map: "ix_process_plans_id")
   @@map("process_plans")
@@ -259,10 +259,22 @@ model KeyDesign {
   createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt   DateTime      @default(now()) @updatedAt @map("update_time") @db.Timestamptz(6)
   
-  processPlans ProcessPlan[] @relation("KeyDesignToProcessPlan")
+  processPlanMaps KeyDesignProcessPlanMap[]
 
   @@index([id], map: "ix_key_designs_id")
   @@map("key_designs")
+}
+
+model KeyDesignProcessPlanMap {
+  id            Int         @id @default(autoincrement())
+  keyDesignId   Int         @map("key_design_id")
+  processPlanId Int         @map("process_plan_id")
+  
+  keyDesign     KeyDesign   @relation(fields: [keyDesignId], references: [id], onDelete: Cascade)
+  processPlan   ProcessPlan @relation(fields: [processPlanId], references: [id], onDelete: Cascade)
+
+  @@index([id], map: "ix_key_design_process_plan_maps_id")
+  @@map("key_design_process_plan_maps")
 }
 
 model ReticleLayout {
