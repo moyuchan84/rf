@@ -25,15 +25,24 @@ export class MasterDataService {
             },
           },
         },
-        keyDesigns: true,
+        keyDesignMaps: {
+          include: { keyDesign: true }
+        },
       },
       orderBy: { designRule: 'asc' },
     });
-    console.log('[DEBUG] findAllProcessPlans results count:', results.length);
-    if (results.length > 0) {
-      console.log('[DEBUG] First ProcessPlan ID:', results[0].id);
+    
+    // transform for backward compatibility
+    const transformed = results.map(pp => ({
+      ...pp,
+      keyDesigns: pp.keyDesignMaps.map(m => m.keyDesign)
+    }));
+
+    console.log('[DEBUG] findAllProcessPlans results count:', transformed.length);
+    if (transformed.length > 0) {
+      console.log('[DEBUG] First ProcessPlan ID:', transformed[0].id);
     }
-    return results;
+    return transformed;
   }
 
   async createProcessPlan(input: CreateProcessPlanInput) {

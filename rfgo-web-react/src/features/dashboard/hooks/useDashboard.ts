@@ -1,4 +1,4 @@
-import { useQuery } from '@apollo/client';
+import { useQuery } from '@apollo/client/react';
 import { GET_DASHBOARD_DATA, GET_RECENT_REQUESTS } from '../api/dashboardQueries';
 import { subMonths, isAfter, parseISO } from 'date-fns';
 import { useDashboardStore } from '../store/useDashboardStore';

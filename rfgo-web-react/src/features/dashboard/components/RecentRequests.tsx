@@ -2,6 +2,7 @@ import React from 'react';
 import { Activity, Clock, User, Package } from 'lucide-react';
 import { format } from 'date-fns';
 import { clsx } from 'clsx';
+import { useNavigate } from 'react-router-dom';
 
 interface RequestItem {
   id: number;
@@ -20,6 +21,12 @@ interface RecentRequestsProps {
 }
 
 export const RecentRequests: React.FC<RecentRequestsProps> = ({ requests, loading }) => {
+  const navigate = useNavigate();
+
+  const handleRowClick = (id: number) => {
+    navigate(`/requests?id=${id}`);
+  };
+
   return (
     <div className="bg-white dark:bg-slate-900/50 rounded-md shadow-sm dark:shadow-xl border border-slate-200/60 dark:border-slate-800 overflow-hidden relative transition-all animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(79,70,229,0.03),transparent)] dark:bg-[radial-gradient(circle_at_50%_0%,rgba(79,70,229,0.05),transparent)] pointer-events-none"></div>
@@ -52,7 +59,11 @@ export const RecentRequests: React.FC<RecentRequestsProps> = ({ requests, loadin
               ))
             ) : requests.length > 0 ? (
               requests.map((request) => (
-                <tr key={request.id} className="group hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-all cursor-pointer">
+                <tr 
+                  key={request.id} 
+                  onClick={() => handleRowClick(request.id)}
+                  className="group hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-all cursor-pointer"
+                >
                   <td className="p-3">
                     <span className={clsx(
                       "px-2 py-0.5 text-[8px] font-black uppercase rounded-sm border",

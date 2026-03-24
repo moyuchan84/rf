@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Plus, 
   ArrowLeft
 } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import RequestStepForm from './components/RequestStepForm';
 import { RequestList } from './components/RequestList';
 import { RequestDetail } from './components/RequestDetail';
@@ -10,16 +11,26 @@ import { useRequestsList } from './hooks/useRequestsList';
 import { type RequestItem } from '../master-data/types';
 
 const Requests: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [view, setView] = useState<'list' | 'create' | 'detail' | 'edit'>('list');
   const [selectedRequestId, setSelectedRequestId] = useState<number | null>(null);
   const requestsList = useRequestsList();
   const { requests, refetch, deleteRequest } = requestsList;
+
+  useEffect(() => {
+    const idParam = searchParams.get('id');
+    if (idParam) {
+      setSelectedRequestId(parseInt(idParam, 10));
+      setView('detail');
+    }
+  }, [searchParams]);
 
   const selectedRequest = requests.find((r: RequestItem) => r.id === selectedRequestId);
 
   const handleRequestClick = (req: RequestItem) => {
     setSelectedRequestId(req.id);
     setView('detail');
+    setSearchParams({ id: req.id.toString() });
   };
 
   const handleEditClick = (e: React.MouseEvent | null, req: RequestItem) => {
@@ -34,6 +45,7 @@ const Requests: React.FC = () => {
     if (selectedRequestId === id) {
       setSelectedRequestId(null);
       setView('list');
+      setSearchParams({});
     }
   };
 
@@ -41,6 +53,13 @@ const Requests: React.FC = () => {
     refetch();
     setView('list');
     setSelectedRequestId(null);
+    setSearchParams({});
+  };
+
+  const handleBackToList = () => {
+    setView('list');
+    setSelectedRequestId(null);
+    setSearchParams({});
   };
 
   return (
@@ -59,10 +78,7 @@ const Requests: React.FC = () => {
         <div className="flex items-center gap-3">
           {view !== 'list' ? (
             <button
-              onClick={() => {
-                setView('list');
-                setSelectedRequestId(null);
-              }}
+              onClick={handleBackToList}
               className="group flex items-center gap-2.5 px-6 py-3 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-md transition-all shadow-sm dark:shadow-xl text-[10px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest active:scale-95"
             >
               <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" />
