@@ -10,8 +10,16 @@ from app.core.config import settings
 
 router = APIRouter()
 
+class UserProfileInput(BaseModel):
+    epId: str
+    userId: str
+    fullName: str
+    deptName: str
+    email: str
+
 class AuthRequest(BaseModel):
     ssoToken: str
+    profile: Optional[UserProfileInput] = None
 
 class AuthTokenResponse(BaseModel):
     LoginId: str
@@ -24,38 +32,37 @@ class AuthTokenResponse(BaseModel):
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
+    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=15))
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
-    return encoded_jwt
+    return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
 @router.post("/authenticate", response_model=AuthTokenResponse)
 async def authenticate(request: AuthRequest, db: Session = Depends(get_db)):
-    # 1. SSO Token Validation (Mocked)
-    # In reality, you'd call an internal SSO validation service here
+    # 1. SSO Validation
     if not request.ssoToken:
         raise HTTPException(status_code=401, detail="Invalid SSO Token")
     
-    # Mock profile extracted from SSO token
-    # In a real scenario, this would come from the SSO provider
-    mock_user_id = "M12345" # Example EP ID
-    mock_profile = {
-        "userId": mock_user_id,
-        "epId": mock_user_id,
-        "fullName": "홍길동",
-        "deptName": "Photo기술팀",
-        "deptId": "D001",
-        "email": "gildong.hong@samsung.com"
-    }
+    # In local/dev mode, we might trust the profile passed from VSTO
+    # In production, we would validate the ssoToken with the internal SSO server
+    profile = request.profile
+    if not profile:
+        # Fallback for mock if profile not provided (legacy support or internal mock)
+        if "MOCK" in request.ssoToken:
+            profile = UserProfileInput(
+                epId="11112222",
+                userId="admin_user",
+                fullName="Admin Manager",
+                deptName="Digital Transformation Team",
+                email="admin@samsung.com"
+            )
+        else:
+            raise HTTPException(status_code=400, detail="Profile information required")
 
     # 2. Find or Create User (Auto-registration)
-    user = db.query(User).filter(User.userId == mock_user_id).first()
+    user = db.query(User).filter(User.userId == profile.userId).first()
     
     if not user:
-        # Default role is USER
+        # Default role is USER if not exists
         default_role = db.query(Role).filter(Role.name == "USER").first()
         if not default_role:
             default_role = Role(name="USER", description="Default system user")
@@ -64,11 +71,11 @@ async def authenticate(request: AuthRequest, db: Session = Depends(get_db)):
             db.refresh(default_role)
         
         user = User(
-            epId=mock_profile["epId"],
-            userId=mock_profile["userId"],
-            fullName=mock_profile["fullName"],
-            deptName=mock_profile["deptName"],
-            email=mock_profile["email"],
+            epId=profile.epId,
+            userId=profile.userId,
+            fullName=profile.fullName,
+            deptName=profile.deptName,
+            email=profile.email,
             roleId=default_role.id
         )
         db.add(user)
@@ -89,7 +96,7 @@ async def authenticate(request: AuthRequest, db: Session = Depends(get_db)):
     # 4. Return PascalCase response for C# compatibility
     return AuthTokenResponse(
         LoginId=user.userId,
-        DeptId=mock_profile["deptId"],
+        DeptId="D001", # Mock DeptId
         UserId=user.userId,
         UserName=user.fullName,
         DeptName=user.deptName,
