@@ -8,6 +8,7 @@ import KeyTablePage from '../../pages/KeyTablePage';
 import KeyLayoutPage from '../../pages/KeyLayoutPage';
 import RagSearchPage from '../../pages/RagSearchPage';
 import MailingPage from '../../pages/MailingPage';
+import ApprovalPage from '../../pages/ApprovalPage';
 import { UserManagementPage } from '@/features/admin/pages/UserManagementPage';
 import { SystemMailingPage } from '@/features/admin/pages/SystemMailingPage';
 import { PermissionGate } from '@/features/auth/components/PermissionGate';
@@ -24,6 +25,7 @@ const router = createBrowserRouter([
       { path: 'key-table', element: <KeyTablePage /> },
       { path: 'layout', element: <KeyLayoutPage /> },
       { path: 'mailing', element: <MailingPage /> },
+      { path: 'approval', element: <ApprovalPage /> },
       { path: 'rag', element: <RagSearchPage /> },
       { 
         path: 'admin', 

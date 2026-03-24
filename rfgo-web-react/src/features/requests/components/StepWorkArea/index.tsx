@@ -20,6 +20,7 @@ import { ReferenceTablePicker } from './ReferenceTablePicker';
 import { KeyTableSetupPicker } from './KeyTableSetupPicker';
 import { StreamInfoForm } from './StreamInfoForm';
 import { GdsPathForm } from './GdsPathForm';
+import { ApprovalSubmissionForm } from './Approval/ApprovalSubmissionForm';
 
 interface StepWorkAreaProps {
   step: RequestStep;
@@ -83,6 +84,8 @@ export const StepWorkArea: React.FC<StepWorkAreaProps> = ({ step, onUpdate }) =>
         return <GdsPathForm request={request} onSave={() => handleSave()} />;
       case 'StreamInfo':
         return <StreamInfoForm request={request} onSave={() => handleSave()} />;
+      case 'RequestSubmission':
+        return <ApprovalSubmissionForm request={request} onSave={() => handleSave('DONE')} />;
       default:
         return null;
     }
