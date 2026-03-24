@@ -10,9 +10,10 @@ import { PhotoKeyPreviewModal } from './KeyTableSetupPicker/PhotoKeyPreviewModal
 interface KeyTableSetupPickerProps {
   request: any;
   onSave: () => void;
+  disabled?: boolean;
 }
 
-export const KeyTableSetupPicker: React.FC<KeyTableSetupPickerProps> = ({ request, onSave }) => {
+export const KeyTableSetupPicker: React.FC<KeyTableSetupPickerProps> = ({ request, onSave, disabled }) => {
   const { 
     loadingSaved, 
     saving, 
@@ -51,20 +52,22 @@ export const KeyTableSetupPicker: React.FC<KeyTableSetupPickerProps> = ({ reques
         <KeyTableSetupBucketSelector />
       </div>
 
-      <footer className="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end relative z-10">
-        <button 
-          onClick={handleSave}
-          disabled={saving}
-          className="flex items-center gap-2.5 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-300 dark:disabled:bg-slate-800 text-white rounded-md text-[10px] font-black uppercase tracking-[0.15em] shadow-lg shadow-emerald-600/10 hover:shadow-emerald-600/20 transition-all active:scale-[0.98] group"
-        >
-          {saving ? (
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-          ) : (
-            <Save className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
-          )}
-          {saving ? "Saving..." : "Apply Selection"}
-        </button>
-      </footer>
+      {!disabled && (
+        <footer className="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end relative z-10">
+          <button 
+            onClick={handleSave}
+            disabled={saving}
+            className="flex items-center gap-2.5 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-300 dark:disabled:bg-slate-800 text-white rounded-md text-[10px] font-black uppercase tracking-[0.15em] shadow-lg shadow-emerald-600/10 hover:shadow-emerald-600/20 transition-all active:scale-[0.98] group"
+          >
+            {saving ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Save className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+            )}
+            {saving ? "Saving..." : "Apply Selection"}
+          </button>
+        </footer>
+      )}
 
       {/* Preview Modal */}
       {previewTable && (

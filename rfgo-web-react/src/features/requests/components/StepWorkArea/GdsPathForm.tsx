@@ -6,9 +6,10 @@ import { useGdsPathStore } from '../../store/useGdsPathStore';
 interface GdsPathFormProps {
   request: any;
   onSave: () => void;
+  disabled?: boolean;
 }
 
-export const GdsPathForm: React.FC<GdsPathFormProps> = ({ request, onSave }) => {
+export const GdsPathForm: React.FC<GdsPathFormProps> = ({ request, onSave, disabled }) => {
   const { 
     loadingSaved, 
     saving, 
@@ -41,12 +42,14 @@ export const GdsPathForm: React.FC<GdsPathFormProps> = ({ request, onSave }) => 
           </div>
         </div>
         
-        <button 
-          onClick={() => addGdsPath('')}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-md text-[9px] font-black uppercase tracking-widest hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-all border border-indigo-100 dark:border-indigo-800"
-        >
-          <Plus className="w-3 h-3" /> Add Path
-        </button>
+        {!disabled && (
+          <button 
+            onClick={() => addGdsPath('')}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-md text-[9px] font-black uppercase tracking-widest hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-all border border-indigo-100 dark:border-indigo-800"
+          >
+            <Plus className="w-3 h-3" /> Add Path
+          </button>
+        )}
       </header>
 
       <div className="space-y-3 relative z-10">
@@ -56,7 +59,8 @@ export const GdsPathForm: React.FC<GdsPathFormProps> = ({ request, onSave }) => 
               <input 
                 value={path}
                 onChange={(e) => updateGdsPath(index, e.target.value)}
-                className="w-full p-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-md text-xs font-bold focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none"
+                readOnly={disabled}
+                className={`w-full p-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-md text-xs font-bold focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none ${disabled ? 'cursor-default opacity-80' : ''}`}
                 placeholder="/data/gds/path/..."
               />
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[8px] font-black text-slate-300 dark:text-slate-700 uppercase tracking-widest pointer-events-none">
@@ -64,7 +68,7 @@ export const GdsPathForm: React.FC<GdsPathFormProps> = ({ request, onSave }) => 
               </span>
             </div>
             
-            {gdsPathList.length > 1 && (
+            {!disabled && gdsPathList.length > 1 && (
               <button 
                 onClick={() => removeGdsPath(index)}
                 className="p-3 text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-md transition-all border border-transparent hover:border-red-100 dark:hover:border-red-900/30"
@@ -77,20 +81,22 @@ export const GdsPathForm: React.FC<GdsPathFormProps> = ({ request, onSave }) => 
         ))}
       </div>
 
-      <footer className="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end relative z-10">
-        <button 
-          onClick={handleSave}
-          disabled={saving}
-          className="flex items-center gap-2.5 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-300 dark:disabled:bg-slate-800 text-white rounded-md text-[10px] font-black uppercase tracking-[0.15em] shadow-lg shadow-indigo-600/10 hover:shadow-indigo-600/20 transition-all active:scale-[0.98] group"
-        >
-          {saving ? (
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-          ) : (
-            <Save className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
-          )}
-          {saving ? "Saving..." : "Apply GDS Paths"}
-        </button>
-      </footer>
+      {!disabled && (
+        <footer className="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end relative z-10">
+          <button 
+            onClick={handleSave}
+            disabled={saving}
+            className="flex items-center gap-2.5 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-300 dark:disabled:bg-slate-800 text-white rounded-md text-[10px] font-black uppercase tracking-[0.15em] shadow-lg shadow-indigo-600/10 hover:shadow-indigo-600/20 transition-all active:scale-[0.98] group"
+          >
+            {saving ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Save className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+            )}
+            {saving ? "Saving..." : "Apply GDS Paths"}
+          </button>
+        </footer>
+      )}
     </div>
   );
 };

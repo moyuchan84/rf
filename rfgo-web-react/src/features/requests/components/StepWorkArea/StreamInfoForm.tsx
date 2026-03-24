@@ -6,9 +6,10 @@ import { useStreamInfoStore } from '../../store/useStreamInfoStore';
 interface StreamInfoFormProps {
   request: any;
   onSave: () => void;
+  disabled?: boolean;
 }
 
-export const StreamInfoForm: React.FC<StreamInfoFormProps> = ({ request, onSave }) => {
+export const StreamInfoForm: React.FC<StreamInfoFormProps> = ({ request, onSave, disabled }) => {
   const { 
     loadingSaved, 
     saving, 
@@ -48,7 +49,8 @@ export const StreamInfoForm: React.FC<StreamInfoFormProps> = ({ request, onSave 
           <input 
             value={streamPath}
             onChange={(e) => setStreamPath(e.target.value)}
-            className="w-full p-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-md text-xs font-bold focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none"
+            readOnly={disabled}
+            className={`w-full p-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-md text-xs font-bold focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none ${disabled ? 'cursor-default opacity-80' : ''}`}
             placeholder="/data/stream/path/..."
           />
         </div>
@@ -58,27 +60,30 @@ export const StreamInfoForm: React.FC<StreamInfoFormProps> = ({ request, onSave 
           <textarea 
             value={streamInputOutputFile}
             onChange={(e) => setStreamInputOutputFile(e.target.value)}
+            readOnly={disabled}
             rows={6}
-            className="w-full p-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-md text-xs font-bold focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none resize-none custom-scrollbar"
+            className={`w-full p-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-md text-xs font-bold focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none resize-none custom-scrollbar ${disabled ? 'cursor-default opacity-80' : ''}`}
             placeholder="Paste your stream input/output file content here..."
           />
         </div>
       </div>
 
-      <footer className="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end relative z-10">
-        <button 
-          onClick={handleSave}
-          disabled={saving}
-          className="flex items-center gap-2.5 px-6 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-300 dark:disabled:bg-slate-800 text-white rounded-md text-[10px] font-black uppercase tracking-[0.15em] shadow-lg shadow-blue-600/10 hover:shadow-blue-600/20 transition-all active:scale-[0.98] group"
-        >
-          {saving ? (
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-          ) : (
-            <Save className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
-          )}
-          {saving ? "Saving..." : "Apply Stream Info"}
-        </button>
-      </footer>
+      {!disabled && (
+        <footer className="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end relative z-10">
+          <button 
+            onClick={handleSave}
+            disabled={saving}
+            className="flex items-center gap-2.5 px-6 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-300 dark:disabled:bg-slate-800 text-white rounded-md text-[10px] font-black uppercase tracking-[0.15em] shadow-lg shadow-blue-600/10 hover:shadow-blue-600/20 transition-all active:scale-[0.98] group"
+          >
+            {saving ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Save className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+            )}
+            {saving ? "Saving..." : "Apply Stream Info"}
+          </button>
+        </footer>
+      )}
     </div>
   );
 };

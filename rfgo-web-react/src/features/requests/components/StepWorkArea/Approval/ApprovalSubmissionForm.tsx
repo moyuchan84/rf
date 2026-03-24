@@ -11,9 +11,10 @@ import { useUserStore } from '@/features/auth/store/useUserStore';
 interface ApprovalSubmissionFormProps {
   request: any;
   onSave: () => void;
+  disabled?: boolean;
 }
 
-export const ApprovalSubmissionForm: React.FC<ApprovalSubmissionFormProps> = ({ request, onSave }) => {
+export const ApprovalSubmissionForm: React.FC<ApprovalSubmissionFormProps> = ({ request, onSave, disabled }) => {
   const { user } = useUserStore();
   const { addApprover, currentPath } = useApprovalPathStore();
   const { 
@@ -29,13 +30,13 @@ export const ApprovalSubmissionForm: React.FC<ApprovalSubmissionFormProps> = ({ 
     if (!content) setContent(``);
 
     // 기안자 자동 등록 (결재선이 비어있고 사용자가 로그인된 경우)
-    if (user && currentPath.length === 0) {
+    if (user && currentPath.length === 0 && !disabled) {
       addApprover(user, '0');
     }
-  }, [request, user, currentPath.length, addApprover]);
+  }, [request, user, currentPath.length, addApprover, disabled]);
 
   return (
-    <div className="grid grid-cols-12 gap-6 p-6 border border-slate-200/60 rounded-md bg-white dark:bg-slate-900/50 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className={`grid grid-cols-12 gap-6 p-6 border border-slate-200/60 rounded-md bg-white dark:bg-slate-900/50 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-700 ${disabled ? 'opacity-90' : ''}`}>
       {/* Left: Setup (8 cols) */}
       <div className="col-span-8 space-y-6">
         <header className="flex items-center gap-3 mb-2">
@@ -58,8 +59,9 @@ export const ApprovalSubmissionForm: React.FC<ApprovalSubmissionFormProps> = ({ 
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
+              readOnly={disabled}
               placeholder="Enter approval title..."
-              className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800 rounded-md text-sm focus:ring-1 focus:ring-indigo-500/50 outline-none transition-all"
+              className={`w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800 rounded-md text-sm focus:ring-1 focus:ring-indigo-500/50 outline-none transition-all ${disabled ? 'cursor-default' : ''}`}
             />
           </div>
 
@@ -72,6 +74,7 @@ export const ApprovalSubmissionForm: React.FC<ApprovalSubmissionFormProps> = ({ 
                 theme="snow" 
                 value={content} 
                 onChange={setContent}
+                readOnly={disabled}
                 className="quill-editor"
               />
             </div>
@@ -85,29 +88,35 @@ export const ApprovalSubmissionForm: React.FC<ApprovalSubmissionFormProps> = ({ 
           <ApprovalLineTable />
         </div>
 
-        <div className="bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/30 p-3 rounded-md flex gap-3">
-          <AlertCircle className="w-4 h-4 text-indigo-500 shrink-0" />
-          <p className="text-[10px] text-indigo-700 dark:text-indigo-400 font-bold leading-relaxed uppercase tracking-tight">
-            상신 버튼을 누르면 내부 시스템과 연동되어 결재가 진행됩니다. 결재가 시작된 후에는 수정이 불가능합니다.
-          </p>
-        </div>
+        {!disabled && (
+          <div className="bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/30 p-3 rounded-md flex gap-3">
+            <AlertCircle className="w-4 h-4 text-indigo-500 shrink-0" />
+            <p className="text-[10px] text-indigo-700 dark:text-indigo-400 font-bold leading-relaxed uppercase tracking-tight">
+              상신 버튼을 누르면 내부 시스템과 연동되어 결재가 진행됩니다. 결재가 시작된 후에는 수정이 불가능합니다.
+            </p>
+          </div>
+        )}
 
-        <div className="flex justify-end pt-4 border-t border-slate-100 dark:border-slate-800">
-          <button
-            onClick={handleSubmit}
-            disabled={loading || !canSubmit}
-            className="flex items-center gap-2 px-6 py-2.5 bg-indigo-500 hover:bg-indigo-600 disabled:bg-slate-200 dark:disabled:bg-slate-800 text-white rounded-md text-[10px] font-black uppercase tracking-widest shadow-lg shadow-indigo-500/10 transition-all active:scale-95 group"
-          >
-            {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />}
-            {loading ? "Submitting..." : "Submit Approval"}
-          </button>
-        </div>
+        {!disabled && (
+          <div className="flex justify-end pt-4 border-t border-slate-100 dark:border-slate-800">
+            <button
+              onClick={handleSubmit}
+              disabled={loading || !canSubmit}
+              className="flex items-center gap-2 px-6 py-2.5 bg-indigo-500 hover:bg-indigo-600 disabled:bg-slate-200 dark:disabled:bg-slate-800 text-white rounded-md text-[10px] font-black uppercase tracking-widest shadow-lg shadow-indigo-500/10 transition-all active:scale-95 group"
+            >
+              {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />}
+              {loading ? "Submitting..." : "Submit Approval"}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Right: Favorites (4 cols) */}
-      <div className="col-span-4 space-y-6 border-l border-slate-100 dark:border-slate-800 pl-6">
-        <PathFavoriteManager />
-      </div>
+      {!disabled && (
+        <div className="col-span-4 space-y-6 border-l border-slate-100 dark:border-slate-800 pl-6">
+          <PathFavoriteManager />
+        </div>
+      )}
 
       <style>{`
         .quill-editor .ql-toolbar {
@@ -116,6 +125,7 @@ export const ApprovalSubmissionForm: React.FC<ApprovalSubmissionFormProps> = ({ 
           border-right: none;
           border-bottom: 1px solid rgba(226, 232, 240, 0.6);
           background: #f8fafc;
+          ${disabled ? 'display: none;' : ''}
         }
         .dark .quill-editor .ql-toolbar {
           background: #020617;
