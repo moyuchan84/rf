@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Request Setup Inquiry</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700&display=swap" rel="stylesheet"/>
+    <style>
+        body { background-color: #f8fafc; font-family: 'Malgun Gothic', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        [v-cloak] { display: none; }
+
+        /* Spinner Styles */
+        .spinner { animation: rotate 2s linear infinite; width: 50px; height: 50px; }
+        .spinner .path { stroke: #2563eb; stroke-linecap: round; animation: dash 1.5s ease-in-out infinite; }
+        @keyframes rotate { 100% { transform: rotate(360deg); } }
+        @keyframes dash {
+            0% { stroke-dasharray: 1, 150; stroke-dashoffset: 0; }
+            50% { stroke-dasharray: 90, 150; stroke-dashoffset: -35; }
+            100% { stroke-dasharray: 90, 150; stroke-dashoffset: -124; }
+        }
+    </style>
+</head>
+<body class="p-3">
+    <div id="app" v-cloak class="h-screen flex flex-col overflow-hidden relative">
+        <!-- Status Overlay -->
+        <div v-if="status === 'LOADING' || status === 'PROCESSING'" 
+             class="fixed inset-0 z-[500] flex flex-col items-center justify-center bg-white/60 backdrop-blur-md">
+            <svg class="spinner" viewBox="0 0 50 50">
+                <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+            </svg>
+            <p class="mt-4 text-blue-600 font-black text-xs uppercase tracking-[0.2em] animate-pulse">{{ status }} IN PROGRESS...</p>
+        </div>
+
+        <header class="flex items-center justify-between mb-4 shrink-0">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-blue-600">assignment_late</span>
+                <h1 class="text-xl font-black text-slate-900 tracking-tight">Request Setup</h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <!-- Global Folder Selection -->
+                <div class="flex items-center bg-white border border-slate-200 rounded-xl px-2 py-1 gap-2 shadow-sm">
+                    <span class="text-[9px] font-black text-slate-400 uppercase ml-1">Save Path:</span>
+                    <input v-model="targetFolderPath" type="text" placeholder="Select target folder..." 
+                           class="text-[10px] w-48 outline-none border-none bg-transparent font-medium text-slate-600 truncate">
+                    <button @click="pickFolder" class="p-1 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-blue-600 transition-all">
+                        <span class="material-symbols-outlined text-sm">folder_open</span>
+                    </button>
+                </div>
+                <button @click="loadHierarchy" class="p-2 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all shadow-sm">
+                    <span class="material-symbols-outlined text-slate-600 text-sm">refresh</span>
+                </button>
+            </div>
+        </header>
+
+        <div class="flex-1 flex gap-4 overflow-hidden">
+            <!-- Sidebar: Hierarchy Tree -->
+            <hierarchy-tree 
+                v-if="viewMode === 'list'" 
+                :hierarchy="hierarchy" 
+                :selected-product-id="selectedProduct?.id"
+                @select-product="selectProduct">
+            </hierarchy-tree>
+
+            <!-- Main Content Area -->
+            <div class="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+                <!-- Request List View -->
+                <request-list 
+                    v-if="viewMode === 'list'" 
+                    :requests="requests" 
+                    :selected-request-id="selectedRequest?.id"
+                    :product="selectedProduct"
+                    @select-request="selectRequest"
+                    @refresh="refreshRequests">
+                </request-list>
+
+                <!-- Sheet Preview View -->
+                <sheet-preview
+                    v-else-if="viewMode === 'detail' && detailWorkbook"
+                    :workbook="detailWorkbook"
+                    :active-sheet="activeSheet"
+                    @back="viewMode = 'list'"
+                    @select-sheet="(sheet) => activeSheet = sheet">
+                </sheet-preview>
+
+                <!-- Request Detail Panel -->
+                <request-panel
+                    v-if="selectedRequest && viewMode === 'list'"
+                    :request="selectedRequest"
+                    :references="references"
+                    :selected-refs="selectedRefs"
+                    :status="status"
+                    :folder-structure="folderStructure"
+                    @close="selectedRequest = null"
+                    @toggle-ref="toggleRefSelection"
+                    @show-detail="showDetail"
+                    @load-excel="loadSelectedToExcel"
+                    @download-excel="downloadSelectedAsExcel"
+                    @update-folder-structure="(val) => folderStructure = val">
+                </request-panel>
+            </div>
+        </div>
+    </div>
+
+    <!-- --- Templates --- -->
+
+    <script type="text/x-template" id="hierarchy-tree-template">
+        <aside class="w-72 bg-white border border-slate-200 rounded-2xl shadow-sm flex flex-col overflow-hidden shrink-0">
+            <div class="p-4 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
+                <span class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Hierarchy Explorer</span>
+            </div>
+            <div class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-2">
+                <div v-for="pp in hierarchy" :key="pp.id" class="space-y-1">
+                    <div @click="pp.expanded = !pp.expanded" 
+                         class="flex items-center gap-2 p-2 rounded-lg cursor-pointer hover:bg-slate-50 transition-all">
+                        <span class="material-symbols-outlined text-xs text-slate-400 transition-transform" :class="pp.expanded ? 'rotate-90' : ''">chevron_right</span>
+                        <span class="material-symbols-outlined text-sm text-blue-500">account_tree</span>
+                        <span class="text-xs font-bold text-slate-700">{{pp.design_rule}}</span>
+                    </div>
+                    <div v-if="pp.expanded" class="ml-4 space-y-1 border-l-2 border-slate-100 pl-2">
+                        <div v-for="bo in pp.beol_options" :key="bo.id" class="space-y-1">
+                            <div @click="bo.expanded = !bo.expanded" 
+                                 class="flex items-center gap-2 p-1.5 rounded-lg cursor-pointer hover:bg-slate-50 transition-all">
+                                <span class="material-symbols-outlined text-[10px] text-slate-400 transition-transform" :class="bo.expanded ? 'rotate-90' : ''">chevron_right</span>
+                                <span class="text-xs font-medium text-slate-600">{{bo.option_name}}</span>
+                            </div>
+                            <div v-if="bo.expanded" class="ml-4 space-y-1">
+                                <div v-for="prod in bo.products" :key="prod.id"
+                                     @click="$emit('select-product', prod, bo, pp)"
+                                     class="flex items-center gap-2 p-1.5 rounded-lg cursor-pointer transition-all"
+                                     :class="selectedProductId === prod.id ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-blue-50 text-slate-500'">
+                                    <span class="material-symbols-outlined text-xs">{{ selectedProductId === prod.id ? 'check_circle' : 'inventory_2' }}</span>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="text-[11px] font-bold truncate">{{prod.partid}}</div>
+                                        <div class="text-[9px] opacity-70 truncate">{{prod.product_name}}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </script>
+
+    <script type="text/x-template" id="request-list-template">
+        <main class="flex-1 bg-white border border-slate-200 rounded-2xl shadow-sm flex flex-col overflow-hidden">
+            <div class="p-4 border-b border-slate-50 bg-slate-50/20 flex justify-between items-center">
+                <div v-if="product" class="flex flex-col">
+                    <span class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Requests for Product</span>
+                    <h2 class="text-sm font-black text-blue-600">{{product.partid}} / {{product.product_name}}</h2>
+                </div>
+                <div v-else class="text-xs font-bold text-slate-300 italic">Select a product from the explorer</div>
+                
+                <button v-if="product" @click="$emit('refresh')" class="p-2 hover:bg-slate-100 rounded-xl text-slate-400 transition-all">
+                    <span class="material-symbols-outlined text-sm">refresh</span>
+                </button>
+            </div>
+
+            <div class="flex-1 overflow-auto custom-scrollbar p-6">
+                <div v-if="requests.length === 0" class="h-full flex flex-col items-center justify-center p-12 text-center opacity-40">
+                    <span class="material-symbols-outlined text-slate-200 text-5xl mb-4">search_off</span>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">No requests found</p>
+                </div>
+
+                <div v-else class="grid grid-cols-1 gap-4">
+                    <div v-for="req in requests" :key="req.id" 
+                         @click="$emit('select-request', req)"
+                         :class="['group bg-white p-5 rounded-2xl border transition-all cursor-pointer relative', 
+                                 selectedRequestId === req.id ? 'border-blue-600 shadow-xl shadow-blue-100 ring-1 ring-blue-600' : 'border-slate-100 hover:border-blue-200 hover:shadow-lg']">
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="flex items-center gap-3">
+                                <div class="size-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all">
+                                    <span class="material-symbols-outlined">assignment</span>
+                                </div>
+                                <div>
+                                    <h3 class="text-sm font-black text-slate-800 tracking-tight">{{ req.title }}</h3>
+                                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ req.request_type }}</span>
+                                </div>
+                            </div>
+                            <div class="flex flex-col items-end gap-1">
+                                <span class="text-[9px] text-slate-400 font-bold uppercase">{{ formatDate(req.created_at) }}</span>
+                                <span class="text-[8px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-black uppercase tracking-tighter">{{ req.requester_id }}</span>
+                            </div>
+                        </div>
+                        <p class="text-[11px] text-slate-500 line-clamp-2 leading-relaxed font-medium">{{ req.description }}</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </script>
+
+    <script type="text/x-template" id="sheet-preview-template">
+        <div class="flex-1 flex overflow-hidden gap-4">
+            <aside class="w-64 bg-white border border-slate-200 rounded-2xl shadow-sm flex flex-col overflow-hidden shrink-0">
+                <div class="p-4 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
+                    <span class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Worksheets</span>
+                </div>
+                <div class="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1">
+                    <div v-for="sheet in workbook.Worksheets" :key="sheet.SheetName"
+                         @click="$emit('select-sheet', sheet)"
+                         class="flex items-center gap-2 p-2.5 rounded-xl cursor-pointer transition-all border border-transparent"
+                         :class="activeSheet === sheet ? 'bg-blue-600 text-white shadow-md font-bold' : 'hover:bg-slate-50 text-slate-500'">
+                        <span class="text-[11px] truncate flex-1">{{sheet.SheetName}}</span>
+                        <span class="text-[8px] px-1.5 py-0.5 rounded-full font-black uppercase"
+                              :class="activeSheet === sheet ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-400'">
+                            {{sheet.SheetType}}
+                        </span>
+                    </div>
+                </div>
+                <div class="p-4 border-t border-slate-50 bg-slate-50/30">
+                    <button @click="$emit('back')" class="w-full flex items-center justify-center gap-2 py-2 text-[10px] font-black text-slate-500 hover:text-blue-600 transition-colors uppercase tracking-widest">
+                        <span class="material-symbols-outlined text-sm">arrow_back</span> Back to List
+                    </button>
+                </div>
+            </aside>
+            <main class="flex-1 bg-white border border-slate-200 rounded-2xl shadow-sm flex flex-col overflow-hidden">
+                <div v-if="activeSheet" class="flex-1 flex flex-col overflow-hidden">
+                    <div class="p-4 border-b border-slate-50 flex justify-between items-center bg-slate-50/20">
+                        <div class="flex items-center gap-4">
+                            <h3 class="text-xs font-black text-slate-900 uppercase tracking-widest">{{activeSheet.SheetName}}</h3>
+                            <span class="px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-100 text-[9px] font-black">
+                                ORIGIN: {{activeSheet.Origin.Row}}, {{activeSheet.Origin.Col}}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="flex-1 overflow-auto custom-scrollbar">
+                        <table class="w-full text-left border-collapse min-w-max">
+                            <thead class="sticky top-0 bg-slate-50 z-10 border-b border-slate-200">
+                                <tr>
+                                    <th class="p-2.5 text-[10px] font-black text-slate-400 uppercase tracking-wider border-r border-slate-100 w-12 text-center">#</th>
+                                    <th v-for="col in activeSheet.Columns" :key="col.Key"
+                                        class="p-2.5 text-[10px] font-black text-slate-600 uppercase tracking-wider border-r border-slate-100 bg-slate-50/80">
+                                        {{col.Name}}
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-[11px] divide-y divide-slate-100">
+                                <tr v-for="(row, idx) in activeSheet.TableData" :key="idx" class="hover:bg-blue-50/50 transition-colors">
+                                    <td class="p-2.5 text-center text-slate-400 border-r border-slate-100 bg-slate-50/30">{{idx + 1}}</td>
+                                    <td v-for="col in activeSheet.Columns" :key="col.Key" class="p-2.5 text-slate-600 border-r border-slate-100">
+                                        {{row[col.Key]}}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </script>
+
+    <script type="text/x-template" id="request-panel-template">
+        <transition enter-active-class="transition duration-300 ease-out transform" 
+                    enter-from-class="translate-y-full" 
+                    enter-to-class="translate-y-0"
+                    leave-active-class="transition duration-200 ease-in transform"
+                    leave-from-class="translate-y-0"
+                    leave-to-class="translate-y-full">
+            <div class="absolute inset-x-0 bottom-0 bg-white border-t border-slate-200 shadow-2xl z-10 flex flex-col h-3/4 rounded-t-[2.5rem] overflow-hidden">
+                <header class="px-8 py-6 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
+                    <div class="flex items-center gap-4">
+                        <div class="size-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-100">
+                            <span class="material-symbols-outlined">description</span>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-black text-slate-900 tracking-tight">{{ request.title }}</h2>
+                            <p class="text-[10px] font-black text-blue-600 uppercase tracking-widest">Reference Table Setup</p>
+                        </div>
+                    </div>
+                    <button @click="$emit('close')" class="size-10 rounded-full hover:bg-slate-200 flex items-center justify-center transition-all text-slate-400">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </header>
+
+                <div class="flex-1 flex overflow-hidden">
+                    <!-- Reference Selection -->
+                    <div class="w-1/3 border-r border-slate-100 flex flex-col">
+                        <div class="p-6 border-b border-slate-50 flex justify-between items-center">
+                            <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                <span class="material-symbols-outlined text-xs">list_alt</span> Reference Tables ({{ references.length }})
+                            </h4>
+                            <div v-if="references.length > 0" class="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-slate-50 cursor-pointer transition-all" @click="toggleAll">
+                                <span class="material-symbols-outlined text-sm" :class="isAllSelected ? 'text-blue-600' : 'text-slate-300'">
+                                    {{ isAllSelected ? 'check_box' : 'check_box_outline_blank' }}
+                                </span>
+                                <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Select All</span>
+                            </div>
+                        </div>
+                        <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-3">
+                            <div v-if="references.length === 0" class="h-full flex flex-col items-center justify-center opacity-40 text-center p-4">
+                                <span class="material-symbols-outlined text-slate-200 text-3xl mb-2">layers_clear</span>
+                                <p class="text-[9px] font-black uppercase text-slate-400">No linked references</p>
+                            </div>
+                            <div v-for="refItem in references" :key="refItem.id" 
+                                 class="group flex items-center p-3 rounded-2xl border transition-all cursor-pointer"
+                                 :class="isSelected(refItem) ? 'bg-blue-50 border-blue-200' : 'bg-white border-slate-100 hover:border-blue-100 hover:bg-slate-50'">
+                                <div @click="$emit('toggle-ref', refItem)" class="mr-4 transition-all" :class="isSelected(refItem) ? 'text-blue-600 scale-110' : 'text-slate-300'">
+                                    <span class="material-symbols-outlined">
+                                        {{ isSelected(refItem) ? 'check_box' : 'check_box_outline_blank' }}
+                                    </span>
+                                </div>
+                                <div class="flex-1 min-w-0" @click="$emit('toggle-ref', refItem)">
+                                    <p class="text-xs font-black text-slate-700 truncate group-hover:text-blue-600 transition-colors">{{ refItem.table_name }}</p>
+                                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-tighter mt-0.5">Revision {{ refItem.rev_no }}</p>
+                                </div>
+                                <button @click.stop="$emit('show-detail', refItem)" class="p-1.5 hover:bg-white rounded-lg text-slate-400 hover:text-blue-600 transition-all shadow-sm bg-slate-50">
+                                    <span class="material-symbols-outlined text-sm">visibility</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Area -->
+                    <div class="flex-1 bg-slate-50/30 p-8 flex flex-col justify-between">
+                        <div class="space-y-8">
+                            <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-3">
+                                        <span class="material-symbols-outlined text-emerald-500">info</span>
+                                        <h5 class="text-[10px] font-black text-slate-800 uppercase tracking-widest">Process Guidance</h5>
+                                    </div>
+                                    <!-- Folder Structure Toggle -->
+                                    <div class="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200">
+                                        <button @click="$emit('update-folder-structure', 'nested')" 
+                                                class="px-2 py-1 text-[8px] font-black rounded-md transition-all"
+                                                :class="folderStructure === 'nested' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400'">NESTED</button>
+                                        <button @click="$emit('update-folder-structure', 'flat')" 
+                                                class="px-2 py-1 text-[8px] font-black rounded-md transition-all"
+                                                :class="folderStructure === 'flat' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400'">FLAT</button>
+                                    </div>
+                                </div>
+                                <p class="text-xs text-slate-500 leading-relaxed font-medium">
+                                    Selected reference tables will be retrieved from the central repository and imported into your workspace.
+                                </p>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-6">
+                                <button @click="$emit('load-excel')" 
+                                        :disabled="selectedRefs.length === 0"
+                                        class="flex flex-col items-center gap-4 p-8 rounded-[2rem] transition-all group"
+                                        :class="selectedRefs.length > 0 ? 'bg-blue-600 text-white shadow-2xl shadow-blue-200 hover:scale-[1.02] hover:bg-blue-700' : 'bg-slate-200 text-slate-400 cursor-not-allowed'">
+                                    <span class="material-symbols-outlined text-4xl group-hover:rotate-12 transition-transform">table_view</span>
+                                    <div class="text-center">
+                                        <div class="text-[11px] font-black uppercase tracking-widest">Load & Open</div>
+                                    </div>
+                                </button>
+
+                                <button @click="$emit('download-excel')" 
+                                        :disabled="selectedRefs.length === 0"
+                                        class="flex flex-col items-center gap-4 p-8 rounded-[2rem] transition-all group border-2"
+                                        :class="selectedRefs.length > 0 ? 'bg-white border-blue-600 text-blue-600 hover:bg-blue-50 shadow-xl' : 'bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed'">
+                                    <span class="material-symbols-outlined text-4xl group-hover:-translate-y-1 transition-transform">cloud_download</span>
+                                    <div class="text-center">
+                                        <div class="text-[11px] font-black uppercase tracking-widest">Download Only</div>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="bg-blue-900 text-white p-5 rounded-2xl flex items-center justify-between shadow-lg">
+                            <div class="flex items-center gap-3">
+                                <span class="material-symbols-outlined text-blue-300">verified_user</span>
+                                <div class="text-[10px] font-black uppercase tracking-widest">Ready to process {{ selectedRefs.length }} tables</div>
+                            </div>
+                            <span v-if="selectedRefs.length === 0" class="text-[9px] font-bold text-blue-300 uppercase italic">Select tables from the left list</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </transition>
+    </script>
+
+    <script src="api.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
