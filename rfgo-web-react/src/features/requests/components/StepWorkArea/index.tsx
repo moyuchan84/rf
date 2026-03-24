@@ -31,7 +31,7 @@ interface StepWorkAreaProps {
 export const StepWorkArea: React.FC<StepWorkAreaProps> = ({ step, onUpdate }) => {
   const { content, setContent, status, setStatus, initialize } = useStepWorkStore();
   const user = useUserStore((state) => state.user);
-  const userRole = useUserStore((state) => state.role);
+  const hasRole = useUserStore((state) => state.hasRole);
 
   useEffect(() => {
     initialize(step);
@@ -46,10 +46,8 @@ export const StepWorkArea: React.FC<StepWorkAreaProps> = ({ step, onUpdate }) =>
     'RequestSubmission': ['ADMIN', 'INNO'],
   };
 
-  const hasPermission = useMemo(() => {
-    const allowedRoles = stepPermissions[step.stepName] || [];
-    return userRole ? allowedRoles.includes(userRole) : false;
-  }, [step.stepName, userRole]);
+  const allowedRoles = useMemo(() => stepPermissions[step.stepName] || [], [step.stepName]);
+  const canEdit = hasRole(allowedRoles);
 
   // Fetch full request details to get productId, etc.
   const { data: requestData, loading } = useQuery<GetRequestItemQuery, GetRequestItemQueryVariables>(GET_REQUEST_ITEM, {
@@ -66,7 +64,7 @@ export const StepWorkArea: React.FC<StepWorkAreaProps> = ({ step, onUpdate }) =>
   });
 
   const handleSave = async (newStatus?: string) => {
-    if (!hasPermission) {
+    if (!canEdit) {
       toast.error('You do not have permission to modify this step.');
       return;
     }
@@ -100,7 +98,7 @@ export const StepWorkArea: React.FC<StepWorkAreaProps> = ({ step, onUpdate }) =>
     const commonProps = {
       request,
       onSave: () => handleSave(),
-      disabled: !hasPermission
+      disabled: !canEdit
     };
 
     switch (step.stepName) {
@@ -113,7 +111,7 @@ export const StepWorkArea: React.FC<StepWorkAreaProps> = ({ step, onUpdate }) =>
       case 'StreamInfo':
         return <StreamInfoForm {...commonProps} />;
       case 'RequestSubmission':
-        return <ApprovalSubmissionForm request={request} onSave={() => handleSave('DONE')} disabled={!hasPermission} />;
+        return <ApprovalSubmissionForm request={request} onSave={() => handleSave('DONE')} disabled={!canEdit} />;
       default:
         return null;
     }
@@ -123,15 +121,22 @@ export const StepWorkArea: React.FC<StepWorkAreaProps> = ({ step, onUpdate }) =>
     <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-md p-8 space-y-8 animate-in fade-in zoom-in duration-500 shadow-sm dark:shadow-xl transition-all">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          {!hasPermission && (
-            <div className="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/10 flex items-center justify-center border border-red-200 dark:border-red-900/20 text-red-500">
-              <Lock className="w-4 h-4" />
-            </div>
-          )}
+          <PermissionGate 
+            allowedRoles={allowedRoles}
+            fallback={
+              <div className="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/10 flex items-center justify-center border border-red-200 dark:border-red-900/20 text-red-500">
+                <Lock className="w-4 h-4" />
+              </div>
+            }
+          >
+            {/* Can show a check or nothing for authorized users */}
+          </PermissionGate>
           <div>
             <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tighter transition-colors">
               {step.stepName}
-              {!hasPermission && <span className="ml-2 text-[8px] text-red-500 font-black tracking-widest uppercase">(Read Only)</span>}
+              <PermissionGate allowedRoles={allowedRoles} fallback={<span className="ml-2 text-[8px] text-red-500 font-black tracking-widest uppercase">(Read Only)</span>}>
+                {/* No suffix for authors */}
+              </PermissionGate>
             </h3>
             <p className="text-[8px] text-slate-500 dark:text-slate-500 font-bold uppercase tracking-[0.2em] mt-1 transition-colors">
               Current Status: <span className="text-indigo-600 dark:text-indigo-400">{status}</span>
@@ -139,7 +144,7 @@ export const StepWorkArea: React.FC<StepWorkAreaProps> = ({ step, onUpdate }) =>
           </div>
         </div>
         
-        {hasPermission && (
+        <PermissionGate allowedRoles={allowedRoles}>
           <div className="flex gap-2.5">
             {status === 'TODO' && (
               <button 
@@ -166,26 +171,26 @@ export const StepWorkArea: React.FC<StepWorkAreaProps> = ({ step, onUpdate }) =>
               </button>
             )}
           </div>
-        )}
+        </PermissionGate>
       </div>
 
       {renderStepSpecificUI()}
 
-      <div className={`space-y-3 ${!hasPermission ? 'opacity-70 grayscale-[0.5]' : ''}`}>
+      <div className={`space-y-3 ${!canEdit ? 'opacity-70 grayscale-[0.5]' : ''}`}>
         <label className="text-[8px] font-black uppercase text-slate-500 tracking-widest ml-1 block transition-colors">
           Work Logs & Results
         </label>
-        <div className={`bg-slate-50 dark:bg-slate-950 border-2 ${!hasPermission ? 'border-slate-200 dark:border-slate-800' : 'border-slate-200 dark:border-slate-800 focus-within:border-indigo-500/30'} rounded-md overflow-hidden transition-all shadow-sm dark:shadow-xl`}>
+        <div className={`bg-slate-50 dark:bg-slate-950 border-2 ${!canEdit ? 'border-slate-200 dark:border-slate-800' : 'border-slate-200 dark:border-slate-800 focus-within:border-indigo-500/30'} rounded-md overflow-hidden transition-all shadow-sm dark:shadow-xl`}>
           <ReactQuill 
             theme="snow" 
             value={content} 
             onChange={setContent}
-            placeholder={hasPermission ? "Document your findings, table mappings, or verification results here..." : "Read only view of work logs."}
-            readOnly={!hasPermission}
+            placeholder={canEdit ? "Document your findings, table mappings, or verification results here..." : "Read only view of work logs."}
+            readOnly={!canEdit}
           />
         </div>
         
-        {hasPermission && (
+        <PermissionGate allowedRoles={allowedRoles}>
           <div className="flex justify-end pt-2">
             <button 
               onClick={() => handleSave()}
@@ -194,7 +199,7 @@ export const StepWorkArea: React.FC<StepWorkAreaProps> = ({ step, onUpdate }) =>
               <Save className="w-4 h-4 group-hover:scale-110 transition-transform" /> Save Draft & Sync Work
             </button>
           </div>
-        )}
+        </PermissionGate>
       </div>
 
       {step.completedAt && (
@@ -205,7 +210,7 @@ export const StepWorkArea: React.FC<StepWorkAreaProps> = ({ step, onUpdate }) =>
       )}
 
       <style>{`
-        .ql-toolbar.ql-snow { border: none; border-bottom: 1px solid var(--ql-border-color); padding: 10px 16px; background: var(--ql-toolbar-bg); transition: all 0.3s; ${!hasPermission ? 'display: none;' : ''} }
+        .ql-toolbar.ql-snow { border: none; border-bottom: 1px solid var(--ql-border-color); padding: 10px 16px; background: var(--ql-toolbar-bg); transition: all 0.3s; ${!canEdit ? 'display: none;' : ''} }
         .ql-container.ql-snow { border: none; min-height: 160px; font-size: 13px; font-family: inherit; transition: all 0.3s; }
         .ql-editor { padding: 16px 20px; color: var(--ql-text-color); transition: color 0.3s; }
         
