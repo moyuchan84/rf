@@ -69,6 +69,7 @@
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Net.Http" />
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
@@ -162,6 +163,8 @@
     <Compile Include="Application\Interfaces\IWorkbookService.cs" />
     <Compile Include="Infrastructure\Excel\ExcelStyleSerializer.cs" />
     <Compile Include="Infrastructure\Excel\WorkbookService.cs" />
+    <Compile Include="Infrastructure\Auth\AuthTokenResponse.cs" />
+    <Compile Include="Infrastructure\Auth\AuthService.cs" />
     <Compile Include="Presentation\Ribbon\RFGoRibbon.cs" />
     <Compile Include="Presentation\TaskPane\TaskPaneManager.cs" />
     <Compile Include="Presentation\TaskPane\IBridgeModule.cs" />

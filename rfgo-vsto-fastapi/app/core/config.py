@@ -11,6 +11,11 @@ class Settings(BaseSettings):
     DB_PORT: str = "5433"
     DB_NAME: str = "photokey_db"
     
+    # Security
+    SECRET_KEY: str = "rfgo-secret-key-change-me-in-production"
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 # 1 day
+
     # Full URL override
     DATABASE_URL: Optional[str] = None
 
