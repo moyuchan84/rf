@@ -27,3 +27,8 @@ def delete_request(id: int, db: Session = Depends(get_db)):
     service = ProductService(db)
     service.delete_request_item(id)
     return {"success": True}
+
+@router.get("/{request_id}/references", response_model=List[schemas.PhotoKey])
+def get_request_references(request_id: int, db: Session = Depends(get_db)):
+    service = ProductService(db)
+    return service.get_request_references(request_id)

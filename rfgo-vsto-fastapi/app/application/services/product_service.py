@@ -55,3 +55,6 @@ class ProductService:
 
     def list_request_items(self, product_id: Optional[int] = None):
         return self.repository.list_request_items(product_id)
+
+    def get_request_references(self, request_id: int):
+        return self.repository.get_request_references(request_id)

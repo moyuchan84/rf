@@ -166,3 +166,10 @@ class ProductRepository:
         if product_id:
             query = query.filter(models.RequestItem.product_id == product_id)
         return query.order_by(models.RequestItem.created_at.desc()).all()
+
+    def get_request_references(self, request_id: int) -> List[models.PhotoKey]:
+        maps = self.db.query(models.RequestTableMap).filter(
+            models.RequestTableMap.request_id == request_id,
+            models.RequestTableMap.type == "REFERENCE"
+        ).all()
+        return [m.photo_key for m in maps if m.photo_key]

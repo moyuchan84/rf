@@ -1,17 +1,17 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 
 class PhotoKeyBase(BaseModel):
-    rfg_category: str
-    photo_category: str
-    is_reference: bool
-    table_name: str
-    rev_no: int
-    workbook_data: Dict[str, Any]
+    rfg_category: Optional[str] = None
+    photo_category: Optional[str] = None
+    is_reference: Optional[bool] = False
+    table_name: Optional[str] = None
+    rev_no: Optional[int] = None
+    workbook_data: Optional[Dict[str, Any]] = None
     binary_content: Optional[str] = None
-    filename: str
-    updater: str
+    filename: Optional[str] = None
+    updater: Optional[str] = None
     log: Optional[str] = None
 
 class PhotoKeyCreate(PhotoKeyBase):
@@ -40,18 +40,16 @@ class PhotoKeyBatchCreate(BaseModel):
 
 class PhotoKey(PhotoKeyBase):
     id: int
-    product_id: int
+    product_id: Optional[int] = None
     process_plan_id: Optional[int] = None
     beol_option_id: Optional[int] = None
-    update_date: datetime
-
-    class Config:
-        from_attributes = True
+    update_date: Optional[datetime] = None
+    
+    model_config = ConfigDict(from_attributes=True)
 
 class ProductWithKeys(BaseModel):
     partid: str
     product_name: str
     photo_keys: List[PhotoKey]
-
-    class Config:
-        from_attributes = True
+    
+    model_config = ConfigDict(from_attributes=True)
