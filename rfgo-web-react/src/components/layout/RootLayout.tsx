@@ -42,16 +42,15 @@ const RootLayout: React.FC = () => {
   return (
     <div className="flex h-screen bg-slate-50 dark:bg-slate-950 overflow-hidden text-slate-900 dark:text-slate-200 transition-colors duration-300">
       {/* Sidebar */}
-      <Sidebar isCollapsed={isCollapsed} />
+      <Sidebar 
+        isCollapsed={isCollapsed} 
+        onToggle={() => setIsCollapsed(!isCollapsed)} 
+      />
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0 bg-slate-50 dark:bg-slate-950 relative transition-colors duration-300">
         {/* Header */}
-        <Header 
-          isCollapsed={isCollapsed} 
-          onToggle={() => setIsCollapsed(!isCollapsed)} 
-        />
-
+        <Header />
         {/* Content Area */}
         <div className="flex-1 overflow-y-auto relative scrollbar-hide">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(79,70,229,0.05),transparent)] dark:bg-[radial-gradient(circle_at_50%_0%,rgba(79,70,229,0.05),transparent)] pointer-events-none"></div>

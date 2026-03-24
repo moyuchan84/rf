@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Layers, LogOut, ChevronDown, ChevronRight } from 'lucide-react';
+import { Layers, LogOut, ChevronDown, ChevronRight, Menu } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
 import { navItems, type NavItem } from './navItems';
 import { useUserStore } from '@/features/auth/store/useUserStore';
 
 interface SidebarProps {
   isCollapsed: boolean;
+  onToggle: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
+const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
   const location = useLocation();
   const { user, role, logout } = useUserStore();
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
@@ -93,8 +94,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
       "bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-900 flex flex-col shrink-0 transition-all duration-300 ease-in-out relative",
       isCollapsed ? "w-16" : "w-60"
     )}>
-      {/* Sidebar Branding */}
-      <div className={cn("p-6", isCollapsed ? "px-4" : "p-6")}>
+      {/* Sidebar Branding & Toggle */}
+      <div className={cn("p-4 flex items-center", isCollapsed ? "flex-col gap-4 py-6" : "justify-between px-6 py-5")}>
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 bg-indigo-600 rounded-md flex items-center justify-center shadow-md shadow-indigo-500/20 shrink-0">
             <Layers className="text-white w-5 h-5" />
@@ -106,6 +107,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
             </div>
           )}
         </div>
+        
+        <button 
+          onClick={onToggle}
+          className={cn(
+            "w-8 h-8 flex items-center justify-center rounded-md transition-all hover:bg-slate-100 dark:hover:bg-slate-900 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400",
+            isCollapsed && "mt-2"
+          )}
+          title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+        >
+          <Menu className="w-4 h-4" />
+        </button>
       </div>
 
       {/* Navigation */}
