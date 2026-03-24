@@ -8,8 +8,12 @@ export class KeyDesignResolver {
   constructor(private readonly keyDesignService: KeyDesignService) {}
 
   @Query(() => [KeyDesign], { name: 'keyDesigns' })
-  findAll() {
-    return this.keyDesignService.findAll();
+  findAll(
+    @Args('search', { type: () => String, nullable: true }) search?: string,
+    @Args('keyType', { type: () => String, nullable: true }) keyType?: string,
+    @Args('processPlanId', { type: () => Int, nullable: true }) processPlanId?: number,
+  ) {
+    return this.keyDesignService.findAll(search, keyType, processPlanId);
   }
 
   @Query(() => KeyDesign, { name: 'keyDesign' })

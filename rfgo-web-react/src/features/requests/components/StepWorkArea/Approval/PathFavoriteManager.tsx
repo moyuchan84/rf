@@ -18,7 +18,7 @@ export const PathFavoriteManager: React.FC = () => {
     variables: { userId },
     skip: !userId,
     fetchPolicy: 'network-only' // Ensure we get fresh data
-  });
+  }) as { data: any, loading: boolean };
 
   useEffect(() => {
     if (data?.getMyApprovalPaths) {

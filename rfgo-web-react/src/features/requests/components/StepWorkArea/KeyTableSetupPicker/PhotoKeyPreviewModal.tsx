@@ -9,7 +9,6 @@ interface PhotoKeyPreviewModalProps {
 
 export const PhotoKeyPreviewModal: React.FC<PhotoKeyPreviewModalProps> = ({ table, onClose }) => {
   const wb = table.workbookData as any;
-  const meta = wb?.workbook_meta;
   const sheet = wb?.worksheets?.[0];
 
   return (

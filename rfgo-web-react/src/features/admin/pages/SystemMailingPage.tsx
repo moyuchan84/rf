@@ -4,10 +4,12 @@ import { useSystemMailing } from '../hooks/useSystemMailing';
 import { EmployeeSearch } from '@/features/employee/components/EmployeeSearch';
 import { Employee } from '@/features/employee/store/useEmployeeStore';
 
-export enum MailingCategory {
-  REQUEST_NOTIFICATION = 'REQUEST_NOTIFICATION',
-  SYSTEM_ERROR_NOTIFICATION = 'SYSTEM_ERROR_NOTIFICATION',
-}
+export const MailingCategory = {
+  REQUEST_NOTIFICATION: 'REQUEST_NOTIFICATION',
+  SYSTEM_ERROR_NOTIFICATION: 'SYSTEM_ERROR_NOTIFICATION',
+} as const;
+
+export type MailingCategory = (typeof MailingCategory)[keyof typeof MailingCategory];
 
 export const SystemMailingPage: React.FC = () => {
   const { mailers, isLoading, isUpdating, updateMailer } = useSystemMailing();

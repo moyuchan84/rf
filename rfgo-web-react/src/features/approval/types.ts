@@ -1,12 +1,15 @@
-export enum ApprovalRole {
-  DRAFT = '0',
-  APPROVE = '1',
-  CONSULT = '2',
-  POST_APPROVE = '3',
-  PARALLEL_CONSULT = '4',
-  PARALLEL_APPROVE = '7',
-  NOTIFY = '9'
-}
+export const ApprovalRole = {
+  DRAFT: '0',
+  APPROVE: '1',
+  CONSULT: '2',
+  POST_APPROVE: '3',
+  PARALLEL_CONSULT: '4',
+  PARALLEL_APPROVE: '7',
+  NOTIFY: '9'
+} as const;
+
+export type ApprovalRole = (typeof ApprovalRole)[keyof typeof ApprovalRole];
+
 
 export const APPROVAL_ROLE_LABELS: Record<ApprovalRole, string> = {
   [ApprovalRole.DRAFT]: '기안',

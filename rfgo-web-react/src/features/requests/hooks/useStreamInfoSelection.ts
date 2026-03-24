@@ -28,7 +28,7 @@ export const useStreamInfoSelection = (request: any, onSave: () => void) => {
       variables: { requestId: request.id },
       fetchPolicy: 'network-only'
     }
-  );
+  ) as { data: any, loading: boolean };
 
   // Sync saved data to store
   useEffect(() => {

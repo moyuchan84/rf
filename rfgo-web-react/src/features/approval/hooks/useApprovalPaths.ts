@@ -18,7 +18,7 @@ export const useApprovalPaths = () => {
   const { data, loading, refetch } = useQuery(GET_MY_APPROVAL_PATHS, {
     variables: { userId },
     skip: !userId
-  });
+  }) as any;
 
   useEffect(() => {
     if (data?.getMyApprovalPaths) {

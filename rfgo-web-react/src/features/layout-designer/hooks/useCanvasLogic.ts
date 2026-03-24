@@ -93,7 +93,7 @@ export const useCanvasLogic = () => {
 
   const handleMouseUp = useCallback(() => {
     if (tempRect && tempRect.w > 5 && tempRect.h > 5) {
-      addChip({ x: tempRect.x, y: tempRect.y, width: tempRect.w, height: tempRect.h, visible: true });
+      addChip({ x: tempRect.x, y: tempRect.y, width: tempRect.w, height: tempRect.h });
     }
     setIsDrawing(false);
     setNewRectStart(null);

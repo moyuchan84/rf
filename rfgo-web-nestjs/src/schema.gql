@@ -334,7 +334,7 @@ type Query {
   gdsPathInfosByProduct(productId: Int!): [GdsPathInfo!]!
   getMyApprovalPaths(userId: String!): [UserApprovalPathModel!]!
   keyDesign(id: Int!): KeyDesign!
-  keyDesigns: [KeyDesign!]!
+  keyDesigns(keyType: String, processPlanId: Int, search: String): [KeyDesign!]!
   layout(id: Int!): ReticleLayout
   layouts(productId: Int!): [ReticleLayout!]!
   me: UserType

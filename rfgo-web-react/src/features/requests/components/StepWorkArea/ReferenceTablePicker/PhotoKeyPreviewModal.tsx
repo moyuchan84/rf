@@ -9,7 +9,6 @@ interface PhotoKeyPreviewModalProps {
 
 export const PhotoKeyPreviewModal: React.FC<PhotoKeyPreviewModalProps> = ({ table, onClose }) => {
   const wb = table.workbookData as any;
-  const meta = wb?.workbook_meta;
   const sheet = wb?.worksheets?.[0];
 
   return (
@@ -25,7 +24,7 @@ export const PhotoKeyPreviewModal: React.FC<PhotoKeyPreviewModalProps> = ({ tabl
             <div>
               <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tighter">{table.tableName}</h3>
               <div className="flex items-center gap-2 mt-0.5">
-                <span className="text-[9px] font-black text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 px-1.5 py-0.5 rounded-sm">REV {table.rev_no || table.revNo}</span>
+                <span className="text-[9px] font-black text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 px-1.5 py-0.5 rounded-sm">REV {table.revNo}</span>
                 <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
                   <FileText className="w-3 h-3" /> {table.filename}
                 </span>

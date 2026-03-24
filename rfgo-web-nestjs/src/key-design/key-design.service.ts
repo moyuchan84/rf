@@ -6,8 +6,28 @@ import { CreateKeyDesignInput, UpdateKeyDesignInput } from './key-design.dto';
 export class KeyDesignService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll() {
+  async findAll(search?: string, keyType?: string, processPlanId?: number) {
+    const where: any = {};
+
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    if (keyType) {
+      where.keyType = { contains: keyType, mode: 'insensitive' };
+    }
+
+    if (processPlanId) {
+      where.processPlans = {
+        some: { id: processPlanId },
+      };
+    }
+
     return this.prisma.keyDesign.findMany({
+      where,
       include: { processPlans: true },
       orderBy: { updatedAt: 'desc' },
     });

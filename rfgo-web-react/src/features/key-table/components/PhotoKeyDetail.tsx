@@ -7,15 +7,10 @@ import {
   ArrowLeft, 
   History, 
   User, 
-  Calendar, 
-  Info,
-  ChevronRight,
-  ChevronDown,
-  LayoutGrid,
+  Calendar,
   Clock
 } from 'lucide-react';
 import { useKeyTableStore } from '../store/useKeyTableStore';
-import { PhotoKey } from '../../master-data/types';
 
 export const PhotoKeyDetail: React.FC = () => {
   const { selectedKey, setSelectedKey, photoKeys } = useKeyTableStore();

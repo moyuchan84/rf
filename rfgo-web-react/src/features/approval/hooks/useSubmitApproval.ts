@@ -31,7 +31,7 @@ export const useSubmitApproval = (requestId: number, onSave?: () => void) => {
           })),
           content
         }
-      });
+      }) as any;
 
       if (data.submitApproval.result === 'success') {
         toast.success('결재가 상신되었습니다.');

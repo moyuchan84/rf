@@ -1,8 +1,8 @@
 import { gql } from '@apollo/client';
 
 export const GET_KEY_DESIGNS = gql`
-  query GetKeyDesigns {
-    keyDesigns {
+  query GetKeyDesigns($search: String, $keyType: String, $processPlanId: Int) {
+    keyDesigns(search: $search, keyType: $keyType, processPlanId: $processPlanId) {
       id
       name
       keyType

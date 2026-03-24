@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, User, Users, Briefcase, Loader2, History, X } from 'lucide-react';
+import { Search, User, Users, Loader2, History, X } from 'lucide-react';
 import { useEmployeeSearch } from '../hooks/useEmployeeSearch';
 import { useEmployeeStore, Employee } from '../store/useEmployeeStore';
 

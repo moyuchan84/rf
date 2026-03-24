@@ -1,7 +1,6 @@
 // rfgo-web-react/src/pages/MailingPage.tsx
 import React from 'react';
 import { MailGroupManager } from '../features/mailing/components/MailGroupManager';
-import { Mail, ShieldCheck } from 'lucide-react';
 
 const MailingPage: React.FC = () => {
   return (

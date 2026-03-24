@@ -5,10 +5,17 @@ import { KeyDesign, CreateKeyDesignInput, UpdateKeyDesignInput } from '../types'
 import { useKeyDesignStore } from '../store/keyDesignStore';
 import toast from 'react-hot-toast';
 
-export const useKeyDesign = () => {
+export const useKeyDesign = (filters?: { search?: string; keyType?: string; processPlanId?: number | null }) => {
   const { setKeyDesigns } = useKeyDesignStore();
 
-  const { loading, error, data, refetch } = useQuery<{ keyDesigns: KeyDesign[] }>(GET_KEY_DESIGNS);
+  const { loading, error, data, refetch } = useQuery<{ keyDesigns: KeyDesign[] }>(GET_KEY_DESIGNS, {
+    variables: {
+      search: filters?.search || undefined,
+      keyType: filters?.keyType || undefined,
+      processPlanId: filters?.processPlanId || undefined,
+    },
+    notifyOnNetworkStatusChange: true,
+  });
 
   useEffect(() => {
     if (data?.keyDesigns) {

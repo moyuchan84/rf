@@ -6,8 +6,6 @@ import { useApprovalPathStore } from '@/features/approval/store/useApprovalPathS
 import { useSubmitApproval } from '@/features/approval/hooks/useSubmitApproval';
 import { ApprovalLineTable } from './ApprovalLineTable';
 import { PathFavoriteManager } from './PathFavoriteManager';
-import { EmployeeSearch } from '@/features/employee/components/EmployeeSearch';
-
 import { useUserStore } from '@/features/auth/store/useUserStore';
 
 interface ApprovalSubmissionFormProps {
@@ -35,10 +33,6 @@ export const ApprovalSubmissionForm: React.FC<ApprovalSubmissionFormProps> = ({ 
       addApprover(user, '0');
     }
   }, [request, user, currentPath.length, addApprover]);
-
-  const handleEmployeeSelect = (employee: any) => {
-    addApprover(employee, '1');
-  };
 
   return (
     <div className="grid grid-cols-12 gap-6 p-6 border border-slate-200/60 rounded-md bg-white dark:bg-slate-900/50 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-700">

@@ -13,7 +13,6 @@ export const UserManagementTable: React.FC = () => {
     setSearch,
     page,
     setPage,
-    pageSize,
     totalPages,
     totalCount
   } = useUserManagement();

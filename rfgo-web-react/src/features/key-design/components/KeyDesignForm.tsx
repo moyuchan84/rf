@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Save, Plus, Trash2, Info, Layout, Layers, Image as ImageIcon, ClipboardPaste } from 'lucide-react';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
@@ -196,16 +196,14 @@ const KeyDesignForm: React.FC = () => {
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Key Type</label>
-                <select
+                <input
+                  type="text"
+                  required
                   value={keyType}
                   onChange={(e) => setKeyType(e.target.value)}
                   className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all dark:text-white"
-                >
-                  <option value="Align">Align</option>
-                  <option value="Overlay">Overlay</option>
-                  <option value="Zero">Zero</option>
-                  <option value="TIS">TIS</option>
-                </select>
+                  placeholder="e.g. Align, Overlay, Zero..."
+                />
               </div>
             </div>
           </section>

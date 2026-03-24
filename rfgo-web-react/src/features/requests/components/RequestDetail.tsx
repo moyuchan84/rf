@@ -19,6 +19,7 @@ import { WorkflowStepper } from './WorkflowStepper';
 import { AssigneeManager } from './AssigneeManager';
 import { StepWorkArea } from './StepWorkArea/index';
 import { REQUEST_TYPE_LABELS, RequestType } from '../types';
+import { RequestKeyTableResult } from './RequestKeyTableResult';
 
 interface RequestDetailProps {
   request: RequestItem;
@@ -296,6 +297,13 @@ export const RequestDetail: React.FC<RequestDetailProps> = ({
           />
         )}
       </div>
+
+      {/* 6. Key Table Setup Results (Visible if step is DONE) */}
+      {steps.find(s => s.stepName === 'KeyTableSetup')?.status === 'DONE' && (
+        <div className="pt-8 border-t border-slate-100 dark:border-slate-800">
+          <RequestKeyTableResult requestId={request.id} />
+        </div>
+      )}
     </div>
   );
 };

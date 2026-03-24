@@ -1,10 +1,8 @@
-import { useQuery, useLazyQuery } from '@apollo/client/react';
-import { GET_STREAM_INFOS_BY_PRODUCT, GET_REQUEST_TABLES } from '../api/requestQueries';
+import { useQuery } from '@apollo/client/react';
+import { GET_STREAM_INFOS_BY_PRODUCT } from '../api/requestQueries';
 import { 
   GetStreamInfosByProductQuery, 
-  GetStreamInfosByProductQueryVariables,
-  GetRequestTablesQuery,
-  GetRequestTablesQueryVariables
+  GetStreamInfosByProductQueryVariables
 } from '@/shared/api/generated/graphql';
 import { useState, useMemo } from 'react';
 

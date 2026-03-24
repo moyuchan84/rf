@@ -3,7 +3,7 @@ import React from 'react';
 import { useMailSelectorStore, UserMailGroup } from '../store/useMailSelectorStore';
 import { useMailingGroups } from '../hooks/useMailingGroups';
 import { EmployeeSearch } from '../../employee/components/EmployeeSearch';
-import { User, Users, X, Info, Plus } from 'lucide-react';
+import { Users, X, Info } from 'lucide-react';
 
 export const MailSelector: React.FC = () => {
   const { groups, loading } = useMailingGroups();

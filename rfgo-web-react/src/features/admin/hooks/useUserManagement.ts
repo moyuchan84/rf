@@ -6,7 +6,7 @@ import {
 } from '../api/adminQueries';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
-import { AdminUser, AdminRole, PaginatedUsers } from '../types';
+import { AdminRole, PaginatedUsers } from '../types';
 
 export const useUserManagement = () => {
   const [search, setSearch] = useState('');
