@@ -13,6 +13,7 @@ import { PrismaModule } from './prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { MailModule } from './mail/mail.module';
 import { EmployeeModule } from './employee/employee.module';
+import { ApprovalModule } from './approval/approval.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { EmployeeModule } from './employee/employee.module';
     KeyDesignModule,
     MailModule,
     EmployeeModule,
+    ApprovalModule,
   ],
   controllers: [AppController],
   providers: [AppService],

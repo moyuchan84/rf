@@ -122,9 +122,37 @@ model RequestItem {
   gdsPathInfo GdsPathInfo[]
   tableMaps   RequestTableMap[]
   watcher     RequestWatcher?
+  approvalDoc ApprovalDocument?
 
   @@index([id], map: "ix_request_items_id")
   @@map("request_items")
+}
+
+model UserApprovalPath {
+  id          Int      @id @default(autoincrement())
+  userId      String   @map("user_id") // Employee.userId (EP ID)
+  pathName    String   @map("path_name") @db.VarChar
+  pathItems   Json     // ApprovalPathDto[] 형태의 배열 저장
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("update_time") @db.Timestamptz(6)
+
+  @@index([userId])
+  @@map("user_approval_paths")
+}
+
+model ApprovalDocument {
+  id          Int      @id @default(autoincrement())
+  requestId   Int      @unique @map("request_id")
+  apInfId     String   @unique @map("ap_inf_id") @db.VarChar
+  docNo       String?  @map("doc_no") @db.VarChar
+  status      String   @db.VarChar // DRAFT, SUBMITTED, APPROVED, REJECTED
+  payload     Json     // 스냅샷
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("update_time") @db.Timestamptz(6)
+
+  request     RequestItem @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@map("approval_documents")
 }
 
 model UserMailGroup {

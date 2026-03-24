@@ -2,6 +2,33 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type ApprovalPathItem {
+  aplnStatsCode: String!
+  email: String!
+  epId: String!
+  fullName: String!
+  role: String!
+  seq: String
+  userId: String!
+}
+
+input ApprovalPathItemInput {
+  aplnStatsCode: String! = "0"
+  email: String!
+  epId: String!
+  fullName: String!
+
+  """0: 기안, 1: 결재, 2: 합의"""
+  role: String!
+  userId: String!
+}
+
+type ApprovalResponse {
+  apInfId: String
+  message: String
+  result: String!
+}
+
 input AssignUserInput {
   category: String!
   requestId: Int!
@@ -201,6 +228,7 @@ type Mutation {
   createProduct(input: CreateProductInput!): Product!
   createRequestItem(input: CreateRequestItemInput!): RequestItem!
   createStreamInfo(input: CreateStreamInfoInput!): StreamInfo!
+  deleteApprovalPath(id: Int!): Boolean!
   deleteBeolOption(id: Int!): BeolOption!
   deleteLayout(id: Int!): ReticleLayout!
   deleteMailGroup(id: Int!, userId: String!): Boolean!
@@ -209,9 +237,12 @@ type Mutation {
   deleteRequestItem(id: Int!): RequestItem!
   removeAssignee(id: Int!): RequestAssignee!
   removeKeyDesign(id: Int!): KeyDesign!
+  saveApprovalPath(input: SaveApprovalPathInput!, userId: String!): UserApprovalPathModel!
   saveLayout(input: CreateLayoutInput!): ReticleLayout!
   saveRequestTables(input: SaveRequestTablesInput!): [RequestTableMap!]!
   sendTestMail(input: MailRequestDto!): Boolean!
+  submitApproval(content: String!, path: [ApprovalPathItemInput!]!, requestId: Int!, requesterId: String!, title: String!): ApprovalResponse!
+  updateApprovalPath(id: Int!, input: SaveApprovalPathInput!): UserApprovalPathModel!
   updateKeyDesign(id: Int!, input: UpdateKeyDesignInput!): KeyDesign!
   updateLayout(id: Int!, input: UpdateLayoutInput!): ReticleLayout!
   updateMailGroup(id: Int!, input: CreateUserMailGroupInput!, userId: String!): UserMailGroupDto!
@@ -301,6 +332,7 @@ type Query {
   allSystemDefaultMailers: [SystemDefaultMailerDto!]!
   gdsPathInfoByRequest(requestId: Int!): [GdsPathInfo!]!
   gdsPathInfosByProduct(productId: Int!): [GdsPathInfo!]!
+  getMyApprovalPaths(userId: String!): [UserApprovalPathModel!]!
   keyDesign(id: Int!): KeyDesign!
   keyDesigns: [KeyDesign!]!
   layout(id: Int!): ReticleLayout
@@ -398,6 +430,11 @@ type RoleType {
   name: String!
 }
 
+input SaveApprovalPathInput {
+  pathItems: [ApprovalPathItemInput!]!
+  pathName: String!
+}
+
 input SaveRequestTablesInput {
   beolOptionId: Int!
   photoKeyIds: [Int!]!
@@ -479,6 +516,13 @@ input UpdateStepInput {
   stepId: Int!
   workContent: String
   workerId: String
+}
+
+type UserApprovalPathModel {
+  id: Int!
+  pathItems: [ApprovalPathItem!]!
+  pathName: String!
+  userId: String!
 }
 
 type UserMailGroupDto {
