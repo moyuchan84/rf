@@ -49,52 +49,89 @@ namespace RFGo.PhotoKey.Manager.Presentation.Ribbon
             return true;
         }
 
-        public async void OnOpenTaskPane(Office.IRibbonControl control)
+        /// <summary>
+        /// 비동기 인증 후 UI 스레드에서 지정된 액션을 실행하도록 보장하는 헬퍼 메서드
+        /// </summary>
+        private async void RunWithAuthCheck(Action action)
         {
-            if (!await EnsureAuthenticatedAsync()) return;
+            // 1. 현재 UI 스레드의 컨텍스트를 확보 (리본 클릭 시점은 STA 임)
+            var uiContext = System.Threading.SynchronizationContext.Current;
 
-            var window = control.Context as Microsoft.Office.Interop.Excel.Window;
-            if (window != null)
+            // 2. 만약 컨텍스트가 null이라면 (VSTO Ribbon 특성), WinForms용 컨텍스트를 생성하여 설치
+            if (uiContext == null)
             {
-                var tp = TaskPaneManager.Instance.GetTaskPane(window, "WorkSheets Loader", "WorkSheetsLoader");
-                tp.Visible = !tp.Visible;
+                uiContext = new WindowsFormsSynchronizationContext();
+                System.Threading.SynchronizationContext.SetSynchronizationContext(uiContext);
             }
-        }
 
-        public async void OnActiveWorkbookUpload(Office.IRibbonControl control)
-        {
+            // 3. 인증 수행 (비동기 작업 포함)
             if (!await EnsureAuthenticatedAsync()) return;
 
-            var window = control.Context as Microsoft.Office.Interop.Excel.Window;
-            if (window != null)
+            // 4. UI 스레드로 복귀하여 작업 실행 (uiContext는 이제 확실히 존재함)
+            uiContext.Post(_ => 
             {
-                var tp = TaskPaneManager.Instance.GetTaskPane(window, "Active Workbook Upload", "ActiveWorkbookUpload");
-                tp.Visible = !tp.Visible;
-            }
+                try 
+                { 
+                    action(); 
+                }
+                catch (Exception ex) 
+                { 
+                    MessageBox.Show("UI Action Error: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error); 
+                }
+            }, null);
         }
 
-        public async void OnOpenInquiryTaskPane(Office.IRibbonControl control)
+        public void OnOpenTaskPane(Office.IRibbonControl control)
         {
-            if (!await EnsureAuthenticatedAsync()) return;
-
-            var form = new WebViewPopupForm(null, null, false, "Data Inquiry", "DataInquiry/index.html");
-            form.Show();
+            RunWithAuthCheck(() =>
+            {
+                var window = control.Context as Microsoft.Office.Interop.Excel.Window;
+                if (window != null)
+                {
+                    var tp = TaskPaneManager.Instance.GetTaskPane(window, "WorkSheets Loader", "WorkSheetsLoader");
+                    tp.Visible = !tp.Visible;
+                }
+            });
         }
 
-        public async void OnRequestSetupInquiry(Office.IRibbonControl control)
+        public void OnActiveWorkbookUpload(Office.IRibbonControl control)
         {
-            if (!await EnsureAuthenticatedAsync()) return;
-
-            var form = new WebViewPopupForm(null, null, false, "Request Setup Inquiry", "RequestSetupInquiry/index.html");
-            form.Show();
+            RunWithAuthCheck(() =>
+            {
+                var window = control.Context as Microsoft.Office.Interop.Excel.Window;
+                if (window != null)
+                {
+                    var tp = TaskPaneManager.Instance.GetTaskPane(window, "Active Workbook Upload", "ActiveWorkbookUpload");
+                    tp.Visible = !tp.Visible;
+                }
+            });
         }
 
-        public async void OnManageMasterData(Office.IRibbonControl control)
+        public void OnOpenInquiryTaskPane(Office.IRibbonControl control)
         {
-            if (!await EnsureAuthenticatedAsync()) return;
+            RunWithAuthCheck(() =>
+            {
+                var form = new WebViewPopupForm(null, null, false, "Data Inquiry", "DataInquiry/index.html");
+                form.Show();
+            });
+        }
 
-            var form = new WebViewPopupForm(null, null, false, "Manage Hierarchy Master Data", "MasterData/index.html");
-            form.Show();
+        public void OnRequestSetupInquiry(Office.IRibbonControl control)
+        {
+            RunWithAuthCheck(() =>
+            {
+                var form = new WebViewPopupForm(null, null, false, "Request Setup Inquiry", "RequestSetupInquiry/index.html");
+                form.Show();
+            });
+        }
+
+        public void OnManageMasterData(Office.IRibbonControl control)
+        {
+            RunWithAuthCheck(() =>
+            {
+                var form = new WebViewPopupForm(null, null, false, "Manage Hierarchy Master Data", "MasterData/index.html");
+                form.Show();
+            });
         }
 
         private static string GetResourceText(string resourceName)
