@@ -63,7 +63,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
     // For items without children OR collapsed sidebar, use Link
     return (
       <Link
-        key={item.path}
+        key={item.label}
         to={item.path}
         title={isCollapsed ? item.label : ''}
         className={cn(

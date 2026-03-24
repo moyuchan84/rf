@@ -9,7 +9,8 @@ import {
   Users,
   Mail,
   ShieldCheck,
-  Settings
+  Settings,
+  Contact
 } from 'lucide-react';
 
 export interface NavItem {
@@ -28,11 +29,19 @@ export const navItems: NavItem[] = [
   { icon: Table2, label: '키테이블', path: '/key-table' },
   { icon: Layers, label: '레이아웃', path: '/layout' },
   { icon: Search, label: 'R-BOT', path: '/rag' },
-  { icon: Mail, label: '메일관리', path: '/mailing' },  
   { 
-    icon: ShieldCheck, 
+    icon: Contact, 
+    label: '주소록관리', 
+    path: '#address-book',
+    children: [
+      { icon: Mail, label: '메일관리', path: '/mailing' },
+      { icon: ShieldCheck, label: '결재관리', path: '/approval' },
+    ]
+  },
+  { 
+    icon: Settings, 
     label: '관리자설정', 
-    path: '/admin', 
+    path: '#admin-settings', 
     roles: ['ADMIN'],
     children: [
       { icon: Users, label: '사용자관리', path: '/admin/users' },
