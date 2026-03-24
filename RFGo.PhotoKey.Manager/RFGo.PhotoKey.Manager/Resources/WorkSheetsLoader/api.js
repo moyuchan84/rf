@@ -1,9 +1,12 @@
-const BASE_URL = 'http://localhost:8080/api/v1';
+const getBaseUrl = async () => {
+    return await window.chrome.webview.hostObjects.bridge.GetBaseUrl();
+};
 
 const apiClient = {
     async uploadPhotoKey(payload) {
         try {
-            const response = await fetch(`${BASE_URL}/photo-keys/upload-batch`, {
+            const baseUrl = await getBaseUrl();
+            const response = await fetch(`${baseUrl}/photo-keys/upload-batch`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -21,28 +24,33 @@ const apiClient = {
     },
 
     async getProducts() {
-        const response = await fetch(`${BASE_URL}/products/`);
+        const baseUrl = await getBaseUrl();
+        const response = await fetch(`${baseUrl}/products/`);
         return await response.json();
     },
 
     async getHierarchy() {
-        const response = await fetch(`${BASE_URL}/products/hierarchy`);
+        const baseUrl = await getBaseUrl();
+        const response = await fetch(`${baseUrl}/products/hierarchy`);
         return await response.json();
     },
 
     async getRestoreData(keyId) {
-        const response = await fetch(`${BASE_URL}/photo-keys/${keyId}`);
+        const baseUrl = await getBaseUrl();
+        const response = await fetch(`${baseUrl}/photo-keys/${keyId}`);
         return await response.json();
     },
 
     async getNextRevision(partid, tableName) {
-        const response = await fetch(`${BASE_URL}/photo-keys/next-rev/${partid}/${encodeURIComponent(tableName)}`);
+        const baseUrl = await getBaseUrl();
+        const response = await fetch(`${baseUrl}/photo-keys/next-rev/${partid}/${encodeURIComponent(tableName)}`);
         if (!response.ok) return { next_rev: 1 };
         return await response.json();
     },
 
     async checkExistence(partid, tableName, revNo) {
-        const response = await fetch(`${BASE_URL}/photo-keys/exists/${partid}/${encodeURIComponent(tableName)}/${revNo}`);
+        const baseUrl = await getBaseUrl();
+        const response = await fetch(`${baseUrl}/photo-keys/exists/${partid}/${encodeURIComponent(tableName)}/${revNo}`);
         if (!response.ok) return { exists: false };
         return await response.json();
     }

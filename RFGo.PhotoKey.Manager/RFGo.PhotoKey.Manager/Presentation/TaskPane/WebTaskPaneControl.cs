@@ -77,6 +77,15 @@ namespace RFGo.PhotoKey.Manager.Presentation.TaskPane
             _modules[module.Name] = module;
         }
 
+        public string GetBaseUrl()
+        {
+#if DEBUG
+            return "http://localhost:8080/api/v1";
+#else
+            return "https://api.your-production-server.com/api/v1"; 
+#endif
+        }
+
         public object loader => _modules.ContainsKey("loader") ? _modules["loader"] : null;
         public object inquiry => _modules.ContainsKey("inquiry") ? _modules["inquiry"] : null;
         public object request => _modules.ContainsKey("request") ? _modules["request"] : null;
