@@ -165,7 +165,7 @@ export class RequestsService {
 
   private async sendRichWorkflowMail(requestId: number, type: MailType, payload: any) {
     try {
-      const request = await this.prisma.requestItem.findUnique({
+      const requestData = await this.prisma.requestItem.findUnique({
         where: { id: requestId },
         include: {
           product: {
@@ -174,22 +174,21 @@ export class RequestsService {
               metaInfo: true
             }
           },
-          assignees: {
-            include: { user: true }
-          },
+          assignees: true,
           steps: true
         }
       });
 
-      if (!request) return;
+      if (!requestData) return;
+      const request = requestData as any;
 
-      let selectedTables = [];
+      let selectedTables: any[] = [];
       let stepName = '';
       let workLog = '';
 
       // If it's a step completion or specific step update, we might want to include tables
       if (payload.stepId) {
-        const step = request.steps.find(s => s.id === payload.stepId);
+        const step = request.steps.find((s: any) => s.id === payload.stepId);
         if (step && (step.stepName === 'ReferenceTable' || step.stepName === 'KeyTableSetup')) {
           stepName = step.stepName;
           workLog = step.workContent || '';
