@@ -134,13 +134,12 @@ export class RequestsService {
         await this.watcherService.initWatchers(request.id, initialWatchers, tx);
       }
 
-      // 비동기 메일 발송 (New Workflow)
-      this.mailWorkflow.sendWorkflowMail(request.id, MailType.REQUEST_CREATED, {
+      // Rich Workflow Mail
+      this.sendRichWorkflowMail(request.id, MailType.WORKFLOW_UPDATE, {
         subject: `신규 의뢰 등록: ${request.title}`,
-        title: request.title,
+        content: '새로운 의뢰가 시스템에 등록되었습니다.',
         senderName: request.requesterId,
         senderEmail: 'rfgo-system@samsung.com',
-        description: request.description || '',
       });
 
       return request;
@@ -153,64 +152,66 @@ export class RequestsService {
       data: input,
     });
     
-    // 비동기 메일 발송
-    this.sendNotificationMail(request.id, '의뢰 수정');
+    // Rich Workflow Mail
+    this.sendRichWorkflowMail(request.id, MailType.WORKFLOW_UPDATE, {
+      subject: `의뢰 정보 수정: ${request.title}`,
+      content: '의뢰의 기본 정보(제목, 설명 등)가 수정되었습니다.',
+      senderName: '시스템',
+      senderEmail: 'rfgo-system@samsung.com',
+    });
     
     return request;
   }
 
-  private async sendNotificationMail(requestId: number, actionLabel: string) {
+  private async sendRichWorkflowMail(requestId: number, type: MailType, payload: any) {
     try {
-      // 상세 데이터 조회 (Email 템플릿용)
       const request = await this.prisma.requestItem.findUnique({
         where: { id: requestId },
         include: {
           product: {
             include: {
-              beolOption: {
-                include: { processPlan: true }
-              },
+              beolOption: { include: { processPlan: true } },
               metaInfo: true
             }
-          }
+          },
+          assignees: {
+            include: { user: true }
+          },
+          steps: true
         }
       });
 
       if (!request) return;
 
-      // 프론트엔드 주소 설정 (예: http://localhost:5173)
-      const systemUrl = this.config.get<string>('SYSTEM_URL') || 'http://localhost:5173';
-      
-      const htmlContent = this.mailTemplate.renderRequestNotification({
-        actionLabel,
-        request,
-        product: request.product,
-        systemUrl // 템플릿 내에서 링크 생성에 사용됨
-      });
+      let selectedTables = [];
+      let stepName = '';
+      let workLog = '';
 
-      // Get recipients (watchers + system defaults)
-      const recipients = await this.watcherService.getMergedRecipients(requestId);
-
-      if (recipients.length === 0) {
-        console.warn(`[RequestsService] No recipients found for request notification: ${requestId}`);
-        return;
+      // If it's a step completion or specific step update, we might want to include tables
+      if (payload.stepId) {
+        const step = request.steps.find(s => s.id === payload.stepId);
+        if (step && (step.stepName === 'ReferenceTable' || step.stepName === 'KeyTableSetup')) {
+          stepName = step.stepName;
+          workLog = step.workContent || '';
+          const tables = await this.prisma.requestTableMap.findMany({
+            where: { requestId, type: step.stepName === 'ReferenceTable' ? 'REFERENCE' : 'SETUP' },
+            include: { photoKey: true }
+          });
+          selectedTables = tables.map(t => t.photoKey);
+        }
       }
 
-      const mailRequest = {
-        subject: `[RFGo] ${actionLabel} 알림: ${request.title}`,
-        docSecuType: DocSecuType.OFFICIAL,
-        contentType: ContentType.HTML,
-        contents: htmlContent,
-        sender: { emailAddress: 'rfgo-system@samsung.com' },
-        recipients: recipients.map(r => ({
-          emailAddress: r.emailAddress || '',
-          recipientType: 'TO' as const,
-        })).filter(r => r.emailAddress !== ''),
-      };
-
-      await this.mailer.sendMail(mailRequest);
+      await this.mailWorkflow.sendWorkflowMail(requestId, type, {
+        ...payload,
+        request,
+        product: request.product,
+        assignees: request.assignees,
+        selectedTables,
+        stepName,
+        workLog,
+      });
     } catch (error) {
-      console.error('[RequestsService] Failed to send notification mail:', error);
+      console.error('[RequestsService] Failed to send rich workflow mail:', error);
     }
   }
 
@@ -348,6 +349,14 @@ export class RequestsService {
     // Add to watchers
     await this.watcherService.addWatcher(input.requestId, user, 'ASSIGNEE');
 
+    // Rich Workflow Mail for Assignment
+    this.sendRichWorkflowMail(input.requestId, MailType.ASSIGNEE_CHANGED, {
+      subject: '의뢰 담당자 지정 알림',
+      content: '의뢰에 새로운 담당자가 지정되었습니다.',
+      senderName: '시스템',
+      senderEmail: 'rfgo-system@samsung.com',
+    });
+
     return assignee;
   }
 
@@ -366,10 +375,11 @@ export class RequestsService {
     });
 
     if (data.status === 'DONE') {
-      this.mailWorkflow.sendWorkflowMail(step.requestId, MailType.DEFAULT, {
+      this.sendRichWorkflowMail(step.requestId, MailType.WORKFLOW_UPDATE, {
+        stepId: step.id,
         subject: `단계 완료 알림: ${step.stepName}`,
         title: `${step.stepName} 단계 완료`,
-        senderName: '시스템',
+        senderName: data.workerId || '시스템',
         senderEmail: 'rfgo-system@samsung.com',
         content: `${step.stepName} 단계가 완료되었습니다.`,
       });

@@ -5,15 +5,15 @@ import {
   MailContext, 
   MailTemplateStrategy, 
   DefaultMailStrategy, 
-  RequestCreatedStrategy 
+  RequestWorkflowStrategy,
+  AssigneeChangedStrategy 
 } from '../infrastructure/strategies/mail-template.strategy';
 import { DocSecuType, ContentType, MailRequestDto } from '../interface/dto/mail.dto';
 import { ConfigService } from '@nestjs/config';
 
 export enum MailType {
   DEFAULT = 'DEFAULT',
-  REQUEST_CREATED = 'REQUEST_CREATED',
-  STEP_COMPLETED = 'STEP_COMPLETED',
+  WORKFLOW_UPDATE = 'WORKFLOW_UPDATE',
   ASSIGNEE_CHANGED = 'ASSIGNEE_CHANGED',
 }
 
@@ -28,7 +28,8 @@ export class MailWorkflowService {
   ) {
     // Register Strategies
     this.strategies.set(MailType.DEFAULT, new DefaultMailStrategy());
-    this.strategies.set(MailType.REQUEST_CREATED, new RequestCreatedStrategy());
+    this.strategies.set(MailType.WORKFLOW_UPDATE, new RequestWorkflowStrategy());
+    this.strategies.set(MailType.ASSIGNEE_CHANGED, new AssigneeChangedStrategy());
   }
 
   getStrategy(type: MailType): MailTemplateStrategy {
@@ -52,7 +53,8 @@ export class MailWorkflowService {
       title: payload.title || '알림',
       senderName: payload.senderName || '시스템',
       content: payload.content || '',
-      link: payload.link || `${this.config.get('FRONTEND_URL')}/request/${requestId}`,
+      link: payload.link || `${this.config.get('FRONTEND_URL') || 'http://localhost:5173'}/requests?id=${requestId}`,
+      backendUrl: this.config.get('BACKEND_URL') || 'http://localhost:9999',
       ...payload,
     };
 
