@@ -13,8 +13,8 @@ export class AuthService {
     private ssoAdapter: SsoAdapter,
   ) {}
 
-  async authenticate(code: string) {
-    const profile = await this.ssoAdapter.validate(code);
+  async authenticate(idToken: string) {
+    const profile = await this.ssoAdapter.validate(idToken);
     if (!profile) {
       throw new UnauthorizedException('SSO authentication failed');
     }
