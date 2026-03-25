@@ -11,13 +11,14 @@ export class DevMailerProvider extends MailerProvider {
   constructor(private configService: ConfigService) {
     super();
     this.transporter = nodemailer.createTransport({
-      host: this.configService.get<string>('MAIL_HOST') || 'smtp.gmail.com',
-      port: this.configService.get<number>('MAIL_PORT') || 587,
-      secure: false,
+      host: this.configService.get<string>('mail.host'),
+      port: this.configService.get<number>('mail.port'),
+      secure: false, 
       auth: {
-        user: this.configService.get<string>('MAIL_USER'),
-        pass: this.configService.get<string>('MAIL_PASS'),
+        user: this.configService.get<string>('mail.user'),
+        pass: this.configService.get<string>('mail.pass'),
       },
+      connectionTimeout: 5000,
     });
   }
 
@@ -32,10 +33,9 @@ export class DevMailerProvider extends MailerProvider {
       ...targetRecipients
     ].join(', ');
 
-    console.log(`[DevMailer] Sending real email to: ${finalRecipients}`);
-
+    const mailUser = this.configService.get<string>('mail.user');
     const mailOptions = {
-      from: `"RFGo Dev System" <${this.configService.get<string>('MAIL_USER')}>`,
+      from: `"RFGo Dev System" <${mailUser}>`,
       to: finalRecipients,
       subject: `[DEV] ${mailData.subject}`,
       html: mailData.contentType === 'HTML' ? mailData.contents : undefined,
@@ -43,18 +43,34 @@ export class DevMailerProvider extends MailerProvider {
     };
 
     try {
-      if (!this.configService.get('MAIL_USER') || !this.configService.get('MAIL_PASS')) {
-        console.warn('--- [DEV MAIL LOG (NO AUTH)] ---');
-        console.log(`To: ${finalRecipients}`);
-        console.log(`Subject: ${mailData.subject}`);
-        console.log('--- MAIL_USER and MAIL_PASS not found in .env. Skipping actual send. ---');
+      // 1. 로그 전용 모드이거나 인증 정보가 없으면 바로 로그만 남기고 종료
+      const isLogOnly = this.configService.get<boolean>('mail.logOnly');
+      if (isLogOnly || !mailUser || !this.configService.get('mail.pass')) {
+        this.logMailContent(mailData, finalRecipients, isLogOnly ? 'LOG_ONLY_MODE' : 'CREDENTIALS_MISSING');
         return;
       }
 
+      console.log(`[DevMailer] Attempting to send real email to: ${finalRecipients}`);
+
+      // 2. 실제 발송 시도
       const info = await this.transporter.sendMail(mailOptions);
       console.log(`[DevMailer] Message sent: %s`, info.messageId);
     } catch (error) {
-      console.error('[DevMailer] Error occurred while sending email:', error.message);
+      // 3. 에러 발생 시 (네트워크 차단 등) 로그로 대체하여 에러 로그 오염 방지
+      if (error.code === 'ENOTFOUND' || error.code === 'ETIMEDOUT') {
+        this.logMailContent(mailData, finalRecipients, `NETWORK_RESTRICTED (${error.code})`);
+      } else {
+        console.error(`[DevMailer] Unexpected Mail Error: ${error.message}`);
+        this.logMailContent(mailData, finalRecipients, 'UNEXPECTED_SEND_FAILURE');
+      }
     }
+  }
+
+  private logMailContent(mailData: MailRequestDto, recipients: string, reason: string) {
+    console.warn(`--- [DEV MAIL LOG (${reason})] ---`);
+    console.log(`To: ${recipients}`);
+    console.log(`Subject: [DEV] ${mailData.subject}`);
+    console.log(`Content (trimmed): ${mailData.contents?.substring(0, 100)}...`);
+    console.warn('----------------------------------------------');
   }
 }

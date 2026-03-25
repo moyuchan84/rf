@@ -16,6 +16,13 @@ export interface Config {
     authUrl: string;
     tokenUrl: string;
   };
+  mail: {
+    host: string;
+    port: number;
+    user: string;
+    pass: string;
+    logOnly: boolean;
+  };
 }
 
 export default (): Config => {
@@ -32,6 +39,13 @@ export default (): Config => {
       mailApiUrl: `${knoxBaseUrl}/mail`,
       employeeApiUrl: `${knoxBaseUrl}/employee`,
       approvalApiUrl: `${knoxBaseUrl}/approval`,
+    },
+    mail: {
+      host: process.env.MAIL_HOST || 'smtp.gmail.com',
+      port: parseInt(process.env.MAIL_PORT || '587', 10),
+      user: process.env.MAIL_USER || '',
+      pass: process.env.MAIL_PASS || '',
+      logOnly: process.env.MAIL_LOG_ONLY === 'true',
     },
   };
 
@@ -67,5 +81,6 @@ export default (): Config => {
     ...envConfig,
     knox: { ...commonConfig.knox }, 
     sso: { ...envConfig.sso },
+    mail: { ...commonConfig.mail },
   };
 };
