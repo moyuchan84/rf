@@ -1,0 +1,24 @@
+# Mail Configuration                                                                                        │
+MAIL_HOST=smtp.gmail.com                                                                                    │
+MAIL_PORT=587                                                                                               │
+MAIL_USER=mojjijji@gmail.com                                                                                │
+MAIL_PASS=lpur uhsi xcnq olra      
+
+# Application Settings
+PORT=9999
+NODE_ENV=development
+FRONTEND_URL=http://localhost:5173
+
+# Knox API Settings
+KNOX_API_BASE_URL=https://api.knox.samsung.com
+
+# SSO Settings (Overrides for development)
+SSO_CLIENT_ID=dev-rfgo-id
+SSO_CLIENT_SECRET=dev-secret
+SSO_REDIRECT_URI=http://localhost:9999/auth/sso/callback
+SSO_CERT_PATH=certs/public.crt
+SSO_AUTH_URL=https://dev-sso.samsung.com/auth
+SSO_TOKEN_URL=https://dev-sso.samsung.com/token
+
+# Database Settings
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/rfgo_db?schema=public"
