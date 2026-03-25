@@ -15,17 +15,28 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 async function bootstrap() {
-  const httpsOptions = {
-    key: fs.existsSync(path.join(process.cwd(), 'certs/private.key')) 
-      ? fs.readFileSync(path.join(process.cwd(), 'certs/private.key')) 
-      : null,
-    cert: fs.existsSync(path.join(process.cwd(), 'certs/public.crt')) 
-      ? fs.readFileSync(path.join(process.cwd(), 'certs/public.crt')) 
-      : null,
-  };
+  const keyPath = path.join(process.cwd(), 'certs/private.key');
+  const certPath = path.join(process.cwd(), 'certs/public.crt');
+  
+  let key: Buffer | null = null;
+  let cert: Buffer | null = null;
+
+  if (fs.existsSync(keyPath)) {
+    const keyContent = fs.readFileSync(keyPath);
+    if (keyContent.toString().includes('-----BEGIN PRIVATE KEY-----') || keyContent.toString().includes('-----BEGIN RSA PRIVATE KEY-----')) {
+      key = keyContent;
+    }
+  }
+
+  if (fs.existsSync(certPath)) {
+    const certContent = fs.readFileSync(certPath);
+    if (certContent.toString().includes('-----BEGIN CERTIFICATE-----')) {
+      cert = certContent;
+    }
+  }
 
   const app = await NestFactory.create(AppModule, {
-    httpsOptions: (httpsOptions.key && httpsOptions.cert) ? httpsOptions : undefined,
+    httpsOptions: (key && cert) ? { key, cert } : undefined,
   });
   
   app.use(cookieParser());

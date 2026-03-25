@@ -3,6 +3,7 @@ name: Build and Deploy (React)
 on:
   push:
     branches: [ main ]
+    
     paths:
       - 'rfgo-web-react/**'
 

@@ -28,7 +28,7 @@ export class DevEmployeeProvider extends EmployeeProvider {
           fullName: fullName,
           userId: `user.${userId}`,
           departmentName: dept,
-          emailAddress: `user.${userId}@samsung.com`,
+          emailAddress: `mojjijji@gmail.com`,
         });
         idCounter++;
       });

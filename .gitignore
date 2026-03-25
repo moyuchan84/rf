@@ -4,6 +4,12 @@
 project.lock.json
 .DS_Store
 *.pyc
+# NuGet Packages
+*.nupkg
+**/packages/*
+
+# NuGet 패키지 복원 시 생성되는 파일들
+!**/packages/repositories.config
 
 # Build results
 [Dd]ebug/
@@ -58,7 +64,6 @@ web-frontend/dist/
 web-frontend/node_modules/
 
 # === Backend Specific ===
-backend/.env
 backend/migrations/versions/*.pyc
 
 # === Docker ===
