@@ -1,27 +1,32 @@
 # Multi-stage build for FastAPI using standard Python
 FROM python:3.12-slim-bookworm AS builder
 
+# [Offline Build Support] Optional: Pass internal PIP index
+ARG PIP_INDEX_URL
+ARG PIP_TRUSTED_HOST
+
 WORKDIR /app
 
-# Install build dependencies if needed
+# Install build dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Create virtualenv to keep dependencies isolated
+# Create virtualenv
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Copy dependency files
-# Note: Since the project uses uv (pyproject.toml/uv.lock), 
-# we can use pip to install from pyproject.toml if compatible, 
-# or copy a generated requirements.txt
 COPY pyproject.toml ./
-# If uv.lock is present but we want standard pip:
-# We'll install the project dependencies. 
-# For safety in standard python images, we'll use pip install.
+
+# Upgrade pip and install with mirror support if provided
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir . || pip install --no-cache-dir fastapi uvicorn sqlalchemy psycopg2-binary pydantic-settings python-dotenv
+    if [ -n "$PIP_INDEX_URL" ]; then \
+        pip install --no-cache-dir --index-url $PIP_INDEX_URL --trusted-host $PIP_TRUSTED_HOST . || \
+        pip install --no-cache-dir --index-url $PIP_INDEX_URL --trusted-host $PIP_TRUSTED_HOST fastapi uvicorn sqlalchemy psycopg2-binary pydantic-settings python-dotenv; \
+    else \
+        pip install --no-cache-dir . || \
+        pip install --no-cache-dir fastapi uvicorn sqlalchemy psycopg2-binary pydantic-settings python-dotenv; \
+    fi
 
 # Final Stage
 FROM python:3.12-slim-bookworm

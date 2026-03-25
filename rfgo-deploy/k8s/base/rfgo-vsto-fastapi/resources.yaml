@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rfgo-vsto-fastapi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rfgo-vsto-fastapi
+  template:
+    metadata:
+      labels:
+        app: rfgo-vsto-fastapi
+    spec:
+      containers:
+      - name: rfgo-vsto-fastapi
+        image: harbor.internal/rfgo/rfgo-vsto-fastapi:latest
+        ports:
+        - containerPort: 8000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rfgo-vsto-fastapi
+spec:
+  selector:
+    app: rfgo-vsto-fastapi
+  ports:
+  - protocol: TCP
+    port: 8000
+    targetPort: 8000
+  type: ClusterIP

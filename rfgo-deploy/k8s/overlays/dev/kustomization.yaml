@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: rfgo-dev
+resources:
+  - ../../base/rfgo-web-react
+  - ../../base/rfgo-web-nestjs
+  - ../../base/rfgo-vsto-fastapi
+
+# Image tags will be updated by GitHub Actions
+images:
+  - name: harbor.internal/rfgo/rfgo-web-react
+    newTag: latest
+  - name: harbor.internal/rfgo/rfgo-web-nestjs
+    newTag: latest
+  - name: harbor.internal/rfgo/rfgo-vsto-fastapi
+    newTag: latest

@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rfgo-web-react
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rfgo-web-react
+  template:
+    metadata:
+      labels:
+        app: rfgo-web-react
+    spec:
+      containers:
+      - name: rfgo-web-react
+        image: harbor.internal/rfgo/rfgo-web-react:latest
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rfgo-web-react
+spec:
+  selector:
+    app: rfgo-web-react
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+  type: ClusterIP
