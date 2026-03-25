@@ -40,8 +40,14 @@ ENV PYTHONUNBUFFERED=1
 
 # Copy the application code
 COPY . .
+# [HTTPS Support] Copy internal certificates
+COPY certs ./certs
 
 EXPOSE 8000
 
-# Start with uvicorn
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Start with uvicorn - using shell to allow optional SSL flags
+CMD ["sh", "-c", "if [ -f certs/private.key ] && [ -f certs/public.crt ]; then \
+    uvicorn app.main:app --host 0.0.0.0 --port 8000 --ssl-keyfile certs/private.key --ssl-certfile certs/public.crt; \
+    else \
+    uvicorn app.main:app --host 0.0.0.0 --port 8000; \
+    fi"]

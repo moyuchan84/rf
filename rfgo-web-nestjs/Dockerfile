@@ -39,6 +39,7 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
+COPY certs ./certs
 
 # Runtime environment for WASM and local engine
 ENV PRISMA_CLIENT_ENGINE_TYPE=wasm

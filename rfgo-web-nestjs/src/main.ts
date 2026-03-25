@@ -11,9 +11,22 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { json, urlencoded } from 'express';
 import cookieParser from 'cookie-parser';
+import * as fs from 'fs';
+import * as path from 'path';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const httpsOptions = {
+    key: fs.existsSync(path.join(process.cwd(), 'certs/private.key')) 
+      ? fs.readFileSync(path.join(process.cwd(), 'certs/private.key')) 
+      : null,
+    cert: fs.existsSync(path.join(process.cwd(), 'certs/public.crt')) 
+      ? fs.readFileSync(path.join(process.cwd(), 'certs/public.crt')) 
+      : null,
+  };
+
+  const app = await NestFactory.create(AppModule, {
+    httpsOptions: (httpsOptions.key && httpsOptions.cert) ? httpsOptions : undefined,
+  });
   
   app.use(cookieParser());
   

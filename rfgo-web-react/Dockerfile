@@ -24,6 +24,10 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 # Copy SPA config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-EXPOSE 80
+# [HTTPS Support] Copy internal certificates
+COPY certs/private.key /etc/nginx/certs/private.key
+COPY certs/public.crt /etc/nginx/certs/public.crt
+
+EXPOSE 80 443
 
 CMD ["nginx", "-g", "daemon off;"]
