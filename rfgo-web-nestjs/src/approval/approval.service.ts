@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
-import { ApprovalProvider, ApprovalRequestDto } from './approval.provider';
+import { ApprovalProvider, ApprovalRequestDto } from './domain/approval-provider.interface';
 import { ApprovalPathItem, SaveApprovalPathInput } from './approval.dto';
 
 @Injectable()

@@ -1,17 +1,28 @@
 import { Module } from '@nestjs/common';
 import { ApprovalService } from './approval.service';
 import { ApprovalResolver } from './approval.resolver';
-import { ApprovalProvider, DevApprovalProvider } from './approval.provider';
+import { ApprovalProvider } from './domain/approval-provider.interface';
+import { DevApprovalProvider } from './infrastructure/adapters/dev-approval.provider';
+import { KnoxApprovalProvider } from './infrastructure/adapters/knox-approval.provider';
 import { PrismaModule } from '../prisma.module';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { HttpModule, HttpService } from '@nestjs/axios';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, ConfigModule, HttpModule],
   providers: [
     ApprovalService,
     ApprovalResolver,
     {
       provide: ApprovalProvider,
-      useClass: DevApprovalProvider, // 사내망 연결 전까지는 DevProvider 사용
+      useFactory: (configService: ConfigService, httpService: HttpService) => {
+        const nodeEnv = configService.get<string>('nodeEnv');
+        if (nodeEnv === 'production') {
+          return new KnoxApprovalProvider(httpService, configService);
+        }
+        return new DevApprovalProvider();
+      },
+      inject: [ConfigService, HttpService],
     },
   ],
   exports: [ApprovalService],
