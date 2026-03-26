@@ -81,11 +81,7 @@ namespace RFGo.PhotoKey.Manager.Presentation.TaskPane
 
         public string GetBaseUrl()
         {
-#if DEBUG
-            return "http://localhost:8080/api/v1";
-#else
-            return "https://api.your-production-server.com/api/v1"; 
-#endif
+            return AuthService.Instance.GetBaseUrl();
         }
 
         public string GetUserInfo() 

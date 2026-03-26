@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Configuration;
 using Newtonsoft.Json;
 
 namespace RFGo.PhotoKey.Manager.Infrastructure.Auth
@@ -52,11 +53,14 @@ namespace RFGo.PhotoKey.Manager.Infrastructure.Auth
         public static AuthService Instance => _instance ?? (_instance = new AuthService());
 
         private readonly ISsoAdapter _ssoAdapter;
+        private readonly string _baseUrl;
+
         public AuthTokenResponse CurrentUser { get; private set; }
         public bool IsAuthenticated => CurrentUser != null;
 
         private AuthService() 
         {
+            _baseUrl = ConfigurationManager.AppSettings["BaseUrl"] ?? "http://localhost:8080/api/v1";
 #if DEBUG
             _ssoAdapter = new DevSsoAdapter();
 #else
@@ -75,12 +79,6 @@ namespace RFGo.PhotoKey.Manager.Infrastructure.Auth
                 // 2. FastAPI 백엔드에 프로필 전달하여 인증 및 JWT 발급
                 using (var client = new HttpClient())
                 {
-                    string baseUrl = "";
-#if DEBUG
-                    baseUrl = "http://localhost:8080/api/v1";
-#else
-                    baseUrl = "https://api.your-production-server.com/api/v1"; 
-#endif
                     var authRequest = new 
                     { 
                         ssoToken = ssoToken,
@@ -93,7 +91,7 @@ namespace RFGo.PhotoKey.Manager.Infrastructure.Auth
                         "application/json"
                     );
                     
-                    var response = await client.PostAsync($"{baseUrl}/auth/authenticate", content);
+                    var response = await client.PostAsync($"{_baseUrl}/auth/authenticate", content);
                     if (response.IsSuccessStatusCode)
                     {
                         var json = await response.Content.ReadAsStringAsync();
@@ -113,6 +111,8 @@ namespace RFGo.PhotoKey.Manager.Infrastructure.Auth
             }
             return false;
         }
+
+        public string GetBaseUrl() => _baseUrl;
 
         public bool HasRole(string role) => CurrentUser?.Roles?.Contains(role) ?? false;
         
