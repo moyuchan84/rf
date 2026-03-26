@@ -21,4 +21,4 @@ SSO_AUTH_URL=https://dev-sso.samsung.com/auth
 SSO_TOKEN_URL=https://dev-sso.samsung.com/token
 
 # Database Settings
-DATABASE_URL="postgresql://postgres:postgres@localhost:5432/rfgo_db?schema=public"
+DATABASE_URL="postgresql://admin:password123@localhost:5433/photokey_db"

@@ -83,9 +83,9 @@ namespace RFGo.PhotoKey.Manager.Presentation.Ribbon
 
         public void OnOpenTaskPane(Office.IRibbonControl control)
         {
+            var window = control.Context as Microsoft.Office.Interop.Excel.Window;
             RunWithAuthCheck(() =>
             {
-                var window = control.Context as Microsoft.Office.Interop.Excel.Window;
                 if (window != null)
                 {
                     var tp = TaskPaneManager.Instance.GetTaskPane(window, "WorkSheets Loader", "WorkSheetsLoader");
@@ -96,9 +96,9 @@ namespace RFGo.PhotoKey.Manager.Presentation.Ribbon
 
         public void OnActiveWorkbookUpload(Office.IRibbonControl control)
         {
+            var window = control.Context as Microsoft.Office.Interop.Excel.Window;
             RunWithAuthCheck(() =>
             {
-                var window = control.Context as Microsoft.Office.Interop.Excel.Window;
                 if (window != null)
                 {
                     var tp = TaskPaneManager.Instance.GetTaskPane(window, "Active Workbook Upload", "ActiveWorkbookUpload");
