@@ -81,9 +81,12 @@ export const MailGroupManager: React.FC = () => {
 
       {/* New Group Form */}
       {isAdding && (
-        <div className="bg-white dark:bg-slate-900/50 border border-slate-200/60 dark:border-slate-800 rounded-md p-6 animate-in slide-in-from-top-2 duration-300 shadow-sm relative overflow-hidden group/form">
-          <div className="absolute top-0 right-0 p-6 opacity-[0.02] dark:opacity-[0.04] group-hover/form:scale-110 transition-transform duration-700 pointer-events-none">
-            <Plus className="w-32 h-32" />
+        <div className="bg-white dark:bg-slate-900/50 border border-slate-200/60 dark:border-slate-800 rounded-md p-6 animate-in slide-in-from-top-2 duration-300 shadow-sm relative group/form">
+          {/* Background decoration with its own overflow clipping */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none rounded-md">
+            <div className="absolute top-0 right-0 p-6 opacity-[0.02] dark:opacity-[0.04] group-hover/form:scale-110 transition-transform duration-700">
+              <Plus className="w-32 h-32" />
+            </div>
           </div>
 
           <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4 relative z-10">
