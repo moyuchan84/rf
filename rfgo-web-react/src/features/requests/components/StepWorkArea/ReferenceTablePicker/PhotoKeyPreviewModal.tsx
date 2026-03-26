@@ -8,12 +8,22 @@ interface PhotoKeyPreviewModalProps {
 }
 
 export const PhotoKeyPreviewModal: React.FC<PhotoKeyPreviewModalProps> = ({ table, onClose }) => {
-  const wb = table.workbookData as any;
-  const sheet = wb?.worksheets?.[0];
+  // Safe JSON Parsing: Ensure wb is an object even if workbookData is a string
+  const wb = React.useMemo(() => {
+    if (!table.workbookData) return null;
+    return typeof table.workbookData === 'string' 
+      ? JSON.parse(table.workbookData) 
+      : table.workbookData;
+  }, [table.workbookData]);
+
+  // Use structure from PhotoKeyDetail.tsx: Worksheets, TableData, Columns
+  const sheet = wb?.Worksheets?.[0];
+  const columns = sheet?.Columns || [];
+  const tableData = sheet?.TableData || [];
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-300">
-      <div className="bg-white dark:bg-slate-950 w-full max-w-4xl max-h-full rounded-md shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col relative">
+      <div className="bg-white dark:bg-slate-950 w-full max-w-5xl max-h-full rounded-md shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col relative">
         
         {/* Header */}
         <header className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
@@ -65,34 +75,49 @@ export const PhotoKeyPreviewModal: React.FC<PhotoKeyPreviewModalProps> = ({ tabl
             <div className="flex items-center justify-between">
               <h4 className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-widest flex items-center gap-2">
                 <span className="w-1 h-3 bg-indigo-500 rounded-full"></span>
-                Table Data Preview ({sheet?.sheet_name || 'Main'})
+                Table Data Preview ({sheet?.SheetName || 'Main'})
               </h4>
-              <span className="text-[9px] font-bold text-slate-400 italic">Showing first {sheet?.rows?.length || 0} rows</span>
+              <span className="text-[9px] font-bold text-slate-400 italic">Total {tableData.length} rows</span>
             </div>
 
+            {/* Scrollable Table Container with Fixed Header */}
             <div className="border border-slate-100 dark:border-slate-800 rounded-md overflow-hidden">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-slate-50 dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
-                    {sheet?.meta?.alias_map && Object.values(sheet.meta.alias_map).map((alias: any, idx: number) => (
-                      <th key={idx} className="p-2.5 text-[9px] font-black text-slate-500 uppercase tracking-widest">
-                        {alias.split(';')[0]}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {sheet?.rows?.map((row: any, rIdx: number) => (
-                    <tr key={rIdx} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/30 transition-colors">
-                      {Object.keys(sheet.meta.alias_map).map((colKey, cIdx) => (
-                        <td key={cIdx} className="p-2.5 text-[10px] font-bold text-slate-700 dark:text-slate-300">
-                          {row[colKey]?.toString() || '-'}
-                        </td>
+              {columns.length > 0 && tableData.length > 0 ? (
+                <div className="overflow-x-auto custom-scrollbar">
+                  <table className="w-full text-left border-collapse min-w-max">
+                    <thead className="sticky top-0 bg-slate-50 dark:bg-slate-900 z-20 shadow-sm">
+                      <tr className="border-b border-slate-100 dark:border-slate-800">
+                        <th className="p-2.5 text-[8px] font-black text-slate-400 uppercase text-center w-10 border-r border-slate-100 dark:border-slate-800">#</th>
+                        {columns.map((col: any) => (
+                          <th key={col.Key} className="p-2.5 border-r border-slate-100 dark:border-slate-800">
+                            <div className="text-[9px] font-black text-slate-700 dark:text-slate-200 uppercase tracking-widest whitespace-nowrap">
+                              {col.Name}
+                            </div>
+                            <div className="text-[7px] font-bold text-slate-400 uppercase">{col.Key}</div>
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                      {tableData.map((row: any, rIdx: number) => (
+                        <tr key={rIdx} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/30 transition-colors">
+                          <td className="p-2.5 text-center text-[9px] font-mono text-slate-400 border-r border-slate-100 dark:border-slate-800 bg-slate-50/20">{rIdx + 1}</td>
+                          {columns.map((col: any) => (
+                            <td key={col.Key} className="p-2.5 text-[10px] font-bold text-slate-700 dark:text-slate-300 border-r border-slate-100 dark:border-slate-800">
+                              {row[col.Key] !== null && row[col.Key] !== undefined ? String(row[col.Key]) : '-'}
+                            </td>
+                          ))}
+                        </tr>
                       ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="p-20 text-center text-slate-400">
+                  <Table className="w-8 h-8 mx-auto mb-3 opacity-20" />
+                  <p className="text-[10px] font-black uppercase tracking-widest italic">No table data available for preview</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
