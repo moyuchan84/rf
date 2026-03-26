@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Res, Req, Body } from '@nestjs/common';
+import { Controller, Get, Post, All, Query, Res, Req, Body } from '@nestjs/common';
 import { AuthService } from '../application/auth.service';
 import { ConfigService } from '@nestjs/config';
 import type { Response, Request } from 'express';
@@ -16,13 +16,27 @@ export class AuthController {
     return res.redirect(url);
   }
 
-  @Post('sso/callback')
+  @All('sso/callback')
   async callback(
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
-    @Body('id_token') idToken: string,
+    @Body('id_token') bodyIdToken: string,
+    @Query('id_token') queryIdToken: string,
   ) {
-    // 사내 인터페이스: POST로 들어오고 body에 id_token이 포함됨
+    // Debug: 요청 내용 확인
+    console.log('[SSO Callback Debug]', {
+      method: req.method,
+      query: req.query,
+      body: req.body,
+    });
+
+    // GET(query) 또는 POST(body)에서 id_token을 추출
+    const idToken = bodyIdToken || queryIdToken;
+
+    if (!idToken) {
+      throw new Error('id_token is missing from SSO callback');
+    }
+
     const { access_token } = await this.authService.authenticate(idToken);
     
     // JWT를 HttpOnly 쿠키에 저장

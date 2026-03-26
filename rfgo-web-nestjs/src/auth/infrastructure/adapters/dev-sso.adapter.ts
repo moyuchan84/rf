@@ -16,8 +16,7 @@ export class DevSsoAdapter implements SsoAdapter {
   }
 
   getLoginUrl(): string {
-    // 실제 개발 환경에서는 mock login page로 가거나 바로 callback으로 POST를 쏘는 UI가 필요함
-    // 여기서는 단순히 로그인 URL을 반환 (프론트에서 처리 필요)
-    return '/auth/sso/callback';
+    // 로컬 개발 환경: id_token=admin_user를 쿼리스트링에 포함하여 콜백으로 리다이렉트
+    return '/auth/sso/callback?id_token=admin_user';
   }
 }
