@@ -36,6 +36,7 @@ export const MailSelector: React.FC = () => {
             groups.map((group: UserMailGroup) => (
               <button
                 key={group.id}
+                type="button"
                 onClick={() => toggleGroup(group.id)}
                 className={`px-3 py-1.5 text-[10px] font-bold border rounded-sm transition-all flex items-center gap-2 shadow-sm ${
                   selectedGroupIds.includes(group.id) 
@@ -75,6 +76,7 @@ export const MailSelector: React.FC = () => {
                   <span className="text-[8px] font-bold text-slate-400 leading-none">{emp.departmentName}</span>
                 </div>
                 <button 
+                  type="button"
                   onClick={() => removeManualRecipient(emp.userId || emp.emailAddress || '')}
                   className="p-0.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors group"
                 >
