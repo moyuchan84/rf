@@ -153,6 +153,58 @@ const app = createApp({
             }
         };
 
+        const editPhotoKey = (key) => {
+            editingKey.value = key;
+            editConfig.rfgCategory = key.rfg_category || 'common';
+            editConfig.photoCategory = key.photo_category || 'key';
+            editConfig.tableName = key.table_name || '';
+            editConfig.revNo = key.rev_no || 1;
+            editConfig.isReference = !!key.is_reference;
+            editConfig.log = key.log || '';
+            
+            viewMode.value = 'edit';
+        };
+
+        const saveEdit = async () => {
+            if (!editingKey.value) return;
+            status.value = 'SAVING';
+            try {
+                const updateData = {
+                    rfg_category: editConfig.rfgCategory,
+                    photo_category: editConfig.photoCategory,
+                    table_name: editConfig.tableName,
+                    rev_no: editConfig.revNo,
+                    is_reference: editConfig.isReference,
+                    log: editConfig.log
+                };
+
+                await apiClient.updatePhotoKey(editingKey.value.id, updateData);
+                alert('Successfully updated.');
+                await refreshPhotoKeys();
+                viewMode.value = 'list';
+            } catch (err) {
+                alert('Update failed: ' + err.message);
+                status.value = 'READY';
+            }
+        };
+
+        const deleteKey = async (key) => {
+            if (!confirm(`Are you sure you want to delete [${key.table_name}] v${key.rev_no}?\nThis action cannot be undone.`)) {
+                return;
+            }
+
+            status.value = 'DELETING';
+            try {
+                await apiClient.deletePhotoKey(key.id);
+                alert('Successfully deleted.');
+                await refreshPhotoKeys();
+            } catch (err) {
+                alert('Delete failed: ' + err.message);
+            } finally {
+                status.value = 'READY';
+            }
+        };
+
         const showDetail = async (key) => {
             status.value = 'LOADING';
             try {
@@ -205,7 +257,8 @@ const app = createApp({
             viewMode, detailWorkbook, activeSheet, targetFolderPath, openAfterRestore, folderStructure,
             status, editingKey, editConfig, searchQuery, expandedTables, nestedHierarchy,
             loadHierarchy, selectProduct, showDetail, refreshPhotoKeys, pickFolder, showLog: (k) => activeLog.value = k, activeLog,
-            toggleExpand, isKeySelected, toggleKeySelection, selectAllRevisions, restoreToExcel
+            toggleExpand, isKeySelected, toggleKeySelection, selectAllRevisions, restoreToExcel,
+            editPhotoKey, saveEdit, deleteKey
         };
     }
 });
