@@ -5,11 +5,12 @@ import { ApprovalProvider } from './domain/approval-provider.interface';
 import { DevApprovalProvider } from './infrastructure/adapters/dev-approval.provider';
 import { KnoxApprovalProvider } from './infrastructure/adapters/knox-approval.provider';
 import { PrismaModule } from '../prisma.module';
+import { MailModule } from '../mail/mail.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { HttpModule, HttpService } from '@nestjs/axios';
 
 @Module({
-  imports: [PrismaModule, ConfigModule, HttpModule],
+  imports: [PrismaModule, ConfigModule, HttpModule, MailModule],
   providers: [
     ApprovalService,
     ApprovalResolver,

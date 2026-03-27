@@ -92,3 +92,11 @@ export class AssigneeChangedStrategy extends MailTemplateStrategy {
     return this.renderWithLayout(body, { ...context, subject: context.subject || '담당자 지정 알림' });
   }
 }
+
+export class ApprovalMemoStrategy extends MailTemplateStrategy {
+  generate(context: MailContext): string {
+    const template = this.loadTemplate('approval-memo');
+    const body = template(context);
+    return this.renderWithLayout(body, { ...context, subject: context.subject || '결재 상신 안내' });
+  }
+}

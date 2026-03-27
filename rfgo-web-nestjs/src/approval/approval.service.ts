@@ -2,12 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { ApprovalProvider, ApprovalRequestDto } from './domain/approval-provider.interface';
 import { ApprovalPathItem, SaveApprovalPathInput } from './approval.dto';
+import { MailType, MailWorkflowService } from '../mail/application/mail-workflow.service';
 
 @Injectable()
 export class ApprovalService {
   constructor(
     private readonly provider: ApprovalProvider,
     private readonly prisma: PrismaService,
+    private readonly mailWorkflowService: MailWorkflowService,
   ) {}
 
   async getUserPaths(userId: string) {
@@ -55,17 +57,60 @@ export class ApprovalService {
   }
 
   async submitMemo(requestId: number, requesterId: string, title: string, pathItems: ApprovalPathItem[], content: string) {
-    // 1. DTO 구성
+    // 1. 상세 데이터 조회 (Product, MetaInfo, Setup Tables)
+    const request = await this.prisma.requestItem.findUnique({
+      where: { id: requestId },
+      include: {
+        product: {
+          include: {
+            metaInfo: true,
+            beolOption: {
+              include: {
+                processPlan: true,
+              },
+            },
+          },
+        },
+        tableMaps: {
+          where: { type: 'SETUP' },
+          include: {
+            photoKey: true,
+          },
+        },
+      },
+    });
+
+    if (!request) {
+      throw new Error(`Request not found: ${requestId}`);
+    }
+
+    // SETUP 타입의 테이블 목록 정제
+    const selectedTables = request.tableMaps.map((tm) => ({
+      id: tm.photoKey.id,
+      tableName: tm.photoKey.tableName,
+      revNo: tm.photoKey.revNo,
+    }));
+
+    // 2. 템플릿을 사용하여 HTML 컨텐츠 생성
+    const htmlContent = this.mailWorkflowService.generateHtml(requestId, MailType.APPROVAL_MEMO, {
+      subject: title,
+      content: content,
+      request: request,
+      product: request.product,
+      selectedTables: selectedTables,
+    });
+
+    // 3. DTO 구성
     const dto = new ApprovalRequestDto();
     dto.title = title;
     dto.requesterId = requesterId;
-    dto.contents = content;
+    dto.contents = htmlContent; // 정제된 HTML 컨텐츠 삽입
     dto.aplns = pathItems.map((item, index) => ({
       ...item,
       seq: (index + 1).toString(),
     }));
 
-    // 2. 인프라 호출
+    // 4. 인프라 호출
     const response = await this.provider.submit(dto);
 
     // 3. 결과 저장

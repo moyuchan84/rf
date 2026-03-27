@@ -6,7 +6,8 @@ import {
   MailTemplateStrategy, 
   DefaultMailStrategy, 
   RequestWorkflowStrategy,
-  AssigneeChangedStrategy 
+  AssigneeChangedStrategy,
+  ApprovalMemoStrategy
 } from '../infrastructure/strategies/mail-template.strategy';
 import { DocSecuType, ContentType, MailRequestDto } from '../interface/dto/mail.dto';
 import { ConfigService } from '@nestjs/config';
@@ -15,6 +16,7 @@ export enum MailType {
   DEFAULT = 'DEFAULT',
   WORKFLOW_UPDATE = 'WORKFLOW_UPDATE',
   ASSIGNEE_CHANGED = 'ASSIGNEE_CHANGED',
+  APPROVAL_MEMO = 'APPROVAL_MEMO',
 }
 
 @Injectable()
@@ -30,10 +32,30 @@ export class MailWorkflowService {
     this.strategies.set(MailType.DEFAULT, new DefaultMailStrategy());
     this.strategies.set(MailType.WORKFLOW_UPDATE, new RequestWorkflowStrategy());
     this.strategies.set(MailType.ASSIGNEE_CHANGED, new AssigneeChangedStrategy());
+    this.strategies.set(MailType.APPROVAL_MEMO, new ApprovalMemoStrategy());
   }
 
   getStrategy(type: MailType): MailTemplateStrategy {
     return this.strategies.get(type) || this.strategies.get(MailType.DEFAULT)!;
+  }
+
+  generateHtml(
+    requestId: number,
+    type: MailType,
+    payload: Partial<MailContext> & { subject: string }
+  ): string {
+    const context: MailContext = {
+      requestId,
+      title: payload.title || '알림',
+      senderName: payload.senderName || '시스템',
+      content: payload.content || '',
+      link: payload.link || `${this.config.get('FRONTEND_URL') || 'http://localhost:5173'}/requests?id=${requestId}`,
+      backendUrl: this.config.get('BACKEND_URL') || 'http://localhost:9999',
+      ...payload,
+    };
+
+    const strategy = this.getStrategy(type);
+    return strategy.generate(context);
   }
 
   async sendWorkflowMail(
