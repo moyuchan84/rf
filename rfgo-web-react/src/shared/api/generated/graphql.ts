@@ -810,6 +810,7 @@ export type UpdateProductInput = {
 export type UpdateRequestItemInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   edmList?: InputMaybe<Array<Scalars['String']['input']>>;
+  initialWatchers?: InputMaybe<Array<EmployeeInput>>;
   pkdVersions?: InputMaybe<Array<Scalars['String']['input']>>;
   productId?: InputMaybe<Scalars['Int']['input']>;
   requestType?: InputMaybe<Scalars['String']['input']>;

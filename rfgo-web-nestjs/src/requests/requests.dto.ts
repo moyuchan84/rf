@@ -50,4 +50,7 @@ export class UpdateRequestItemInput {
 
   @Field({ nullable: true })
   requesterId?: string;
+
+  @Field(() => [EmployeeDto], { nullable: true })
+  initialWatchers?: EmployeeDto[];
 }

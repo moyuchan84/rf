@@ -504,6 +504,7 @@ input UpdateProductInput {
 input UpdateRequestItemInput {
   description: String
   edmList: [String!]
+  initialWatchers: [EmployeeInput!]
   pkdVersions: [String!]
   productId: Int
   requestType: String

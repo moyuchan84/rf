@@ -147,10 +147,16 @@ export class RequestsService {
   }
 
   async updateRequestItem(id: number, input: UpdateRequestItemInput) {
+    const { initialWatchers, ...rest } = input;
     const request = await this.prisma.requestItem.update({
       where: { id },
-      data: input,
+      data: rest as any,
     });
+
+    // Update Watchers if provided
+    if (initialWatchers) {
+      await this.watcherService.initWatchers(request.id, initialWatchers);
+    }
     
     // Rich Workflow Mail
     this.sendRichWorkflowMail(request.id, MailType.WORKFLOW_UPDATE, {
