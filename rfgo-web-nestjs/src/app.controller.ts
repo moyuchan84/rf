@@ -25,13 +25,15 @@ export class AppController {
       return res.status(404).send('PhotoKey not found');
     }
 
+    const fileName = photoKey.filename || `${photoKey.tableName}_Rev${photoKey.revNo}.xlsx`;
+
     res.setHeader(
       'Content-Type',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     );
     res.setHeader(
       'Content-Disposition',
-      `attachment; filename=${encodeURIComponent(photoKey.tableName + '_Rev' + photoKey.revNo + '.xlsx')}`,
+      `attachment; filename=${encodeURIComponent(fileName)}`,
     );
 
     // 1. Prioritize rawBinary from DB
@@ -80,15 +82,6 @@ export class AppController {
         });
       });
     }
-
-    res.setHeader(
-      'Content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    );
-    res.setHeader(
-      'Content-Disposition',
-      `attachment; filename=${encodeURIComponent(photoKey.tableName + '_Rev' + photoKey.revNo + '.xlsx')}`,
-    );
 
     await workbook.xlsx.write(res);
     res.end();
