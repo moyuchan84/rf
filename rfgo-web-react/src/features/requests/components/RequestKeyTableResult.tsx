@@ -12,16 +12,20 @@ import {
   User, 
   Calendar,
   LayoutGrid,
-  Info
+  Info,
+  Download,
+  Zap
 } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
 import { PhotoKey } from '@/features/master-data/types';
+import { usePhotoKeyDownload } from '@/features/key-table/hooks/usePhotoKeyDownload';
 
 interface RequestKeyTableResultProps {
   requestId: number;
 }
 
 export const RequestKeyTableResult: React.FC<RequestKeyTableResultProps> = ({ requestId }) => {
+  const { downloadBinary, isDownloading } = usePhotoKeyDownload();
   const { data, loading } = useQuery<GetRequestTablesQuery, GetRequestTablesQueryVariables>(
     GET_REQUEST_TABLES, 
     {
@@ -90,40 +94,56 @@ export const RequestKeyTableResult: React.FC<RequestKeyTableResultProps> = ({ re
             
             <div className="flex-1 overflow-y-auto p-2 space-y-1 custom-scrollbar">
               {selectedTables.map(key => (
-                <button
-                  key={key.id}
-                  onClick={() => {
-                    setSelectedKey(key);
-                    setActiveSheet(null);
-                  }}
-                  className={cn(
-                    "w-full flex flex-col items-start p-3 rounded-md transition-all group border",
-                    selectedKey?.id === key.id 
-                      ? "bg-indigo-50 dark:bg-indigo-900/20 border-indigo-200 dark:border-indigo-800/50 shadow-sm" 
-                      : "bg-transparent border-transparent hover:bg-slate-50 dark:hover:bg-slate-800/40"
-                  )}
-                >
-                  <div className="flex items-center gap-2.5 mb-1.5 w-full">
-                    <div className={cn(
-                      "w-2 h-2 rounded-full",
-                      key.photoCategory === 'ALIGN' ? 'bg-amber-400' : 'bg-sky-400'
-                    )} />
-                    <span className={cn(
-                      "text-[10px] font-black uppercase truncate flex-1 text-left",
-                      selectedKey?.id === key.id ? "text-indigo-600 dark:text-indigo-400" : "text-slate-700 dark:text-slate-300"
-                    )}>
-                      {key.tableName}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between w-full">
-                    <span className="text-[8px] font-black bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-slate-500">
-                      REV.{key.revNo}
-                    </span>
-                    <span className="text-[7px] font-bold text-slate-400 uppercase tracking-tighter">
-                      {new Date(key.updateDate).toLocaleDateString()}
-                    </span>
-                  </div>
-                </button>
+                <div key={key.id} className="relative group/item">
+                  <button
+                    onClick={() => {
+                      setSelectedKey(key);
+                      setActiveSheet(null);
+                    }}
+                    className={cn(
+                      "w-full flex flex-col items-start p-3 pr-10 rounded-md transition-all group border text-left",
+                      selectedKey?.id === key.id 
+                        ? "bg-indigo-50 dark:bg-indigo-900/20 border-indigo-200 dark:border-indigo-800/50 shadow-sm" 
+                        : "bg-transparent border-transparent hover:bg-slate-50 dark:hover:bg-slate-800/40"
+                    )}
+                  >
+                    <div className="flex items-center gap-2.5 mb-1.5 w-full">
+                      <div className={cn(
+                        "w-2 h-2 rounded-full",
+                        key.photoCategory === 'ALIGN' ? 'bg-amber-400' : 'bg-sky-400'
+                      )} />
+                      <span className={cn(
+                        "text-[10px] font-black uppercase truncate flex-1",
+                        selectedKey?.id === key.id ? "text-indigo-600 dark:text-indigo-400" : "text-slate-700 dark:text-slate-300"
+                      )}>
+                        {key.tableName}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between w-full">
+                      <span className="text-[8px] font-black bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-slate-500">
+                        REV.{key.revNo}
+                      </span>
+                      <span className="text-[7px] font-bold text-slate-400 uppercase tracking-tighter">
+                        {new Date(key.updateDate).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      downloadBinary(key);
+                    }}
+                    disabled={isDownloading(key.id)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-500/30 transition-all opacity-0 group-hover/item:opacity-100 disabled:opacity-50 shadow-sm"
+                    title="Download Excel"
+                  >
+                    {isDownloading(key.id) ? (
+                      <Zap className="w-3 h-3 animate-pulse text-indigo-500" />
+                    ) : (
+                      <Download className="w-3 h-3" />
+                    )}
+                  </button>
+                </div>
               ))}
             </div>
           </div>
@@ -190,6 +210,23 @@ export const RequestKeyTableResult: React.FC<RequestKeyTableResultProps> = ({ re
                     <p className="text-[8px] font-bold text-slate-400 uppercase tracking-tight mt-0.5">{selectedKey.tableName} v{selectedKey.revNo}</p>
                   </div>
                 </div>
+                <button
+                  onClick={() => downloadBinary(selectedKey)}
+                  disabled={isDownloading(selectedKey.id)}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-400 text-white rounded-md shadow-md shadow-indigo-600/20 transition-all text-[9px] font-black uppercase tracking-widest"
+                >
+                  {isDownloading(selectedKey.id) ? (
+                    <>
+                      <Zap className="w-3 h-3 animate-pulse" />
+                      Downloading...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-3 h-3" />
+                      Download Excel
+                    </>
+                  )}
+                </button>
               </div>
               
               <div className="flex-1 overflow-y-auto p-10 custom-scrollbar">
