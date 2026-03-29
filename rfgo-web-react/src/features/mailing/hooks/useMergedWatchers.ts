@@ -6,14 +6,17 @@ export const useMergedWatchers = () => {
   const { selectedGroupIds, manualRecipients } = useMailSelectorStore();
   const { groups } = useMailingGroups();
 
-  const getMergedInitialWatchers = (): EmployeeDto[] => {
+  const getMergedInitialWatchers = (additionalEmployee?: EmployeeDto | null): EmployeeDto[] => {
     // 1. Get members from selected groups
     const selectedGroupMembers = groups
       .filter((g: UserMailGroup) => selectedGroupIds.includes(g.id))
       .flatMap((g: UserMailGroup) => g.members);
 
-    // 2. Combine with manual recipients
+    // 2. Combine with manual recipients and optional additional employee (requester)
     const all = [...selectedGroupMembers, ...manualRecipients];
+    if (additionalEmployee) {
+      all.push(additionalEmployee);
+    }
 
     // 3. Deduplicate by userId, epId, or emailAddress
     const uniqueMap = new Map<string, EmployeeDto>();

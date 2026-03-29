@@ -25,6 +25,7 @@ import { useUserStore } from '../../auth/store/useUserStore';
 import { type RequestItem } from '../../master-data/types';
 import { REQUEST_TYPE_OPTIONS } from '../types';
 import { MailSelector } from '../../mailing/components/MailSelector';
+import { EmployeeDto } from '../../mailing/store/useMailSelectorStore';
 
 const Chip: React.FC<{ label: string; onRemove: () => void }> = ({ label, onRemove }) => (
   <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 px-2 py-1 rounded-md shadow-sm dark:shadow-lg animate-in fade-in zoom-in duration-300 transition-all">
@@ -91,7 +92,17 @@ const RequestStepForm: React.FC<RequestStepFormProps> = ({ initialData, onSucces
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await submitRequest();
+    
+    // Always include requester in watchers list
+    const requesterDto: EmployeeDto | null = user ? {
+      epId: user.epId,
+      fullName: user.fullName,
+      userId: user.userId,
+      departmentName: user.deptName,
+      emailAddress: user.email,
+    } : null;
+
+    await submitRequest(requesterDto);
     if (onSuccess) onSuccess();
   };
 

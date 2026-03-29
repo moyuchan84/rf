@@ -4,7 +4,7 @@ import { GET_PROCESS_PLANS } from '../../master-data/api/masterDataQueries';
 import { CREATE_REQUEST_ITEM, UPDATE_REQUEST_ITEM } from '../api/requestQueries';
 import { type ProcessPlan, type RequestItem } from '../../master-data/types';
 import toast from 'react-hot-toast';
-import { useMailSelectorStore } from '../../mailing/store/useMailSelectorStore';
+import { useMailSelectorStore, EmployeeDto } from '../../mailing/store/useMailSelectorStore';
 import { useMergedWatchers } from '../../mailing/hooks/useMergedWatchers';
 
 export const useRequestForm = (initialData?: RequestItem | null) => {
@@ -112,7 +112,7 @@ export const useRequestForm = (initialData?: RequestItem | null) => {
     resetMailStore();
   };
 
-  const submitRequest = async () => {
+  const submitRequest = async (requester?: EmployeeDto | null) => {
     if (!selectedProductId) {
       toast.error("Please select a product");
       return;
@@ -126,7 +126,7 @@ export const useRequestForm = (initialData?: RequestItem | null) => {
       edmList,
       pkdVersions,
       requesterId,
-      initialWatchers: getMergedInitialWatchers()
+      initialWatchers: getMergedInitialWatchers(requester)
     };
 
     try {
