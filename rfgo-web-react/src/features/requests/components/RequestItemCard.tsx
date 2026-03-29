@@ -84,6 +84,28 @@ export const RequestItemCard: React.FC<RequestItemCardProps> = ({
                 <span className="text-[7px] font-bold uppercase">{request.pkdVersions.length} PDK</span>
               </div>
             </div>
+
+            {/* Request Steps */}
+            {request.steps && request.steps.length > 0 && (
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/50">
+                {request.steps.map((step) => (
+                  <div key={step.id} className="flex items-center gap-1.5">
+                    <span className="text-[7px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-tight">
+                      {step.stepName}
+                    </span>
+                    <span className={`text-[6px] font-black px-1 rounded-[2px] uppercase tracking-widest border ${
+                      step.status === 'COMPLETED' 
+                        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' 
+                        : step.status === 'IN_PROGRESS'
+                        ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
+                        : 'bg-slate-500/10 text-slate-500 dark:text-slate-400 border-slate-500/20'
+                    }`}>
+                      {step.status}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
