@@ -94,10 +94,12 @@ export const RequestItemCard: React.FC<RequestItemCardProps> = ({
                       {step.stepName}
                     </span>
                     <span className={`text-[6px] font-black px-1 rounded-[2px] uppercase tracking-widest border ${
-                      step.status === 'COMPLETED' 
+                      step.status === 'DONE' 
                         ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' 
                         : step.status === 'IN_PROGRESS'
                         ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
+                        : step.status === 'TODO'
+                        ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20'
                         : 'bg-slate-500/10 text-slate-500 dark:text-slate-400 border-slate-500/20'
                     }`}>
                       {step.status}
