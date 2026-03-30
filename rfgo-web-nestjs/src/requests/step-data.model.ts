@@ -1,6 +1,7 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
 import { PhotoKey } from './workflow.model';
 import { RequestItem } from './requests.model';
+import { Product, ProcessPlan, BeolOption } from '../master-data/master-data.model';
 
 @ObjectType()
 export class StreamInfo {
@@ -16,11 +17,20 @@ export class StreamInfo {
   @Field(() => Int)
   productId: number;
 
+  @Field(() => Product, { nullable: true })
+  product?: Product;
+
   @Field(() => Int)
   processPlanId: number;
 
+  @Field(() => ProcessPlan, { nullable: true })
+  processPlan?: ProcessPlan;
+
   @Field(() => Int)
   beolOptionId: number;
+
+  @Field(() => BeolOption, { nullable: true })
+  beolOption?: BeolOption;
 
   @Field()
   streamPath: string;
