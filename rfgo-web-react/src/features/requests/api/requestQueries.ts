@@ -289,6 +289,23 @@ export const GET_STREAM_INFOS_BY_PRODUCT = gql`
   }
 `;
 
+export const GET_STREAM_INFOS_BY_BEOL_OPTION = gql`
+  query GetStreamInfosByBeolOption($beolOptionId: Int!) {
+    streamInfosByBeolOption(beolOptionId: $beolOptionId) {
+      id
+      requestId
+      streamPath
+      streamInputOutputFile
+      productId
+      product {
+        id
+        partId
+        productName
+      }
+    }
+  }
+`;
+
 export const GET_STREAM_INFO_BY_REQUEST = gql`
   query GetStreamInfoByRequest($requestId: Int!) {
     streamInfoByRequest(requestId: $requestId) {
