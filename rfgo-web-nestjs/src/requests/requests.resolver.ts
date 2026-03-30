@@ -97,6 +97,11 @@ export class RequestsResolver {
   }
 
   @Query(() => [StreamInfo])
+  async streamInfosByBeolOption(@Args('beolOptionId', { type: () => Int }) beolOptionId: number) {
+    return this.service.findStreamInfosByBeolOption(beolOptionId);
+  }
+
+  @Query(() => [StreamInfo])
   async streamInfoByRequest(@Args('requestId', { type: () => Int }) requestId: number) {
     return this.service.findStreamInfoByRequest(requestId);
   }

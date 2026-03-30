@@ -39,6 +39,14 @@ export class RequestsService {
     });
   }
 
+  async findStreamInfosByBeolOption(beolOptionId: number) {
+    return this.prisma.streamInfo.findMany({
+      where: { beolOptionId },
+      include: { request: true, product: true },
+      orderBy: { updatedAt: 'desc' },
+    });
+  }
+
   async findStreamInfoByRequest(requestId: number) {
     return this.prisma.streamInfo.findMany({
       where: { requestId },
