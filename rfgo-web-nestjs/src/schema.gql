@@ -350,6 +350,7 @@ type Query {
   searchEmployees(input: EmployeeSearchInput!): EmployeeSearchResponseDto!
   searchPhotoKeysByStream(query: String!): [PhotoKey!]!
   streamInfoByRequest(requestId: Int!): [StreamInfo!]!
+  streamInfosByBeolOption(beolOptionId: Int!): [StreamInfo!]!
   streamInfosByProduct(productId: Int!): [StreamInfo!]!
   users(search: String, skip: Int! = 0, take: Int! = 10): PaginatedUsers!
 }
@@ -450,10 +451,13 @@ input SenderDto {
 }
 
 type StreamInfo {
+  beolOption: BeolOption
   beolOptionId: Int!
   createdAt: DateTime!
   id: Int!
+  processPlan: ProcessPlan
   processPlanId: Int!
+  product: Product
   productId: Int!
   request: RequestItem
   requestId: Int!

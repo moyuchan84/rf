@@ -44,6 +44,7 @@ model ProcessPlan {
   beolOptions BeolOption[]
   photoKeys   PhotoKey[]
   keyDesignMaps KeyDesignProcessPlanMap[]
+  streamInfos StreamInfo[]
 
   @@index([id], map: "ix_process_plans_id")
   @@map("process_plans")
@@ -59,6 +60,7 @@ model BeolOption {
   processPlan   ProcessPlan? @relation(fields: [processPlanId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   photoKeys     PhotoKey[]
   products      Product[]
+  streamInfos   StreamInfo[]
 
   @@index([id], map: "ix_beol_options_id")
   @@index([optionName], map: "ix_beol_options_option_name")
@@ -77,6 +79,7 @@ model Product {
   metaInfo     ProductMeta?
   beolOption   BeolOption?   @relation(fields: [beolOptionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   requests     RequestItem[]
+  streamInfos  StreamInfo[]
 
   @@index([id], map: "ix_products_id")
   @@index([productName], map: "ix_products_product_name")
@@ -310,6 +313,9 @@ model StreamInfo {
   updatedAt             DateTime  @default(now()) @updatedAt @map("update_time") @db.Timestamptz(6)
 
   request       RequestItem @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  product       Product     @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  processPlan   ProcessPlan @relation(fields: [processPlanId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  beolOption    BeolOption  @relation(fields: [beolOptionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([id], map: "ix_stream_info_id")
   @@map("stream_info")
