@@ -123,7 +123,19 @@ export const TableBucketSelector: React.FC = () => {
             </span>
           </div>
           {showDetails && (
-            <p className="text-[8px] font-bold text-slate-400 truncate max-w-[180px] italic">{keyData.filename}</p>
+            <div className="flex flex-col gap-0.5 mt-0.5">
+              <p className="text-[8px] font-bold text-slate-400 truncate max-w-[180px] italic">{keyData.filename}</p>
+              {keyData.product && (
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[7px] font-black text-indigo-500/60 dark:text-indigo-400/40 uppercase tracking-tighter">
+                    {keyData.product.partId}
+                  </span>
+                  <span className="text-[7px] font-bold text-slate-400/60 truncate max-w-[120px]">
+                    {keyData.product.productName}
+                  </span>
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>

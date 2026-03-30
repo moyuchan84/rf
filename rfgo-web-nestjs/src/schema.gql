@@ -271,6 +271,7 @@ type PhotoKey {
   log: String
   photoCategory: String
   processPlanId: Int
+  product: Product
   productId: Int!
   rawBinary: String
   revNo: Int!

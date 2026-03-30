@@ -252,6 +252,11 @@ export const GET_PHOTO_KEYS_FOR_REQUEST = gql`
       filename
       updateDate
       productId
+      product {
+        id
+        partId
+        productName
+      }
       processPlanId
       beolOptionId
       workbookData
@@ -310,8 +315,12 @@ export const SAVE_REQUEST_TABLES = gql`
         filename
         updateDate
         productId
-        processPlanId
-        beolOptionId
+        product {
+          id
+          partId
+          productName
+        }
+        processPlanId        beolOptionId
         workbookData
       }
     }
@@ -330,6 +339,11 @@ export const SEARCH_PHOTO_KEYS_BY_STREAM = gql`
       filename
       updateDate
       productId
+      product {
+        id
+        partId
+        productName
+      }
       processPlanId
       beolOptionId
       workbookData
@@ -353,8 +367,12 @@ export const GET_REQUEST_TABLES = gql`
         filename
         updateDate
         productId
-        processPlanId
-        beolOptionId
+        product {
+          id
+          partId
+          productName
+        }
+        processPlanId        beolOptionId
         workbookData
       }
     }

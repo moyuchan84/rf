@@ -1,5 +1,6 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
 import GraphQLJSON from 'graphql-type-json';
+import { Product } from '../master-data/master-data.model';
 
 @ObjectType()
 export class RequestAssignee {
@@ -56,6 +57,9 @@ export class PhotoKey {
 
   @Field(() => Int)
   productId: number;
+
+  @Field(() => Product, { nullable: true })
+  product?: Product;
 
   @Field(() => Int, { nullable: true })
   processPlanId?: number;
