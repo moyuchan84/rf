@@ -25,7 +25,7 @@ interface PhotoKeyListProps {
 
 export const PhotoKeyList: React.FC<PhotoKeyListProps> = ({ designRule, optionName, partId }) => {
   const { photoKeys, loading } = usePhotoKeys();
-  const { downloadBinary, isDownloading } = usePhotoKeyDownload();
+  const { downloadBinary, downloadBulk, isDownloading, isBulkDownloading } = usePhotoKeyDownload();
   const { setSelectedKey, selectedProductId, selectedKey } = useKeyTableStore();
   
   const [searchQuery, setSearchBarQuery] = useState('');
@@ -65,6 +65,19 @@ export const PhotoKeyList: React.FC<PhotoKeyListProps> = ({ designRule, optionNa
     await downloadBinary(key);
   };
 
+  const handleBulkDownload = async () => {
+    const latestVersions: PhotoKey[] = [];
+    Object.values(nestedHierarchy).forEach(catTables => {
+      Object.values(catTables).forEach(versions => {
+        if (versions.length > 0) latestVersions.push(versions[0]);
+      });
+    });
+    
+    if (latestVersions.length > 0) {
+      await downloadBulk(latestVersions);
+    }
+  };
+
   return (
     <main className="flex-1 flex flex-col min-w-0 gap-5 overflow-hidden">
       <header className="flex justify-between items-center shrink-0">
@@ -80,6 +93,25 @@ export const PhotoKeyList: React.FC<PhotoKeyListProps> = ({ designRule, optionNa
           </div>
         </div>
         <div className="flex gap-2.5">
+          {Object.keys(nestedHierarchy).length > 0 && (
+            <button 
+              onClick={handleBulkDownload}
+              disabled={isBulkDownloading}
+              className="flex items-center gap-2 px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-400 text-white rounded-md shadow-md shadow-indigo-600/20 transition-all text-[10px] font-black uppercase tracking-widest active:scale-95"
+            >
+              {isBulkDownloading ? (
+                <>
+                  <Zap className="w-3.5 h-3.5 animate-pulse" />
+                  Zipping...
+                </>
+              ) : (
+                <>
+                  <Download className="w-3.5 h-3.5" />
+                  Download All (.ZIP)
+                </>
+              )}
+            </button>
+          )}
           <div className="flex items-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md px-3 py-1.5 gap-2.5 focus-within:border-indigo-500/50 transition-all shadow-sm">
             <Search className="w-3.5 h-3.5 text-slate-400 dark:text-slate-600" />
             <input 

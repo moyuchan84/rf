@@ -25,7 +25,7 @@ interface RequestKeyTableResultProps {
 }
 
 export const RequestKeyTableResult: React.FC<RequestKeyTableResultProps> = ({ requestId }) => {
-  const { downloadBinary, isDownloading } = usePhotoKeyDownload();
+  const { downloadBinary, downloadBulk, isDownloading, isBulkDownloading } = usePhotoKeyDownload();
   const { data, loading } = useQuery<GetRequestTablesQuery, GetRequestTablesQueryVariables>(
     GET_REQUEST_TABLES, 
     {
@@ -87,9 +87,25 @@ export const RequestKeyTableResult: React.FC<RequestKeyTableResultProps> = ({ re
                 <LayoutGrid className="w-3.5 h-3.5 text-indigo-500" />
                 <span className="text-[9px] font-black uppercase text-slate-900 dark:text-slate-400 tracking-widest">Setup Tables</span>
               </div>
-              <span className="text-[8px] font-black bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded-full uppercase">
-                {selectedTables.length}
-              </span>
+              <div className="flex items-center gap-2">
+                {selectedTables.length > 1 && (
+                  <button 
+                    onClick={() => downloadBulk(selectedTables)}
+                    disabled={isBulkDownloading}
+                    className="p-1 text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded transition-all disabled:opacity-50"
+                    title="Download All as ZIP"
+                  >
+                    {isBulkDownloading ? (
+                      <Zap className="w-3 h-3 animate-pulse text-indigo-500" />
+                    ) : (
+                      <Download className="w-3 h-3" />
+                    )}
+                  </button>
+                )}
+                <span className="text-[8px] font-black bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded-full uppercase">
+                  {selectedTables.length}
+                </span>
+              </div>
             </div>
             
             <div className="flex-1 overflow-y-auto p-2 space-y-1 custom-scrollbar">

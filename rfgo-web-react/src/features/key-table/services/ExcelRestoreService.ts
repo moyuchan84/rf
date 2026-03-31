@@ -15,6 +15,19 @@ export class ExcelRestoreService {
     saveAs(blob, `${tableName}_Rev${revNo}.xlsx`);
   }
 
+  static async downloadBulkFromApi(ids: number[]) {
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:9999';
+    const response = await fetch(`${baseUrl}/download/photo-keys/bulk?ids=${ids.join(',')}`);
+
+    if (!response.ok) {
+      throw new Error(`Bulk download failed: ${response.statusText}`);
+    }
+
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const blob = await response.blob();
+    saveAs(blob, `PhotoKeys_Bulk_${timestamp}.zip`);
+  }
+
   static async exportToExcel(photoKey: PhotoKey) {
     if (!photoKey.workbookData) {
       throw new Error('No workbook data available for export');
