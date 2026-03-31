@@ -61,6 +61,8 @@ const RequestStepForm: React.FC<RequestStepFormProps> = ({ initialData, onSucces
     requestType,
     title,
     description,
+    mtoDate,
+    layoutRequestDescription,
     requesterId,
     edmList,
     pkdVersions,
@@ -71,6 +73,8 @@ const RequestStepForm: React.FC<RequestStepFormProps> = ({ initialData, onSucces
     setRequestType,
     setTitle,
     setDescription,
+    setMtoDate,
+    setLayoutRequestDescription,
     setRequesterId,
     handleAddEdm,
     handleRemoveEdm,
@@ -272,14 +276,6 @@ const RequestStepForm: React.FC<RequestStepFormProps> = ({ initialData, onSucces
                 <p className="text-xs font-black text-slate-900 dark:text-white transition-colors">{selectedProduct.metaInfo.application || 'N/A'}</p>
               </div>
               <div className="space-y-1">
-                <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-1 transition-colors">
-                  <Calendar className="w-2 h-2" /> MTO Date
-                </span>
-                <p className="text-xs font-black text-slate-900 dark:text-white transition-colors">
-                  {selectedProduct.metaInfo.mtoDate ? new Date(selectedProduct.metaInfo.mtoDate).toLocaleDateString() : 'N/A'}
-                </p>
-              </div>
-              <div className="space-y-1">
                 <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest transition-colors">Chip Size (X/Y)</span>
                 <div className="flex items-baseline gap-0.5">
                   <p className="text-xs font-black text-slate-900 dark:text-white transition-colors">{selectedProduct.metaInfo.chipSizeX?.toFixed(2) || '0'}</p>
@@ -377,6 +373,20 @@ const RequestStepForm: React.FC<RequestStepFormProps> = ({ initialData, onSucces
               />
             </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-2.5">
+                <label className="text-[8px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest flex items-center gap-1.5 ml-1 transition-colors">
+                  <Calendar className="w-2.5 h-2.5 text-indigo-600 dark:text-indigo-400" /> MTO Date
+                </label>
+                <input 
+                  type="date" 
+                  value={mtoDate}
+                  onChange={(e) => setMtoDate(e.target.value)}
+                  className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-md text-slate-900 dark:text-white font-bold text-xs focus:border-indigo-500 outline-none transition-all shadow-sm"
+                />
+              </div>
+            </div>
+
             <div className="space-y-2.5">
               <label className="text-[8px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest flex items-center gap-1.5 ml-1 transition-colors">
                 <Info className="w-2.5 h-2.5 text-indigo-600 dark:text-indigo-400" /> Description & Requirements
@@ -387,6 +397,21 @@ const RequestStepForm: React.FC<RequestStepFormProps> = ({ initialData, onSucces
                   value={description} 
                   onChange={setDescription}
                   placeholder="Detail the request specifications, constraints, and any other relevant info..."
+                  className="text-slate-900 dark:text-white font-medium"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2.5">
+              <label className="text-[8px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest flex items-center gap-1.5 ml-1 transition-colors">
+                <FileText className="w-2.5 h-2.5 text-indigo-600 dark:text-indigo-400" /> Layout Description (Optional)
+              </label>
+              <div className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-md overflow-hidden shadow-sm dark:shadow-xl focus-within:border-indigo-500/50 transition-all">
+                <ReactQuill 
+                  theme="snow" 
+                  value={layoutRequestDescription} 
+                  onChange={setLayoutRequestDescription}
+                  placeholder="Additional layout requirements, special constraints..."
                   className="text-slate-900 dark:text-white font-medium"
                 />
               </div>

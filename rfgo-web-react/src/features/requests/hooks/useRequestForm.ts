@@ -23,6 +23,8 @@ export const useRequestForm = (initialData?: RequestItem | null) => {
   const [requestType, setRequestType] = useState('');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [mtoDate, setMtoDate] = useState('');
+  const [layoutRequestDescription, setLayoutRequestDescription] = useState('');
   const [requesterId, setRequesterId] = useState('');
   const [edmList, setEdmList] = useState<string[]>([]);
   const [pkdVersions, setPkdVersions] = useState<string[]>([]);
@@ -38,6 +40,8 @@ export const useRequestForm = (initialData?: RequestItem | null) => {
       setRequestType(initialData.requestType);
       setTitle(initialData.title);
       setDescription(initialData.description);
+      setMtoDate(initialData.mtoDate ? new Date(initialData.mtoDate).toISOString().split('T')[0] : '');
+      setLayoutRequestDescription(initialData.layoutRequestDescription || '');
       setRequesterId(initialData.requesterId);
       setEdmList(initialData.edmList);
       setPkdVersions(initialData.pkdVersions);
@@ -105,6 +109,8 @@ export const useRequestForm = (initialData?: RequestItem | null) => {
     setRequestType('');
     setTitle('');
     setDescription('');
+    setMtoDate('');
+    setLayoutRequestDescription('');
     setEdmList([]);
     setPkdVersions([]);
     setRequesterId('');
@@ -123,6 +129,8 @@ export const useRequestForm = (initialData?: RequestItem | null) => {
       requestType,
       title,
       description,
+      mtoDate: mtoDate ? new Date(mtoDate).toISOString() : null,
+      layoutRequestDescription,
       edmList,
       pkdVersions,
       requesterId,
@@ -170,6 +178,8 @@ export const useRequestForm = (initialData?: RequestItem | null) => {
     requestType,
     title,
     description,
+    mtoDate,
+    layoutRequestDescription,
     requesterId,
     edmList,
     pkdVersions,
@@ -182,6 +192,8 @@ export const useRequestForm = (initialData?: RequestItem | null) => {
     setRequestType,
     setTitle,
     setDescription,
+    setMtoDate,
+    setLayoutRequestDescription,
     setRequesterId,
     setIsSubmitted,
     

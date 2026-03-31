@@ -168,7 +168,7 @@ export const RequestDetail: React.FC<RequestDetailProps> = ({
                   <span className="text-[8px] font-black uppercase tracking-widest">MTO Date</span>
                 </div>
                 <p className="text-sm font-black text-slate-900 dark:text-white pl-5 border-l-2 border-indigo-500/20">
-                  {product.metaInfo?.mtoDate ? new Date(product.metaInfo.mtoDate).toLocaleDateString() : 'N/A'}
+                  {request.mtoDate ? new Date(request.mtoDate).toLocaleDateString() : 'N/A'}
                 </p>
               </div>
             </div>
@@ -214,6 +214,19 @@ export const RequestDetail: React.FC<RequestDetailProps> = ({
           dangerouslySetInnerHTML={{ __html: request.description }}
         />
       </section>
+
+      {/* 3.5 Layout Request Description (Full Width - Optional) */}
+      {request.layoutRequestDescription && (
+        <section className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-md p-8 space-y-5 shadow-sm dark:shadow-xl transition-all">
+          <h3 className="text-[8px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-[0.3em] flex items-center gap-1.5 transition-colors">
+            <Layers className="w-3.5 h-3.5" /> Layout Request Description
+          </h3>
+          <div 
+            className="bg-indigo-50/30 dark:bg-indigo-900/10 border border-indigo-100/50 dark:border-indigo-800/50 p-6 rounded-md text-sm font-medium text-slate-600 dark:text-slate-300 leading-relaxed prose dark:prose-invert max-w-none shadow-inner transition-all"
+            dangerouslySetInnerHTML={{ __html: request.layoutRequestDescription }}
+          />
+        </section>
+      )}
 
      
 

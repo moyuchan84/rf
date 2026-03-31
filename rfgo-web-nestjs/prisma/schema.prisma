@@ -90,7 +90,6 @@ model ProductMeta {
   id          Int       @id @default(autoincrement())
   productId   Int?      @unique @map("product_id")
   processId   String?   @map("process_id") @db.VarChar
-  mtoDate     DateTime? @map("mto_date")
   customer    String?   @db.VarChar
   application String?   @db.VarChar
   chipSizeX   Float?    @map("chip_size_x")
@@ -112,6 +111,8 @@ model RequestItem {
   requestType String    @map("request_type") @db.VarChar
   title       String    @db.VarChar
   description String?
+  mtoDate     DateTime? @map("mto_date") @db.Timestamptz(6)
+  layoutRequestDescription String? @map("layout_request_description") @db.Text
   edmList     String[]  @map("edm_list") @db.VarChar
   pkdVersions String[]  @map("pkd_versions") @db.VarChar
   requesterId String    @map("requester_id") @db.VarChar

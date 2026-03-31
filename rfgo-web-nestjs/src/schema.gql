@@ -112,6 +112,8 @@ input CreateRequestItemInput {
   description: String!
   edmList: [String!]!
   initialWatchers: [EmployeeInput!]
+  layoutRequestDescription: String
+  mtoDate: DateTime
   pkdVersions: [String!]!
   productId: Int!
   requestType: String!
@@ -310,7 +312,6 @@ type ProductMeta {
   createdAt: DateTime!
   customer: String
   id: Int!
-  mtoDate: DateTime
   processId: String
   productId: Int!
   slSizeX: Float
@@ -376,6 +377,8 @@ type RequestItem {
   edmList: [String!]!
   gdsPathInfo: [GdsPathInfo!]
   id: Int!
+  layoutRequestDescription: String
+  mtoDate: DateTime
   pkdVersions: [String!]!
   product: Product
   productId: Int!
@@ -510,6 +513,8 @@ input UpdateRequestItemInput {
   description: String
   edmList: [String!]
   initialWatchers: [EmployeeInput!]
+  layoutRequestDescription: String
+  mtoDate: DateTime
   pkdVersions: [String!]
   productId: Int
   requestType: String

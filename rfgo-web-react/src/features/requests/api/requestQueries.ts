@@ -25,6 +25,8 @@ export const CREATE_REQUEST_ITEM = gql`
       requestType
       title
       description
+      mtoDate
+      layoutRequestDescription
       edmList
       pkdVersions
       requesterId
@@ -40,6 +42,8 @@ export const UPDATE_REQUEST_ITEM = gql`
       requestType
       title
       description
+      mtoDate
+      layoutRequestDescription
       edmList
       pkdVersions
       requesterId
@@ -63,6 +67,8 @@ export const GET_REQUESTS_BY_PRODUCT = gql`
       requestType
       title
       description
+      mtoDate
+      layoutRequestDescription
       edmList
       pkdVersions
       requesterId
@@ -97,6 +103,8 @@ export const GET_ALL_REQUESTS = gql`
         requestType
         title
         description
+        mtoDate
+        layoutRequestDescription
         edmList
         pkdVersions
         requesterId
@@ -127,7 +135,6 @@ export const GET_ALL_REQUESTS = gql`
           metaInfo {
             id
             processId
-            mtoDate
             customer
             application
             chipSizeX
@@ -157,6 +164,8 @@ export const GET_REQUEST_ITEM = gql`
       requestType
       title
       description
+      mtoDate
+      layoutRequestDescription
       edmList
       pkdVersions
       requesterId
@@ -187,7 +196,6 @@ export const GET_REQUEST_ITEM = gql`
         metaInfo {
           id
           processId
-          mtoDate
           customer
           application
           chipSizeX

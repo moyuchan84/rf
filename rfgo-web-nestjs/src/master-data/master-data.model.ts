@@ -14,9 +14,6 @@ export class ProductMeta {
   processId?: string;
 
   @Field({ nullable: true })
-  mtoDate?: Date;
-
-  @Field({ nullable: true })
   customer?: string;
 
   @Field({ nullable: true })

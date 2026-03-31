@@ -15,7 +15,6 @@ export const GET_PROCESS_PLANS = gql`
           metaInfo {
             id
             processId
-            mtoDate
             customer
             application
             chipSizeX
@@ -65,7 +64,6 @@ export const UPDATE_PRODUCT = gql`
       metaInfo {
         id
         processId
-        mtoDate
         customer
         application
         chipSizeX

@@ -23,6 +23,12 @@ export class RequestItem {
   @Field({ nullable: true })
   description?: string;
 
+  @Field({ nullable: true })
+  mtoDate?: Date;
+
+  @Field({ nullable: true })
+  layoutRequestDescription?: string;
+
   @Field(() => [String])
   edmList: string[];
 

@@ -33,7 +33,6 @@ const MasterDataForm: React.FC = () => {
         productName: selectedNode.data.productName || '',
         metaInfo: {
           processId: selectedNode.data.metaInfo?.processId || '',
-          mtoDate: selectedNode.data.metaInfo?.mtoDate ? new Date(selectedNode.data.metaInfo.mtoDate).toISOString().split('T')[0] : '',
           customer: selectedNode.data.metaInfo?.customer || '',
           application: selectedNode.data.metaInfo?.application || '',
           chipSizeX: selectedNode.data.metaInfo?.chipSizeX || 0,
@@ -50,7 +49,6 @@ const MasterDataForm: React.FC = () => {
       productName: '',
       metaInfo: {
         processId: '',
-        mtoDate: '',
         customer: '',
         application: '',
         chipSizeX: 0,
@@ -75,7 +73,6 @@ const MasterDataForm: React.FC = () => {
         chipSizeY: typeof formData.metaInfo.chipSizeY === 'string' ? parseFloat(formData.metaInfo.chipSizeY) : formData.metaInfo.chipSizeY,
         slSizeX: typeof formData.metaInfo.slSizeX === 'string' ? parseFloat(formData.metaInfo.slSizeX) : formData.metaInfo.slSizeX,
         slSizeY: typeof formData.metaInfo.slSizeY === 'string' ? parseFloat(formData.metaInfo.slSizeY) : formData.metaInfo.slSizeY,
-        mtoDate: formData.metaInfo.mtoDate ? new Date(formData.metaInfo.mtoDate).toISOString() : undefined,
       };
 
       if (selectedNode.type === 'plan') {
@@ -212,7 +209,6 @@ const MasterDataForm: React.FC = () => {
                     { key: 'processId', label: 'Process ID', type: 'text' },
                     { key: 'customer', label: 'Customer', type: 'text' },
                     { key: 'application', label: 'Application', type: 'text' },
-                    { key: 'mtoDate', label: 'MTO Date', type: 'date' },
                   ].map((field) => (
                     <div key={field.key} className="space-y-3">
                       <label className="text-[8px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-[0.2em] ml-1 transition-colors">{field.label}</label>
