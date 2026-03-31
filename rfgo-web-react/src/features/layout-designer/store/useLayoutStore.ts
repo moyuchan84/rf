@@ -41,6 +41,7 @@ export interface LayoutConfig {
 }
 
 interface LayoutState {
+  id: number | null;
   title: string;
   productId: number | null;
   boundary: GeometricObject | null;
@@ -71,6 +72,7 @@ interface LayoutState {
   setImageUrl: (url: string | null) => void;
   setCurrentStep: (step: number) => void;
   setAddMode: (isAddMode: boolean) => void;
+  loadLayout: (layout: any) => void;
   reset: () => void;
 }
 
@@ -84,6 +86,7 @@ const initialConfig: LayoutConfig = {
 };
 
 export const useLayoutStore = create<LayoutState>((set) => ({
+  id: null,
   title: 'Untitled Layout',
   productId: null,
   boundary: null,
@@ -136,7 +139,21 @@ export const useLayoutStore = create<LayoutState>((set) => ({
   setImageUrl: (url) => set({ imageUrl: url }),
   setCurrentStep: (currentStep) => set({ currentStep }),
   setAddMode: (isAddMode) => set({ isAddMode }),
+  loadLayout: (layout) => set({
+    id: layout.id,
+    title: layout.title,
+    productId: layout.productId,
+    boundary: layout.boundary,
+    chips: layout.chips || [],
+    laneElements: layout.scribelanes || [],
+    placements: layout.placements || [],
+    shotInfo: layout.shotInfo,
+    config: layout.config || initialConfig,
+    imageUrl: layout.imageUrl,
+    currentStep: 3, // Go to final step when loading
+  }),
   reset: () => set({
+    id: null,
     title: 'Untitled Layout', productId: null, boundary: null, chips: [], laneElements: [], 
     placements: [], shotInfo: null, config: initialConfig, selectedId: null, 
     imageUrl: null, currentStep: 0, isAddMode: false,
