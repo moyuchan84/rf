@@ -20,6 +20,14 @@ export class OpencvDetector {
     });
   }
 
+  /**
+   * Detects rectangular objects in the image.
+   * Logic: 
+   * 1. Detect red/pink regions (CHIPs)
+   * 2. Detect dark/black regions (BOUNDARY/SHOT)
+   * 3. Use Canny edge detection as fallback/supplement
+   * 4. Merge all candidates and tag the largest as BOUNDARY
+   */
   static async detect(imgElement: HTMLImageElement): Promise<GeometricObject[]> {
     await this.waitForReady();
 
@@ -31,69 +39,84 @@ export class OpencvDetector {
     cv.cvtColor(src, hsv, cv.COLOR_RGBA2RGB);
     cv.cvtColor(hsv, hsv, cv.COLOR_RGB2HSV);
 
-    // 1. Color Masking (Red/Pink)
-    const mask = new cv.Mat();
+    // 1. Prepare Masks
+    const redMask = new cv.Mat();
+    const darkMask = new cv.Mat();
+    const edges = new cv.Mat();
+
+    // Red color masking
     const low1 = cv.matFromArray(3, 1, cv.CV_64F, [0, 50, 50]);
     const high1 = cv.matFromArray(3, 1, cv.CV_64F, [10, 255, 255]);
     const low2 = cv.matFromArray(3, 1, cv.CV_64F, [160, 50, 50]);
     const high2 = cv.matFromArray(3, 1, cv.CV_64F, [180, 255, 255]);
-    
     const m1 = new cv.Mat(), m2 = new cv.Mat();
     cv.inRange(hsv, low1, high1, m1);
     cv.inRange(hsv, low2, high2, m2);
-    cv.bitwise_or(m1, m2, mask);
+    cv.bitwise_or(m1, m2, redMask);
 
-    let finalMask = mask;
-    const nonZeroCount = cv.countNonZero(mask);
-    const edges = new cv.Mat();
+    // Dark area masking (Shot Boundary)
+    cv.threshold(gray, darkMask, 80, 255, cv.THRESH_BINARY_INV);
 
-    if (nonZeroCount < 100) {
-      console.log('[OpenCV] Red color low, using Edge Detection...');
-      cv.Canny(gray, edges, 50, 150);
-      finalMask = edges;
-    }
+    // Edge detection (Fallback/Supplement)
+    cv.Canny(gray, edges, 50, 150);
 
-    const contours = new cv.MatVector();
-    const hierarchy = new cv.Mat();
-    cv.findContours(finalMask, contours, hierarchy, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE);
-
+    // 2. Extract Candidates from all relevant masks
+    // We run findContours on redMask and darkMask separately or a combined edges
     const candidates: GeometricObject[] = [];
     const minArea = (imgElement.width * imgElement.height) * 0.0005;
 
-    for (let i = 0; i < contours.size(); ++i) {
-      const cnt = contours.get(i);
-      const area = cv.contourArea(cnt);
-      if (area < minArea) continue;
+    const processMask = (mask: cv.Mat) => {
+      const contours = new cv.MatVector();
+      const hierarchy = new cv.Mat();
+      cv.findContours(mask, contours, hierarchy, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE);
 
-      const approx = new cv.Mat();
-      cv.approxPolyDP(cnt, approx, 0.02 * cv.arcLength(cnt, true), true);
+      for (let i = 0; i < contours.size(); ++i) {
+        const cnt = contours.get(i);
+        const area = cv.contourArea(cnt);
+        if (area < minArea) continue;
 
-      if (approx.rows === 4) {
-        const bound = cv.boundingRect(approx);
-        const extent = area / (bound.width * bound.height);
-        
-        if (extent > 0.7) {
-          candidates.push({
-            id: uuidv4(),
-            x: Math.round(bound.x),
-            y: Math.round(bound.y),
-            width: Math.round(bound.width),
-            height: Math.round(bound.height),
-            isManual: false,
-            visible: true,
-            tag: 'CHIP' // Default, will be assigned later
-          });
+        const approx = new cv.Mat();
+        cv.approxPolyDP(cnt, approx, 0.02 * cv.arcLength(cnt, true), true);
+
+        // Accept rectangles (4-6 corners to allow for minor noise)
+        if (approx.rows >= 4 && approx.rows <= 6) {
+          const bound = cv.boundingRect(approx);
+          const extent = area / (bound.width * bound.height);
+          
+          if (extent > 0.7) {
+            candidates.push({
+              id: uuidv4(),
+              x: Math.round(bound.x),
+              y: Math.round(bound.y),
+              width: Math.round(bound.width),
+              height: Math.round(bound.height),
+              isManual: false,
+              visible: true,
+              tag: 'CHIP' // Temporary tag
+            });
+          }
         }
+        approx.delete();
       }
-      approx.delete();
+      contours.delete();
+      hierarchy.delete();
+    };
+
+    // Process both color-based and brightness-based masks
+    processMask(redMask);
+    processMask(darkMask);
+    
+    // If very few candidates, try edge-based detection
+    if (candidates.length < 2) {
+      processMask(edges);
     }
 
-    // 2. Deduplication Logic: Remove outer boxes of double-lines
-    // Sort by area ASCENDING to process smaller (inner) boxes first
-    candidates.sort((a, b) => (a.width * a.height) - (b.width * b.height));
+    // 3. Deduplication & Final Selection
+    // Sort by area DESCENDING
+    candidates.sort((a, b) => (b.width * b.height) - (a.width * a.height));
 
     const detectedRects: GeometricObject[] = [];
-    const dupThreshold = 15; // px margin to consider as "same box"
+    const dupThreshold = 10; // px margin
 
     for (const cand of candidates) {
       let isDuplicate = false;
@@ -103,7 +126,7 @@ export class OpencvDetector {
         const dw = Math.abs(cand.width - accepted.width);
         const dh = Math.abs(cand.height - accepted.height);
 
-        // If this candidate is almost the same as an already accepted (smaller) box
+        // Check if this rectangle is already covered by a similar one
         if (dx < dupThreshold && dy < dupThreshold && dw < dupThreshold && dh < dupThreshold) {
           isDuplicate = true;
           break;
@@ -115,10 +138,19 @@ export class OpencvDetector {
       }
     }
 
-    console.log(`[OpenCV] Candidates: ${candidates.length}, Rects after cleanup: ${detectedRects.length}`);
+    // 4. Final Tagging: Largest is BOUNDARY, rest are CHIP
+    if (detectedRects.length > 0) {
+      detectedRects[0].tag = 'BOUNDARY';
+      // Ensure others are CHIPs (they should be by default)
+      for (let i = 1; i < detectedRects.length; i++) {
+        detectedRects[i].tag = 'CHIP';
+      }
+    }
+
+    console.log(`[OpenCV] Detection Summary - Total: ${detectedRects.length}, Boundary: ${detectedRects.length > 0 ? 1 : 0}, Chips: ${Math.max(0, detectedRects.length - 1)}`);
 
     // Cleanup
-    [src, gray, hsv, m1, m2, mask, edges, contours, hierarchy, low1, high1, low2, high2].forEach(m => {
+    [src, gray, hsv, m1, m2, redMask, darkMask, edges, low1, high1, low2, high2].forEach(m => {
       try { m.delete(); } catch(e) {}
     });
 
