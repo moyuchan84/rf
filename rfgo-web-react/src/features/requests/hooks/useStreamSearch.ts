@@ -27,8 +27,7 @@ interface StreamInfosData {
 export const useStreamSearch = () => {
   const { 
     processPlanId, 
-    beolOptionId, 
-    productId,
+    beolOptionId,     
     setProcessContext,
     setAvailableKeys 
   } = useReferenceTableStore();

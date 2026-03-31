@@ -1,5 +1,5 @@
 import React from 'react';
-import { Loader2, Database, Filter } from 'lucide-react';
+import { Loader2, Database} from 'lucide-react';
 import { useStreamSearch } from '../../../hooks/useStreamSearch';
 
 export const StreamSearchPanel: React.FC = () => {
@@ -13,8 +13,7 @@ export const StreamSearchPanel: React.FC = () => {
     selectedStreamFile,
     setSelectedStreamFile,
     setProcessContext,
-    selectedPlan,
-    selectedOption,
+    selectedPlan,    
     streamFiles
   } = useStreamSearch();
 
