@@ -2,7 +2,6 @@ export interface ProductMeta {
   id: number;
   productId: number;
   processId?: string;
-  mtoDate?: string;
   customer?: string;
   application?: string;
   chipSizeX?: number;
@@ -37,6 +36,8 @@ export interface RequestItem {
   requestType: string;
   title: string;
   description: string;
+  mtoDate?: string;
+  layoutRequestDescription?: string;
   edmList: string[];
   pkdVersions: string[];
   requesterId: string;
