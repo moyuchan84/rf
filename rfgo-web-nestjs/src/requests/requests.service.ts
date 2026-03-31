@@ -220,6 +220,7 @@ export class RequestsService {
         product: request.product,
         assignees: request.assignees,
         selectedTables,
+        selectedTableIds: selectedTables.map(t => t.id).join(','),
         stepName,
         workLog,
       });

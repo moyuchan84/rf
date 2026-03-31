@@ -5,7 +5,12 @@
 
 {{#if selectedTables}}
 <div style="margin-top: 24px; padding: 20px; background-color: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px;">
-  <h4 style="margin: 0 0 12px 0; color: #1e40af; font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em;">Selected Tables ({{stepName}})</h4>
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+    <h4 style="margin: 0; color: #1e40af; font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em;">Selected Tables ({{stepName}})</h4>
+    {{#if selectedTableIds}}
+    <a href="{{backendUrl}}/download/photo-keys/bulk?ids={{selectedTableIds}}" style="background-color: #2563eb; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 11px; font-weight: 700; text-transform: uppercase;">Download All (.ZIP)</a>
+    {{/if}}
+  </div>
   <table style="width: 100%; border-collapse: collapse; font-size: 12px; background-color: white;">
     <thead>
       <tr style="background-color: #f8fafc;">

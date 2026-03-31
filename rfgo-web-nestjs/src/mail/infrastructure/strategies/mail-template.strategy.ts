@@ -12,6 +12,7 @@ export interface MailContext {
   request?: any;
   product?: any;
   selectedTables?: any[];
+  selectedTableIds?: string;
   stepName?: string;
   assignees?: any[];
   workLog?: string;

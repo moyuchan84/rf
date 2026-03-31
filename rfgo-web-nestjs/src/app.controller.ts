@@ -1,8 +1,9 @@
-import { Controller, Get, Param, Res, StreamableFile } from '@nestjs/common';
+import { Controller, Get, Param, Query, Res } from '@nestjs/common';
 import { AppService } from './app.service';
 import { RequestsService } from './requests/requests.service';
 import type { Response } from 'express';
 import * as ExcelJS from 'exceljs';
+import AdmZip from 'adm-zip';
 
 @Controller()
 export class AppController {
@@ -46,6 +47,55 @@ export class AppController {
       return res.status(404).send('No data available for download');
     }
 
+    const buffer = await this.generateExcelBuffer(photoKey);
+    return res.send(buffer);
+  }
+
+  @Get('download/photo-keys/bulk')
+  async downloadPhotoKeysBulk(@Query('ids') ids: string, @Res() res: Response) {
+    if (!ids) {
+      return res.status(400).send('No IDs provided');
+    }
+
+    const idList = ids.split(',').map(id => parseInt(id)).filter(id => !isNaN(id));
+    if (idList.length === 0) {
+      return res.status(400).send('Invalid IDs provided');
+    }
+
+    const zip = new AdmZip();
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const zipFileName = `PhotoKeys_Bulk_${timestamp}.zip`;
+
+    for (const id of idList) {
+      const photoKey = await this.requestsService.findPhotoKeyById(id);
+      if (!photoKey) continue;
+
+      const fileName = photoKey.filename || `${photoKey.tableName}_Rev${photoKey.revNo}.xlsx`;
+      
+      let fileBuffer: Buffer;
+      if (photoKey.rawBinary) {
+        fileBuffer = photoKey.rawBinary as Buffer;
+      } else if (photoKey.workbookData) {
+        fileBuffer = await this.generateExcelBuffer(photoKey);
+      } else {
+        continue;
+      }
+
+      zip.addFile(fileName, fileBuffer);
+    }
+
+    const zipBuffer = zip.toBuffer();
+
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename=${encodeURIComponent(zipFileName)}`,
+    );
+    
+    return res.send(zipBuffer);
+  }
+
+  private async generateExcelBuffer(photoKey: any): Promise<Buffer> {
     const workbook = new ExcelJS.Workbook();
     const data = photoKey.workbookData as any;
 
@@ -83,7 +133,6 @@ export class AppController {
       });
     }
 
-    await workbook.xlsx.write(res);
-    res.end();
+    return await workbook.xlsx.writeBuffer() as any;
   }
 }
