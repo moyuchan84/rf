@@ -50,7 +50,6 @@ class ProductMeta(Base):
     product_id = Column(Integer, ForeignKey("products.id", ondelete="CASCADE"), unique=True)
     
     process_id = Column(String, nullable=True)
-    mto_date = Column(DateTime, nullable=True)
     customer = Column(String, nullable=True)
     application = Column(String, nullable=True)
     chip_size_x = Column(Float, nullable=True)

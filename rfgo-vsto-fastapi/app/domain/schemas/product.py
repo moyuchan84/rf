@@ -4,7 +4,6 @@ from datetime import datetime
 
 class ProductMetaBase(BaseModel):
     process_id: Optional[str] = None
-    mto_date: Optional[datetime] = None
     customer: Optional[str] = None
     application: Optional[str] = None
     chip_size_x: Optional[float] = None

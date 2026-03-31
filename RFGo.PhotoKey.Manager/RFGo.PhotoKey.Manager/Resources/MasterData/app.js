@@ -21,7 +21,6 @@ createApp({
             product_name: '',
             meta_info: {
                 process_id: '',
-                mto_date: '',
                 customer: '',
                 application: '',
                 chip_size_x: 0,
@@ -68,7 +67,6 @@ createApp({
                 product_name: data.product_name || '',
                 meta_info: {
                     process_id: data.meta_info?.process_id || '',
-                    mto_date: data.meta_info?.mto_date ? data.meta_info.mto_date.split('T')[0] : '',
                     customer: data.meta_info?.customer || '',
                     application: data.meta_info?.application || '',
                     chip_size_x: data.meta_info?.chip_size_x || 0,
@@ -105,7 +103,6 @@ createApp({
                 product_name: '',
                 meta_info: {
                     process_id: '',
-                    mto_date: '',
                     customer: '',
                     application: '',
                     chip_size_x: 0,
@@ -132,8 +129,7 @@ createApp({
                     chip_size_x: parseFloat(formModel.meta_info.chip_size_x) || 0,
                     chip_size_y: parseFloat(formModel.meta_info.chip_size_y) || 0,
                     sl_size_x: parseFloat(formModel.meta_info.sl_size_x) || 0,
-                    sl_size_y: parseFloat(formModel.meta_info.sl_size_y) || 0,
-                    mto_date: formModel.meta_info.mto_date ? new Date(formModel.meta_info.mto_date).toISOString() : null
+                    sl_size_y: parseFloat(formModel.meta_info.sl_size_y) || 0
                 };
 
                 if (formState.mode === 'create') {
