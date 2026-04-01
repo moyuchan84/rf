@@ -18,6 +18,32 @@
           "endsPattern": ".*Local:.*http://localhost:.*"
         }
       }
+    },
+    {
+      "label": "rfgo-embedding-worker: run",
+      "type": "shell",
+      "command": "${workspaceFolder}/rfgo-embedding-worker/.venv/Scripts/python.exe -m app.main",
+      "options": {
+        "cwd": "${workspaceFolder}/rfgo-embedding-worker"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "rfgo-rag-backend: run",
+      "type": "shell",
+      "command": "${workspaceFolder}/rfgo-rag-backend/.venv/Scripts/python.exe -m app.main",
+      "options": {
+        "cwd": "${workspaceFolder}/rfgo-rag-backend"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": []
     }
   ]
 }

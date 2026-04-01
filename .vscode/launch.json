@@ -57,15 +57,37 @@
         "webpack:///src/*": "${webRoot}/src/*",
         "vite:///src/*": "${webRoot}/src/*"
       }
+    },
+    {
+      "name": "Debug Embedding Worker",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "app.main",
+      "cwd": "${workspaceFolder}/rfgo-embedding-worker",
+      "justMyCode": true,
+      "python": "${workspaceFolder}/rfgo-embedding-worker/.venv/Scripts/python.exe",
+      "envFile": "${workspaceFolder}/rfgo-embedding-worker/.env"
+    },
+    {
+      "name": "Debug RAG Backend (MCP)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "app.main",
+      "cwd": "${workspaceFolder}/rfgo-rag-backend",
+      "justMyCode": true,
+      "python": "${workspaceFolder}/rfgo-rag-backend/.venv/Scripts/python.exe",
+      "envFile": "${workspaceFolder}/rfgo-rag-backend/.env"
     }
   ],
   "compounds": [
     {
-      "name": "Debug Full Stack",
+      "name": "Debug Full Stack (RAG)",
       "configurations": [
         "Debug Python Backend (FastAPI)",
         "Debug Web Backend (NestJS)",
-        "Launch Web Frontend (Vite/Chrome)"
+        "Launch Web Frontend (Vite/Chrome)",
+        "Debug Embedding Worker",
+        "Debug RAG Backend (MCP)"
       ],
       "stopAll": true
     }
