@@ -11,6 +11,9 @@ class Settings(BaseSettings):
     DB_PORT: str = "5433"
     DB_NAME: str = "photokey_db"
     
+    # Redis
+    REDIS_URL: str = "redis://localhost:6379"
+    
     # Security
     SECRET_KEY: str = "rfgo-secret-key-change-me-in-production"
     ALGORITHM: str = "HS256"

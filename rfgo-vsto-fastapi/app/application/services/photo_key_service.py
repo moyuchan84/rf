@@ -1,12 +1,25 @@
+import json
+import redis
 from sqlalchemy.orm import Session
 from app.domain import schemas, models
 from app.infrastructure.repositories import PhotoKeyRepository, ProductRepository
+from app.core.config import settings
 
 class PhotoKeyService:
     def __init__(self, db: Session):
         self.photo_key_repo = PhotoKeyRepository(db)
         self.product_repo = ProductRepository(db)
         self.db = db
+        self.redis_client = redis.from_url(settings.REDIS_URL)
+
+    def _publish_event(self, photo_key_id: int):
+        """Publish photo_key.created event to Redis."""
+        try:
+            event_data = {"id": photo_key_id}
+            self.redis_client.publish("photo_key.created", json.dumps(event_data))
+        except Exception as e:
+            # We don't want to fail the main request if Redis publishing fails
+            print(f"Failed to publish event to Redis: {e}")
 
     def upload_photo_key(self, data: schemas.PhotoKeyCreate):
         # Ensure hierarchy exists
@@ -15,7 +28,13 @@ class PhotoKeyService:
         prod = self.product_repo.get_or_create_product(data.partid, data.product_name, bo.id)
         
         # Create PhotoKey with linked hierarchy
-        return self.photo_key_repo.create_photo_key(prod.id, pp.id, bo.id, data)
+        photo_key = self.photo_key_repo.create_photo_key(prod.id, pp.id, bo.id, data)
+        
+        # Publish event
+        if photo_key:
+            self._publish_event(photo_key.id)
+            
+        return photo_key
 
     def upload_photo_keys(self, data: schemas.PhotoKeyBatchCreate):
         """Batch upload multiple photo keys."""
