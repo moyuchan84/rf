@@ -1,0 +1,15 @@
+[project]
+name = "rfgo-embedding-worker"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "faststream[redis]>=0.6.7",
+    "openai>=2.30.0",
+    "pgvector>=0.4.2",
+    "psycopg2-binary>=2.9.11",
+    "pydantic-settings>=2.13.1",
+    "python-dotenv>=1.2.2",
+    "sqlalchemy>=2.0.48",
+]
