@@ -5,8 +5,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider   = "postgresql"
   extensions = [vector]
 }
 
@@ -253,7 +252,7 @@ model PhotoKey {
 model PhotoKeyEmbedding {
   id          Int                      @id @default(autoincrement())
   photoKeyId  Int                      @unique @map("photo_key_id")
-  embedding   Unsupported("vector(1536)")? 
+  embedding   Unsupported("vector(1024)")? 
   content     String                   @db.Text
   createdAt   DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
 
