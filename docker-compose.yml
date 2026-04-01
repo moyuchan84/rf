@@ -1,9 +1,10 @@
 version: '3.8'
 
 services:
-  # 1. PostgreSQL Database
+  # 1. PostgreSQL Database with pgvector
+  # RAG 검색을 위해 일반 postgres 이미지를 pgvector가 포함된 이미지로 교체합니다.
   rfgo-db:
-    image: postgres:15-alpine
+    image: ankane/pgvector:v0.5.1 # pgvector 확장 기능이 사전 설치된 이미지
     container_name: rfgo-db
     environment:
       POSTGRES_USER: admin
@@ -13,7 +14,23 @@ services:
       - "5433:5432"
     volumes:
       - rfgo-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d photokey_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
+  # 2. Redis for Pub/Sub (New)
+  # vsto-fastapi와 embedding-worker 사이의 비동기 통신을 위한 메시지 브로커입니다.
+  rfgo-redis:
+    image: redis:7-alpine
+    container_name: rfgo-redis
+    ports:
+      - "6379:6379"
+    restart: always
+
+volumes:
+  rfgo-db-data:
   # # 2. NestJS API (Primary Backend)
   # rfgo-nestjs-api:
   #   build:
@@ -57,5 +74,4 @@ services:
   #   ports:
   #     - "80:80"
 
-volumes:
-  rfgo-db-data:
+
