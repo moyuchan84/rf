@@ -1,5 +1,7 @@
 import React from 'react';
 import { Sparkles, FileText, Database } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { RagSearchResult } from '../api/ragApi';
 
 interface MessageProps {
@@ -19,21 +21,38 @@ export const RagChatMessage: React.FC<MessageProps> = ({ role, content, results 
         {isAssistant ? <Sparkles className="text-white w-4 h-4" /> : <div className="text-white text-[10px] font-black">YOU</div>}
       </div>
       
-      <div className={`flex flex-col gap-3 max-w-xl ${isAssistant ? '' : 'items-end'}`}>
+      <div className={`flex flex-col gap-3 max-w-2xl ${isAssistant ? '' : 'items-end'}`}>
         <div className={`p-4 rounded-md shadow-sm transition-all border ${
           isAssistant 
             ? 'bg-slate-50 dark:bg-slate-950/80 border-slate-200 dark:border-slate-800 rounded-tl-none' 
             : 'bg-indigo-600 text-white border-indigo-500 rounded-tr-none'
         }`}>
-          <p className={`text-sm leading-relaxed font-bold ${isAssistant ? 'text-slate-600 dark:text-slate-300' : 'text-white'}`}>
-            {content}
-          </p>
+          <div className={`prose dark:prose-invert prose-xs max-w-none font-bold ${isAssistant ? 'text-slate-600 dark:text-slate-300' : 'text-white'}`}>
+            <ReactMarkdown 
+              remarkPlugins={[remarkGfm]}
+              components={{
+                table: ({node, ...props}) => (
+                  <div className="overflow-x-auto my-4 border border-slate-200 dark:border-slate-800 rounded-md">
+                    <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800" {...props} />
+                  </div>
+                ),
+                th: ({node, ...props}) => (
+                  <th className="px-3 py-2 bg-slate-100 dark:bg-slate-900 text-left text-[10px] font-black uppercase tracking-widest text-slate-500" {...props} />
+                ),
+                td: ({node, ...props}) => (
+                  <td className="px-3 py-2 text-[11px] border-t border-slate-100 dark:border-slate-800" {...props} />
+                )
+              }}
+            >
+              {content}
+            </ReactMarkdown>
+          </div>
         </div>
 
         {results && results.length > 0 && (
           <div className="grid grid-cols-1 gap-2 w-full">
             <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 mb-1">
-              <Database className="w-3 h-3" /> Source References
+              <Database className="w-3 h-3" /> Raw Context References
             </div>
             {results.map((res, idx) => (
               <div key={idx} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 rounded-md shadow-sm flex flex-col gap-1">
@@ -43,13 +62,8 @@ export const RagChatMessage: React.FC<MessageProps> = ({ role, content, results 
                   </span>
                   <span className="text-[9px] font-bold text-slate-400">Score: {(res.score * 100).toFixed(1)}%</span>
                 </div>
-                <div className="text-[9px] font-bold text-slate-500 dark:text-slate-400 flex gap-2">
-                   <span>{res.product_info.partid}</span>
-                   <span>•</span>
-                   <span>{res.product_info.name}</span>
-                </div>
-                <p className="text-[10px] text-slate-600 dark:text-slate-400 line-clamp-2 mt-1 italic">
-                  "{res.content.split('|')[0]}..."
+                <p className="text-[10px] text-slate-600 dark:text-slate-400 line-clamp-1 italic">
+                  "{res.content.substring(0, 100)}..."
                 </p>
               </div>
             ))}

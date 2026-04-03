@@ -19,11 +19,22 @@ export interface RagSearchResult {
   score: number;
 }
 
+export interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
 export const ragApi = {
   search: async (query: string, k: number = 5): Promise<RagSearchResult[]> => {
     const response = await axios.post(`${RAG_BASE_URL}/search`, {
       query,
       k
+    });
+    return response.data;
+  },
+  chat: async (messages: ChatMessage[]): Promise<{ role: string, content: string, tool_calls?: any[] }> => {
+    const response = await axios.post(`${RAG_BASE_URL}/chat`, {
+      messages
     });
     return response.data;
   }
