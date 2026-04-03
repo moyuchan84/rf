@@ -1,5 +1,5 @@
 from .openai import UniversalOpenAICompatibleProvider
-from ..config import settings
+from ...core.config import settings
 
 def get_embedding_provider():
     """

@@ -5,9 +5,9 @@ from faststream.redis import RedisBroker
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 
-from .config import settings
-from .models import PhotoKey, PhotoKeyEmbedding
-from .providers import get_embedding_provider
+from .core.config import settings
+from .domain.models.models import PhotoKey, PhotoKeyEmbedding
+from .infrastructure.providers import get_embedding_provider
 
 # Infrastructure
 broker = RedisBroker(settings.REDIS_URL)

@@ -66,7 +66,9 @@
       "cwd": "${workspaceFolder}/rfgo-embedding-worker",
       "justMyCode": true,
       "python": "${workspaceFolder}/rfgo-embedding-worker/.venv/Scripts/python.exe",
-      "envFile": "${workspaceFolder}/rfgo-embedding-worker/.env"
+      "env": {
+        "AI_ENV": "dev"
+      }
     },
     {
       "name": "Debug RAG Backend (MCP)",
@@ -76,7 +78,9 @@
       "cwd": "${workspaceFolder}/rfgo-rag-backend",
       "justMyCode": true,
       "python": "${workspaceFolder}/rfgo-rag-backend/.venv/Scripts/python.exe",
-      "envFile": "${workspaceFolder}/rfgo-rag-backend/.env"
+      "env": {
+        "AI_ENV": "dev"
+      }
     }
   ],
   "compounds": [

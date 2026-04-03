@@ -1,34 +1,30 @@
-from fastmcp import FastMCP
-from typing import List, Dict
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-from .vector_store import vector_store
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from app.api.endpoints import search, chat
+from app.core.config import settings
 
-mcp = FastMCP("RFGo-RAG-Server")
-# We will run this alongside standard FastAPI
-app = FastAPI(title="RFGo RAG API")
+app = FastAPI(title=settings.PROJECT_NAME)
 
-class SearchRequest(BaseModel):
-    query: str
-    k: int = 5
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-@app.post("/search")
-async def api_search_photo_key(request: SearchRequest):
-    """REST endpoint for the web frontend."""
-    try:
-        results = await vector_store.similarity_search(request.query, k=request.k)
-        return results
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@mcp.tool()
-async def search_photo_key(query: str, k: int = 5) -> List[Dict]:
-...
-    results = await vector_store.similarity_search(query, k=k)
-    return results
+# Include routers
+app.include_router(search.router, prefix="/search", tags=["Search"])
+app.include_router(chat.router, prefix="/chat", tags=["Chat"])
 
 if __name__ == "__main__":
     import uvicorn
-    # When running normally, we use uvicorn to host the FastAPI app 
-    # which can also expose the MCP protocol if needed.
+    import os
+    
+    # Simple logic to choose environment file
+    # Run with: AI_ENV=prod uv run python -m app.main
+    env = os.getenv("AI_ENV", "dev")
+    print(f"Starting {settings.PROJECT_NAME} in {env} mode...")
+    
     uvicorn.run(app, host="0.0.0.0", port=8001)

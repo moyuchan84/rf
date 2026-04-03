@@ -1,15 +1,15 @@
 from typing import List
-from sqlalchemy import create_engine, select
-from sqlalchemy.orm import sessionmaker, joinedload
 from openai import AsyncOpenAI
-from .config import settings
-from .models import PhotoKey, PhotoKeyEmbedding, Product, ProcessPlan, BeolOption
+from app.core.config import settings
+from app.domain.models.models import PhotoKey, PhotoKeyEmbedding, Product, ProcessPlan, BeolOption
+from .database import SessionLocal
 
 class VectorStore:
     def __init__(self):
-        self.engine = create_engine(settings.sqlalchemy_database_url)
-        self.SessionLocal = sessionmaker(bind=self.engine)
-        self.client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+        self.client = AsyncOpenAI(
+            api_key=settings.OPENAI_API_KEY,
+            base_url=settings.OPENAI_BASE_URL
+        )
 
     async def get_embedding(self, text: str) -> List[float]:
         response = await self.client.embeddings.create(
@@ -21,8 +21,7 @@ class VectorStore:
     async def similarity_search(self, query: str, k: int = 5):
         query_vector = await self.get_embedding(query)
         
-        with self.SessionLocal() as session:
-            # Join with Product, ProcessPlan, and BeolOption to get rich context
+        with SessionLocal() as session:
             results = session.query(
                 PhotoKeyEmbedding.content,
                 PhotoKeyEmbedding.photo_key_id,

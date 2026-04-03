@@ -1,7 +1,7 @@
 from typing import List
 from openai import AsyncOpenAI
 from .base import EmbeddingProvider
-from ..config import settings
+from ...core.config import settings
 
 class UniversalOpenAICompatibleProvider(EmbeddingProvider):
     """

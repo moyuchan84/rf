@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, String, DateTime, Text, ForeignKey
 from sqlalchemy.orm import relationship, DeclarativeBase
 from sqlalchemy.sql import func
 from pgvector.sqlalchemy import Vector
-from .config import settings
+from app.core.config import settings
 
 class Base(DeclarativeBase):
     pass
