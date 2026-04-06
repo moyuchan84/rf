@@ -19,15 +19,15 @@ export const TableCompareSelector: React.FC = () => {
   } = useTableCompare();
 
   return (
-    <div className="flex-1 flex flex-col min-w-0 gap-6 p-6 overflow-hidden">
-      <header className="flex flex-col gap-1">
+    <div className="h-full flex flex-col min-w-0 gap-6 p-6 overflow-hidden">
+      <header className="flex flex-col gap-1 shrink-0">
         <h2 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter transition-colors">키테이블 비교 (Table Comparison)</h2>
         <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Select a table and two revisions to analyze differences</p>
       </header>
 
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-hidden">
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-0 overflow-hidden">
         {/* Step 1: Search & Table List */}
-        <div className="lg:col-span-1 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl flex flex-col overflow-hidden shadow-sm">
+        <div className="lg:col-span-1 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl flex flex-col overflow-hidden shadow-sm min-h-0">
           <div className="p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />

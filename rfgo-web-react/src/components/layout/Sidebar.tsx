@@ -29,9 +29,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
   });
 
   const renderNavItem = (item: NavItem, isChild = false) => {
-    const isActive = location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path));
+    const isExactMatch = location.pathname === item.path;
+    const isRootPath = item.path !== '/' && !item.path.startsWith('#') && location.pathname.startsWith(item.path + '/');
+    const isActive = isExactMatch || isRootPath;
+    
     const hasChildren = item.children && item.children.length > 0;
-    const isExpanded = expandedItems.includes(item.label);
+    const isExpanded = expandedItems.includes(item.label) || (hasChildren && item.children?.some(child => location.pathname === child.path));
 
     if (hasChildren && !isCollapsed) {
       return (
