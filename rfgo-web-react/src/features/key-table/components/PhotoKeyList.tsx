@@ -9,13 +9,15 @@ import {
   Clock,
   LayoutGrid,
   FileSpreadsheet,
-  Zap
+  Zap,
+  ArrowRightLeft
 } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
 import { usePhotoKeys } from '../hooks/usePhotoKeys';
 import { usePhotoKeyDownload } from '../hooks/usePhotoKeyDownload';
 import { useKeyTableStore } from '../store/useKeyTableStore';
 import type { PhotoKey } from '../../master-data/types';
+import { PhotoKeyDiffModal } from './PhotoKeyDiffModal';
 
 interface PhotoKeyListProps {
   designRule?: string;
@@ -30,6 +32,42 @@ export const PhotoKeyList: React.FC<PhotoKeyListProps> = ({ designRule, optionNa
   
   const [searchQuery, setSearchBarQuery] = useState('');
   const [expandedTables, setExpandedTables] = useState<Record<string, boolean>>({});
+  
+  // Selection State for Comparison
+  const [selectedCompareIds, setSelectedCompareIds] = useState<number[]>([]);
+
+  // Comparison State for Modal
+  const [compareTarget, setCompareTarget] = useState<{
+    baseId: number;
+    targetId: number;
+    baseTitle: string;
+    targetTitle: string;
+  } | null>(null);
+
+  const toggleCompareSelection = (id: number) => {
+    setSelectedCompareIds(prev => {
+      if (prev.includes(id)) return prev.filter(i => i !== id);
+      if (prev.length >= 2) return [prev[1], id];
+      return [...prev, id];
+    });
+  };
+
+  const handleSelectedCompare = () => {
+    if (selectedCompareIds.length === 2) {
+      const v1 = photoKeys.find(k => k.id === selectedCompareIds[0]);
+      const v2 = photoKeys.find(k => k.id === selectedCompareIds[1]);
+      if (v1 && v2) {
+        // Sort by revNo to set lower as base
+        const [base, target] = (v1.revNo || 0) < (v2.revNo || 0) ? [v1, v2] : [v2, v1];
+        setCompareTarget({
+          baseId: base.id,
+          targetId: target.id,
+          baseTitle: `${base.tableName} (Rev.${base.revNo})`,
+          targetTitle: `${target.tableName} (Rev.${target.revNo})`
+        });
+      }
+    }
+  };
 
   // Group and Filter Logic
   const nestedHierarchy = useMemo(() => {
@@ -93,6 +131,16 @@ export const PhotoKeyList: React.FC<PhotoKeyListProps> = ({ designRule, optionNa
           </div>
         </div>
         <div className="flex gap-2.5">
+          {selectedCompareIds.length > 0 && (
+            <button 
+              onClick={handleSelectedCompare}
+              disabled={selectedCompareIds.length !== 2}
+              className="flex items-center gap-2 px-4 py-1.5 bg-amber-500 hover:bg-amber-600 disabled:bg-slate-200 disabled:text-slate-400 text-white rounded-md shadow-md shadow-amber-600/20 transition-all text-[10px] font-black uppercase tracking-widest active:scale-95"
+            >
+              <ArrowRightLeft className="w-3.5 h-3.5" />
+              Compare Selected ({selectedCompareIds.length}/2)
+            </button>
+          )}
           {Object.keys(nestedHierarchy).length > 0 && (
             <button 
               onClick={handleBulkDownload}
@@ -225,6 +273,24 @@ export const PhotoKeyList: React.FC<PhotoKeyListProps> = ({ designRule, optionNa
                                     )}
                                   >
                                     <div className="flex items-center gap-4 flex-1 min-w-0">
+                                      {/* Selection Checkbox/Indicator */}
+                                      <div 
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          toggleCompareSelection(v.id);
+                                        }}
+                                        className={cn(
+                                          "w-5 h-5 rounded border-2 flex items-center justify-center transition-all shrink-0",
+                                          selectedCompareIds.includes(v.id)
+                                            ? "bg-amber-500 border-amber-500 text-white shadow-sm"
+                                            : "border-slate-200 dark:border-slate-700 hover:border-amber-400 bg-white dark:bg-slate-800"
+                                        )}
+                                      >
+                                        {selectedCompareIds.includes(v.id) && (
+                                          <div className="text-[10px] font-black">{selectedCompareIds.indexOf(v.id) + 1}</div>
+                                        )}
+                                      </div>
+
                                       <Clock className={cn("w-4 h-4 shrink-0", selectedKey?.id === v.id ? "text-indigo-500" : "text-slate-300")} />
                                       <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2">
@@ -236,13 +302,34 @@ export const PhotoKeyList: React.FC<PhotoKeyListProps> = ({ designRule, optionNa
                                         <p className="text-[9px] text-slate-500 truncate italic mt-0.5">{v.filename}</p>
                                       </div>
                                     </div>
-                                    <button 
-                                      onClick={(e) => handleDownload(e, v)}
-                                      disabled={isDownloading(v.id)}
-                                      className="ml-4 p-2 rounded bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-indigo-600 shadow-sm transition-all active:scale-90"
-                                    >
-                                      {isDownloading(v.id) ? <Zap className="w-4 h-4 animate-pulse" /> : <Download className="w-4 h-4" />}
-                                    </button>
+                                    <div className="flex gap-2">
+                                      {versions.findIndex(prev => prev.id === v.id) < versions.length - 1 && (
+                                        <button 
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            const idx = versions.findIndex(prev => prev.id === v.id);
+                                            const prevV = versions[idx + 1];
+                                            setCompareTarget({
+                                              baseId: prevV.id,
+                                              targetId: v.id,
+                                              baseTitle: `REV.${prevV.revNo}`,
+                                              targetTitle: `REV.${v.revNo}`
+                                            });
+                                          }}
+                                          title="Compare with previous version"
+                                          className="p-2 rounded bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-indigo-600 shadow-sm transition-all active:scale-90"
+                                        >
+                                          <ArrowRightLeft className="w-4 h-4" />
+                                        </button>
+                                      )}
+                                      <button 
+                                        onClick={(e) => handleDownload(e, v)}
+                                        disabled={isDownloading(v.id)}
+                                        className="p-2 rounded bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-indigo-600 shadow-sm transition-all active:scale-90"
+                                      >
+                                        {isDownloading(v.id) ? <Zap className="w-4 h-4 animate-pulse" /> : <Download className="w-4 h-4" />}
+                                      </button>
+                                    </div>
                                   </div>
                                 ))}
                               </div>
@@ -265,6 +352,16 @@ export const PhotoKeyList: React.FC<PhotoKeyListProps> = ({ designRule, optionNa
           )}
         </div>
       </div>
+      
+      {compareTarget && (
+        <PhotoKeyDiffModal
+          baseId={compareTarget.baseId}
+          targetId={compareTarget.targetId}
+          baseTitle={compareTarget.baseTitle}
+          targetTitle={compareTarget.targetTitle}
+          onClose={() => setCompareTarget(null)}
+        />
+      )}
     </main>
   );
 };

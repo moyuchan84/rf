@@ -10,7 +10,8 @@ import {
   Mail,
   ShieldCheck,
   Settings,
-  Contact
+  Contact,
+  ArrowRightLeft
 } from 'lucide-react';
 
 export interface NavItem {
@@ -26,7 +27,15 @@ export const navItems: NavItem[] = [
   { icon: ClipboardList, label: '의뢰정보', path: '/requests' },
   { icon: Database, label: '기준정보', path: '/master-data' },
   { icon: Palette, label: '키디자인', path: '/key-design' },
-  { icon: Table2, label: '키테이블', path: '/key-table' },
+  { 
+    icon: Table2, 
+    label: '키테이블', 
+    path: '#key-table',
+    children: [
+      { icon: Table2, label: '키테이블 조회', path: '/key-table' },
+      { icon: ArrowRightLeft, label: '키테이블 비교', path: '/key-table/compare' },
+    ]
+  },
   { icon: Layers, label: '레이아웃', path: '/layout' },
   { icon: Search, label: 'R-BOT', path: '/rag' },
   { 

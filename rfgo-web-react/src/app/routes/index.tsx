@@ -5,6 +5,7 @@ import RequestsPage from '../../pages/RequestsPage';
 import MasterDataPage from '../../pages/MasterDataPage';
 import KeyDesignPage from '../../pages/KeyDesignPage';
 import KeyTablePage from '../../pages/KeyTablePage';
+import KeyTableComparePage from '../../pages/KeyTableComparePage';
 import KeyLayoutPage from '../../pages/KeyLayoutPage';
 import RagSearchPage from '../../pages/RagSearchPage';
 import MailingPage from '../../pages/MailingPage';
@@ -22,7 +23,13 @@ const router = createBrowserRouter([
       { path: 'requests', element: <RequestsPage /> },
       { path: 'master-data', element: <MasterDataPage /> },
       { path: 'key-design', element: <KeyDesignPage /> },
-      { path: 'key-table', element: <KeyTablePage /> },
+      { 
+        path: 'key-table', 
+        children: [
+          { index: true, element: <KeyTablePage /> },
+          { path: 'compare', element: <KeyTableComparePage /> },
+        ]
+      },
       { path: 'layout', element: <KeyLayoutPage /> },
       { path: 'mailing', element: <MailingPage /> },
       { path: 'approval', element: <ApprovalPage /> },
