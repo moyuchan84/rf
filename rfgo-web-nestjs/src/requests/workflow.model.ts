@@ -100,3 +100,30 @@ export class PhotoKey {
   @Field()
   updateDate: Date;
 }
+
+@ObjectType()
+export class DiffRow {
+  @Field()
+  status: string;
+
+  @Field(() => GraphQLJSON)
+  data: any;
+
+  @Field(() => GraphQLJSON, { nullable: true })
+  baseData?: any;
+
+  @Field(() => [String], { nullable: true })
+  changedFields?: string[];
+}
+
+@ObjectType()
+export class SheetDiff {
+  @Field()
+  sheetName: string;
+
+  @Field()
+  status: string;
+
+  @Field(() => [DiffRow], { nullable: true })
+  diffRows?: DiffRow[];
+}

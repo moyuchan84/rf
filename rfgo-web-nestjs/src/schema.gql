@@ -140,6 +140,13 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+type DiffRow {
+  baseData: JSON
+  changedFields: [String!]
+  data: JSON!
+  status: String!
+}
+
 enum DocSecuType {
   OFFICIAL
   PERSONAL
@@ -332,6 +339,7 @@ input ProductMetaInput {
 
 type Query {
   allSystemDefaultMailers: [SystemDefaultMailerDto!]!
+  comparePhotoKeys(baseId: Int!, targetId: Int!): [SheetDiff!]!
   gdsPathInfoByRequest(requestId: Int!): [GdsPathInfo!]!
   gdsPathInfosByProduct(productId: Int!): [GdsPathInfo!]!
   getMyApprovalPaths(userId: String!): [UserApprovalPathModel!]!
@@ -349,10 +357,12 @@ type Query {
   requestTables(requestId: Int!, type: String!): [RequestTableMap!]!
   roles: [RoleType!]!
   searchEmployees(input: EmployeeSearchInput!): EmployeeSearchResponseDto!
+  searchPhotoKeys(query: String!): [PhotoKey!]!
   searchPhotoKeysByStream(query: String!): [PhotoKey!]!
   streamInfoByRequest(requestId: Int!): [StreamInfo!]!
   streamInfosByBeolOption(beolOptionId: Int!): [StreamInfo!]!
   streamInfosByProduct(productId: Int!): [StreamInfo!]!
+  uniqueTableNames: [String!]!
   users(search: String, skip: Int! = 0, take: Int! = 10): PaginatedUsers!
 }
 
@@ -451,6 +461,12 @@ input SaveRequestTablesInput {
 
 input SenderDto {
   emailAddress: String!
+}
+
+type SheetDiff {
+  diffRows: [DiffRow!]
+  sheetName: String!
+  status: String!
 }
 
 type StreamInfo {

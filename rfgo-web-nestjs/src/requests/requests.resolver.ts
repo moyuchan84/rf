@@ -2,17 +2,21 @@ import { Args, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nes
 import { RequestsService } from './requests.service';
 import { RequestItem, PaginatedRequests } from './requests.model';
 import { CreateRequestItemInput, UpdateRequestItemInput } from './requests.dto';
-import { RequestAssignee, RequestStep, PhotoKey } from './workflow.model';
+import { RequestAssignee, RequestStep, PhotoKey, SheetDiff } from './workflow.model';
 import { AssignUserInput, UpdateStepInput } from './workflow.dto';
 import { StreamInfo, RequestTableMap, GdsPathInfo } from './step-data.model';
 import { CreateStreamInfoInput, SaveRequestTablesInput, CreateGdsPathInfoInput } from './step-data.dto';
 import { UseGuards } from '@nestjs/common';
 import { GqlAuthGuard } from '../auth/interface/guards/gql-auth.guard';
 import { CurrentUser } from '../auth/interface/decorators/current-user.decorator';
+import { DiffService } from './diff.service';
 
 @Resolver(() => RequestItem)
 export class RequestsResolver {
-  constructor(private service: RequestsService) {}
+  constructor(
+    private service: RequestsService,
+    private diffService: DiffService,
+  ) {}
 
   @Query(() => [RequestItem])
   async requestItemsByProduct(@Args('productId', { type: () => Int }) productId: number) {
@@ -85,6 +89,21 @@ export class RequestsResolver {
     return this.service.findPhotoKeys({ productId, beolOptionId, processPlanId });
   }
 
+  @Query(() => [SheetDiff])
+  async comparePhotoKeys(
+    @Args('baseId', { type: () => Int }) baseId: number,
+    @Args('targetId', { type: () => Int }) targetId: number,
+  ) {
+    const base = await this.service.findPhotoKeyById(baseId);
+    const target = await this.service.findPhotoKeyById(targetId);
+
+    if (!base || !target) {
+      throw new Error('PhotoKey not found');
+    }
+
+    return this.diffService.compareWorkbooks(base.workbookData, target.workbookData);
+  }
+
   // Step Data
   @Mutation(() => StreamInfo)
   async createStreamInfo(@Args('input') input: CreateStreamInfoInput) {
@@ -137,6 +156,16 @@ export class RequestsResolver {
   @Query(() => [PhotoKey])
   async searchPhotoKeysByStream(@Args('query') query: string) {
     return this.service.searchPhotoKeysByStream(query);
+  }
+
+  @Query(() => [PhotoKey])
+  async searchPhotoKeys(@Args('query') query: string) {
+    return this.service.searchPhotoKeys(query);
+  }
+
+  @Query(() => [String])
+  async uniqueTableNames() {
+    return this.service.getUniqueTableNames();
   }
 }
 

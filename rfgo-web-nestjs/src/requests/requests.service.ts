@@ -456,4 +456,30 @@ export class RequestsService {
       orderBy: { updateDate: 'desc' },
     });
   }
+
+  async searchPhotoKeys(query: string) {
+    return this.prisma.photoKey.findMany({
+      where: {
+        OR: [
+          { tableName: { contains: query, mode: 'insensitive' } },
+          { filename: { contains: query, mode: 'insensitive' } },
+        ],
+      },
+      include: {
+        product: true,
+        processPlan: true,
+        beolOption: true,
+      },
+      orderBy: { updateDate: 'desc' },
+    });
+  }
+
+  async getUniqueTableNames() {
+    const result = await this.prisma.photoKey.findMany({
+      distinct: ['tableName'],
+      select: { tableName: true },
+      orderBy: { tableName: 'asc' },
+    });
+    return result.map((r) => r.tableName);
+  }
 }
