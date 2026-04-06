@@ -1,6 +1,7 @@
 import os
 import sys
 import random
+import copy
 from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, DateTime, text, Float, Text, ARRAY, Boolean, JSON, LargeBinary
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 from datetime import datetime, timedelta
@@ -256,13 +257,44 @@ def seed_requests(db):
     db.commit()
     print("Requests seeding finished.")
 
-def create_mock_workbook(filename, table_name):
-    """Generates a simplified WorkbookData JSON structure."""
+def create_mock_workbook(filename, table_name, rev_no=1, variation_seed=0):
+    """Generates a simplified WorkbookData JSON structure with variations based on rev_no."""
+    
+    # Base data
+    data = [
+        {"col_0": "K101", "col_1": 10.523, "col_2": -42.112, "col_3": "ALIGN", "col_4": 80.0},
+        {"col_0": "K102", "col_1": 50.112, "col_2": 12.887, "col_3": "ALIGN", "col_4": 80.0},
+        {"col_0": "OVL1", "col_1": -12.000, "col_2": -5.500, "col_3": "OVERLAY", "col_4": 45.0},
+        {"col_0": "OVL2", "col_1": 112.44, "col_2": 88.33, "col_3": "OVERLAY", "col_4": 45.0}
+    ]
+
+    # Apply variations for higher revisions or variation_seed
+    processed_data = []
+    for row in data:
+        new_row = copy.deepcopy(row)
+        if rev_no > 1 or variation_seed > 0:
+            # Shift coordinates slightly
+            new_row["col_1"] = round(new_row["col_1"] + (rev_no * 0.01) + (variation_seed * 0.005), 4)
+            new_row["col_2"] = round(new_row["col_2"] - (rev_no * 0.01) - (variation_seed * 0.005), 4)
+            
+            # Randomly change type for one row to test 'modified'
+            if new_row["col_0"] == "K101" and rev_no % 2 == 0:
+                new_row["col_3"] = "ALIGN_UPDATED"
+        processed_data.append(new_row)
+
+    # Add a row in later revisions to test 'added'
+    if rev_no >= 3:
+        processed_data.append({"col_0": f"NEW_{rev_no}", "col_1": 0.0, "col_2": 0.0, "col_3": "TEMP", "col_4": 10.0})
+
+    # Remove a row in specific variation to test 'removed'
+    if variation_seed > 5:
+        processed_data = [r for r in processed_data if r["col_0"] != "OVL2"]
+
     return {
         "Meta": {
             "FileName": filename,
             "FullPath": f"C:\\Users\\Mock\\Documents\\{filename}",
-            "Revision": random.randint(1, 5),
+            "Revision": rev_no,
             "SuggestedTableName": table_name
         },
         "Worksheets": [
@@ -277,8 +309,7 @@ def create_mock_workbook(filename, table_name):
                     {"Key": "col_3", "Name": "LOG", "Index": 3}
                 ],
                 "TableData": [
-                    {"col_0": "1.0", "col_1": "2024-01-01", "col_2": "admin", "col_3": "Initial Setup"},
-                    {"col_0": "1.1", "col_1": "2024-02-15", "col_2": "rfg_manager", "col_3": "Updated ALIGN markers"}
+                    {"col_0": f"{rev_no}.0", "col_1": datetime.utcnow().strftime("%Y-%m-%d"), "col_2": "admin", "col_3": f"Rev {rev_no} Update"}
                 ],
                 "MetaInfo": {}
             },
@@ -290,7 +321,7 @@ def create_mock_workbook(filename, table_name):
                 "MetaInfo": {
                     "Product": "MOCK_PROD",
                     "Step": "PHOTO_STEP_01",
-                    "Revision": "1.1"
+                    "Revision": f"{rev_no}.0"
                 },
                 "Columns": [
                     {"Key": "col_0", "Name": "KEY_ID", "Index": 0},
@@ -299,46 +330,92 @@ def create_mock_workbook(filename, table_name):
                     {"Key": "col_3", "Name": "TYPE", "Index": 3},
                     {"Key": "col_4", "Name": "SIZE", "Index": 4}
                 ],
-                "TableData": [
-                    {"col_0": "K101", "col_1": 10.523, "col_2": -42.112, "col_3": "ALIGN", "col_4": 80.0},
-                    {"col_0": "K102", "col_1": 50.112, "col_2": 12.887, "col_3": "ALIGN", "col_4": 80.0},
-                    {"col_0": "OVL1", "col_1": -12.000, "col_2": -5.500, "col_3": "OVERLAY", "col_4": 45.0},
-                    {"col_0": "OVL2", "col_1": 112.44, "col_2": 88.33, "col_3": "OVERLAY", "col_4": 45.0}
-                ]
+                "TableData": processed_data
             }
         ]
     }
 
 def seed_photo_keys(db):
-    print("--- Seeding Photo Keys ---")
+    print("--- Seeding Photo Keys (Enhanced for Comparison) ---")
     products = db.query(Product).all()
-    beol_options = {b.id: b.process_plan_id for b in db.query(BeolOption).all()}
+    beol_options = {b.id: b for b in db.query(BeolOption).all()}
     
-    for prod in random.sample(products, 15):  # Seed for 15 products
-        plan_id = beol_options[prod.beol_option_id]
-        
-        # Create 2-3 PhotoKeys per product
-        for i in range(random.randint(2, 3)):
-            table_name = f"PK_{prod.partid}_{['ALIGN', 'OVERLAY', 'META'][i % 3]}"
-            filename = f"PHOTO_KEY_{prod.partid}_R{i+1}.xlsx"
+    # 1. Common Tables across different products (UseCase: Different Product - Same Table Name)
+    common_table_names = ["GLOBAL_ALIGN_STANDARD", "GOLDEN_OVERLAY_RULE", "META_PROCESS_COMMON"]
+    
+    for table_name in common_table_names:
+        # Pick 5 random products to share this table
+        shared_products = random.sample(products, 5)
+        for prod in shared_products:
+            plan_id = beol_options[prod.beol_option_id].process_plan_id
             
+            # Each product has 1-2 revisions of this common table
+            for rev in range(1, random.randint(2, 3)):
+                filename = f"COMMON_{table_name}_{prod.partid}_R{rev}.xlsx"
+                pk = PhotoKey(
+                    product_id=prod.id,
+                    process_plan_id=plan_id,
+                    beol_option_id=prod.beol_option_id,
+                    rfg_category="common",
+                    photo_category="key",
+                    is_reference=(rev == 1),
+                    table_name=table_name,
+                    rev_no=rev,
+                    workbook_data=create_mock_workbook(filename, table_name, rev, variation_seed=prod.id % 10),
+                    filename=filename,
+                    updater="admin_user",
+                    log=f"Shared table {table_name} for product {prod.partid}"
+                )
+                db.add(pk)
+
+    # 2. Product-specific Tables with multiple revisions (UseCase: Same Product - Same Table Name - Different Rev)
+    for prod in random.sample(products, 10):
+        plan_id = beol_options[prod.beol_option_id].process_plan_id
+        
+        # Create 3-5 revisions for a specific table to test history comparison
+        table_name = f"PK_{prod.partid}_LOCAL_ALIGN"
+        for rev in range(1, random.randint(4, 6)):
+            filename = f"{table_name}_R{rev}.xlsx"
             pk = PhotoKey(
                 product_id=prod.id,
                 process_plan_id=plan_id,
                 beol_option_id=prod.beol_option_id,
-                rfg_category=random.choice(["common", "option"]),
-                photo_category=random.choice(["key", "info"]),
-                is_reference=(i == 0),
+                rfg_category="option",
+                photo_category="key",
+                is_reference=(rev == 1),
                 table_name=table_name,
-                rev_no=i + 1,
-                workbook_data=create_mock_workbook(filename, table_name),
-                raw_binary=b"dummy binary content",
+                rev_no=rev,
+                workbook_data=create_mock_workbook(filename, table_name, rev),
                 filename=filename,
-                updater="admin_user",
-                log=f"Auto-generated mock data for {prod.partid} rev {i+1}"
+                updater="rfg_manager",
+                log=f"Internal revision {rev} for {prod.partid}"
             )
             db.add(pk)
+
+    # 3. Bulk tables for searching
+    for i in range(1, 101):
+        prod = random.choice(products)
+        plan_id = beol_options[prod.beol_option_id].process_plan_id
+        table_name = f"TEST_SEARCH_TABLE_{i:03d}"
+        filename = f"SEARCH_TEST_{i}.xlsx"
+        pk = PhotoKey(
+            product_id=prod.id,
+            process_plan_id=plan_id,
+            beol_option_id=prod.beol_option_id,
+            rfg_category="test",
+            photo_category="key",
+            is_reference=True,
+            table_name=table_name,
+            rev_no=1,
+            workbook_data=create_mock_workbook(filename, table_name),
+            filename=filename,
+            updater="tester",
+            log="Search test data"
+        )
+        db.add(pk)
+
     db.commit()
+    print("Photo Keys seeding finished.")
 
 def seed_stream_info(db):
     print("--- Seeding Stream Info ---")
