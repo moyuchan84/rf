@@ -131,6 +131,7 @@ class StreamInfo(Base):
 
 class N7MaskBeol(Base):
     __tablename__ = "n7_maskbeol"
+    __table_args__ = {"schema": "smartdne"}
     id = Column(Integer, primary_key=True, index=True)
     obid = Column(String(24))
     n7beol = Column(String(20))
