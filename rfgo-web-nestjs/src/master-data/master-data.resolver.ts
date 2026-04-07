@@ -54,4 +54,14 @@ export class MasterDataResolver {
   async deleteProduct(@Args('id', { type: () => Int }) id: number) {
     return this.service.deleteProduct(id);
   }
+
+  @Query(() => [String])
+  async uniqueProcessGroups() {
+    return this.service.getUniqueProcessGroups();
+  }
+
+  @Query(() => [String])
+  async uniqueBeols(@Args('processGrp') processGrp: string) {
+    return this.service.getUniqueBeols(processGrp);
+  }
 }

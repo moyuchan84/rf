@@ -368,3 +368,25 @@ model RequestTableMap {
   @@index([id], map: "ix_request_table_maps_id")
   @@map("request_table_maps")
 }
+
+model N7MaskBeol {
+  id               Int      @id @default(autoincrement())
+  obid             String?  @db.VarChar(24)
+  n7beol           String?  @db.VarChar(20)
+  n7processGrp     String?  @map("n7process_grp") @db.VarChar(20)
+  n7makeDate       String?  @map("n7make_date") @db.VarChar(20)
+  n7makeId         String?  @map("n7make_id") @db.VarChar(20)
+  n7makeName       String?  @map("n7make_name") @db.VarChar(60)
+  n7makeTeamname   String?  @map("n7make_teamname") @db.VarChar(60)
+  n7modifyDate     String?  @map("n7modify_date") @db.VarChar(20)
+  n7modifyId       String?  @map("n7modify_id") @db.VarChar(20)
+  n7modifyName     String?  @map("n7modify_name") @db.VarChar(20)
+  n7modifyTeamname String?  @map("n7modify_teamname") @db.VarChar(60)
+  n7useFlag        String?  @map("n7use_flag") @db.VarChar(1)
+  n7makeIdJmody    String?  @map("n7make_id_jmody") @db.VarChar(1)
+  n7modifyIdJmody  String?  @map("n7modify_id_jmody") @db.VarChar(1)
+  n7customerFlag   String?  @map("n7customer_flag") @db.VarChar(3)
+  createdAt        DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("n7_maskbeol")
+}

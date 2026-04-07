@@ -102,4 +102,28 @@ export class MasterDataService {
   async deleteProduct(id: number) {
     return this.prisma.product.delete({ where: { id } });
   }
+
+  // N7MaskBeol lookups
+  async getUniqueProcessGroups() {
+    const results = await this.prisma.n7MaskBeol.findMany({
+      distinct: ['n7processGrp'],
+      select: { n7processGrp: true },
+      where: { n7processGrp: { not: null } },
+      orderBy: { n7processGrp: 'asc' },
+    });
+    return results.map(r => r.n7processGrp);
+  }
+
+  async getUniqueBeols(processGrp: string) {
+    const results = await this.prisma.n7MaskBeol.findMany({
+      distinct: ['n7beol'],
+      select: { n7beol: true },
+      where: { 
+        n7processGrp: processGrp,
+        n7beol: { not: null }
+      },
+      orderBy: { n7beol: 'asc' },
+    });
+    return results.map(r => r.n7beol);
+  }
 }
