@@ -2,7 +2,7 @@ import { Args, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nes
 import { RequestsService } from './requests.service';
 import { RequestItem, PaginatedRequests } from './requests.model';
 import { CreateRequestItemInput, UpdateRequestItemInput } from './requests.dto';
-import { RequestAssignee, RequestStep, PhotoKey, SheetDiff } from './workflow.model';
+import { RequestAssignee, RequestStep, PhotoKey, SheetDiff, PaginatedTableNames } from './workflow.model';
 import { AssignUserInput, UpdateStepInput } from './workflow.dto';
 import { StreamInfo, RequestTableMap, GdsPathInfo } from './step-data.model';
 import { CreateStreamInfoInput, SaveRequestTablesInput, CreateGdsPathInfoInput } from './step-data.dto';
@@ -163,9 +163,13 @@ export class RequestsResolver {
     return this.service.searchPhotoKeys(query);
   }
 
-  @Query(() => [String])
-  async uniqueTableNames() {
-    return this.service.getUniqueTableNames();
+  @Query(() => PaginatedTableNames)
+  async uniqueTableNames(
+    @Args('skip', { type: () => Int, defaultValue: 0 }) skip: number,
+    @Args('take', { type: () => Int, defaultValue: 20 }) take: number,
+    @Args('search', { type: () => String, nullable: true }) search?: string,
+  ) {
+    return this.service.getUniqueTableNames(skip, take, search);
   }
 }
 

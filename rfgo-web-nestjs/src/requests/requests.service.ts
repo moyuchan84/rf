@@ -474,12 +474,31 @@ export class RequestsService {
     });
   }
 
-  async getUniqueTableNames() {
-    const result = await this.prisma.photoKey.findMany({
-      distinct: ['tableName'],
-      select: { tableName: true },
-      orderBy: { tableName: 'asc' },
-    });
-    return result.map((r) => r.tableName);
+  async getUniqueTableNames(skip: number = 0, take: number = 20, search?: string) {
+    const where: any = {};
+    if (search) {
+      where.tableName = { contains: search, mode: 'insensitive' };
+    }
+
+    const [result, totalCount] = await Promise.all([
+      this.prisma.photoKey.findMany({
+        where,
+        distinct: ['tableName'],
+        select: { tableName: true },
+        orderBy: { tableName: 'asc' },
+        skip,
+        take,
+      }),
+      this.prisma.photoKey.groupBy({
+        by: ['tableName'],
+        where,
+        _count: true,
+      }).then(res => res.length),
+    ]);
+
+    return {
+      items: result.map((r) => r.tableName),
+      totalCount,
+    };
   }
 }

@@ -127,3 +127,12 @@ export class SheetDiff {
   @Field(() => [DiffRow], { nullable: true })
   diffRows?: DiffRow[];
 }
+
+@ObjectType()
+export class PaginatedTableNames {
+  @Field(() => [String])
+  items: string[];
+
+  @Field(() => Int)
+  totalCount: number;
+}

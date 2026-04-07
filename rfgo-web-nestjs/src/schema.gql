@@ -267,6 +267,11 @@ type PaginatedRequests {
   totalCount: Int!
 }
 
+type PaginatedTableNames {
+  items: [String!]!
+  totalCount: Int!
+}
+
 type PaginatedUsers {
   items: [UserType!]!
   totalCount: Int!
@@ -362,7 +367,7 @@ type Query {
   streamInfoByRequest(requestId: Int!): [StreamInfo!]!
   streamInfosByBeolOption(beolOptionId: Int!): [StreamInfo!]!
   streamInfosByProduct(productId: Int!): [StreamInfo!]!
-  uniqueTableNames: [String!]!
+  uniqueTableNames(search: String, skip: Int! = 0, take: Int! = 20): PaginatedTableNames!
   users(search: String, skip: Int! = 0, take: Int! = 10): PaginatedUsers!
 }
 
