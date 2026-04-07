@@ -129,6 +129,26 @@ class StreamInfo(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     update_time = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+class N7MaskBeol(Base):
+    __tablename__ = "n7_maskbeol"
+    id = Column(Integer, primary_key=True, index=True)
+    obid = Column(String(24))
+    n7beol = Column(String(20))
+    n7process_grp = Column(String(20))
+    n7make_date = Column(String(20))
+    n7make_id = Column(String(20))
+    n7make_name = Column(String(60))
+    n7make_teamname = Column(String(60))
+    n7modify_date = Column(String(20))
+    n7modify_id = Column(String(20))
+    n7modify_name = Column(String(20))
+    n7modify_teamname = Column(String(60))
+    n7use_flag = Column(String(1))
+    n7make_id_jmody = Column(String(1))
+    n7modify_id_jmody = Column(String(1))
+    n7customer_flag = Column(String(3))
+    created_at = Column(DateTime, default=datetime.utcnow)
+
 # --- Seeding Logic ---
 
 def seed_roles(db):
@@ -439,12 +459,43 @@ def seed_stream_info(db):
         db.add(si)
     db.commit()
 
+def seed_n7_maskbeol(db):
+    print("--- Seeding N7 MaskBeol ---")
+    data = [
+        # Process Grp A
+        {"n7process_grp": "GAA_V1", "n7beol": "7METAL", "obid": "OBID001"},
+        {"n7process_grp": "GAA_V1", "n7beol": "9METAL", "obid": "OBID002"},
+        {"n7process_grp": "GAA_V1", "n7beol": "11METAL", "obid": "OBID003"},
+        # Process Grp B
+        {"n7process_grp": "FINFET_LPE", "n7beol": "5METAL", "obid": "OBID004"},
+        {"n7process_grp": "FINFET_LPE", "n7beol": "8METAL", "obid": "OBID005"},
+        # Process Grp C
+        {"n7process_grp": "EUV_ULTRA", "n7beol": "13METAL", "obid": "OBID006"},
+        {"n7process_grp": "EUV_ULTRA", "n7beol": "15METAL", "obid": "OBID007"},
+    ]
+    
+    for item in data:
+        if not db.query(N7MaskBeol).filter(
+            N7MaskBeol.n7process_grp == item["n7process_grp"], 
+            N7MaskBeol.n7beol == item["n7beol"]
+        ).first():
+            db.add(N7MaskBeol(
+                **item,
+                n7make_date="20240101",
+                n7make_id="admin",
+                n7make_name="Admin",
+                n7use_flag="Y",
+                n7customer_flag="ALL"
+            ))
+    db.commit()
+
 def run_seed():
     db = SessionLocal()
     try:
         seed_roles(db)
         seed_users(db)
         seed_master_data(db)
+        seed_n7_maskbeol(db)
         seed_requests(db)
         seed_photo_keys(db)
         seed_stream_info(db)
