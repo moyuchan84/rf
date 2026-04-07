@@ -1,11 +1,15 @@
-import { useQuery, useMutation } from '@apollo/client/react';
+import { useQuery, useMutation, useLazyQuery } from '@apollo/client/react';
 import { 
   GET_PROCESS_PLANS, 
   CREATE_PROCESS_PLAN, 
   CREATE_BEOL_OPTION, 
   CREATE_PRODUCT, 
   UPDATE_PRODUCT, 
-  DELETE_PRODUCT 
+  DELETE_PRODUCT,
+  DELETE_PROCESS_PLAN,
+  DELETE_BEOL_OPTION,
+  GET_UNIQUE_PROCESS_GROUPS,
+  GET_UNIQUE_BEOLS
 } from '../api/masterDataQueries';
 import { useMasterDataStore } from '../store/useMasterDataStore';
 import type { ProcessPlan, ProductMeta } from '../types';
@@ -19,6 +23,11 @@ export const useMasterData = () => {
   const [createProductMutation] = useMutation(CREATE_PRODUCT);
   const [updateProductMutation] = useMutation(UPDATE_PRODUCT);
   const [deleteProductMutation] = useMutation(DELETE_PRODUCT);
+  const [deleteProcessPlanMutation] = useMutation(DELETE_PROCESS_PLAN);
+  const [deleteBeolOptionMutation] = useMutation(DELETE_BEOL_OPTION);
+
+  const [fetchProcessGroups, { data: processGroupsData, loading: loadingProcessGroups }] = useLazyQuery<{ uniqueProcessGroups: string[] }>(GET_UNIQUE_PROCESS_GROUPS);
+  const [fetchBeols, { data: beolsData, loading: loadingBeols }] = useLazyQuery<{ uniqueBeols: string[] }>(GET_UNIQUE_BEOLS);
 
   const createProcessPlan = async (designRule: string) => {
     await createProcessPlanMutation({ variables: { input: { designRule } } });
@@ -54,6 +63,16 @@ export const useMasterData = () => {
     await refetch();
   };
 
+  const deleteProcessPlan = async (id: number) => {
+    await deleteProcessPlanMutation({ variables: { id } });
+    await refetch();
+  };
+
+  const deleteBeolOption = async (id: number) => {
+    await deleteBeolOptionMutation({ variables: { id } });
+    await refetch();
+  };
+
   return {
     processPlans: data?.processPlans || [],
     loading,
@@ -67,6 +86,15 @@ export const useMasterData = () => {
     createProduct,
     updateProduct,
     deleteProduct,
+    deleteProcessPlan,
+    deleteBeolOption,
     refetch,
+    // Lookups
+    fetchProcessGroups,
+    processGroups: processGroupsData?.uniqueProcessGroups || [],
+    loadingProcessGroups,
+    fetchBeols,
+    beols: beolsData?.uniqueBeols || [],
+    loadingBeols,
   };
 };

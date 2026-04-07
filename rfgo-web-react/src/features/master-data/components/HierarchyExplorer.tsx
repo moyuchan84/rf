@@ -13,7 +13,11 @@ const HierarchyExplorer: React.FC = () => {
   };
 
   const handleCreateChild = (type: SelectedNode['type'], parentData: any, path: string[]) => {
-    setSelectedNode({ type, id: -1, data: { parentId: parentData.id }, path });
+    const data: any = { parentId: parentData.id };
+    if (type === 'option') {
+      data.designRule = parentData.designRule;
+    }
+    setSelectedNode({ type, id: -1, data, path });
     setIsFormOpen(true);
   };
 

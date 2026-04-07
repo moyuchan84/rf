@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ChevronRight, Trash2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ChevronRight, Trash2, Loader2 } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
 import { useMasterData } from '../hooks/useMasterData';
 import {type ProductMeta } from '../types';
@@ -14,6 +14,7 @@ interface FormData {
 
 const MasterDataForm: React.FC = () => {
   const { 
+    processPlans,
     selectedNode, 
     setSelectedNode, 
     setIsFormOpen, 
@@ -21,9 +22,19 @@ const MasterDataForm: React.FC = () => {
     createBeolOption, 
     createProduct, 
     updateProduct, 
-    deleteProduct 
+    deleteProduct,
+    deleteProcessPlan,
+    deleteBeolOption,
+    // Lookups
+    fetchProcessGroups,
+    processGroups,
+    loadingProcessGroups,
+    fetchBeols,
+    beols,
+    loadingBeols
   } = useMasterData();
 
+  const [isManualBeol, setIsManualBeol] = useState(false);
   const [formData, setFormData] = useState<FormData>(() => {
     if (selectedNode?.id !== -1 && selectedNode?.data) {
       return {
@@ -59,6 +70,34 @@ const MasterDataForm: React.FC = () => {
     };
   });
   const mode = selectedNode?.id === -1 ? 'create' : 'edit';
+
+  // 1. Filter Process Groups: Exclude ones that already exist in processPlans
+  const availableProcessGroups = React.useMemo(() => {
+    const existingRules = new Set(processPlans.map(p => p.designRule));
+    return processGroups.filter(grp => !existingRules.has(grp));
+  }, [processGroups, processPlans]);
+
+  // 2. Filter BEOL Options: Exclude ones that already exist under the selected ProcessPlan
+  const availableBeols = React.useMemo(() => {
+    if (selectedNode?.type !== 'option' || !selectedNode.data?.parentId) return beols;
+    const parentPlan = processPlans.find(p => p.id === Number(selectedNode.data.parentId));
+    const existingOptions = new Set(parentPlan?.beolOptions.map(o => o.optionName) || []);
+    return beols.filter(beol => !existingOptions.has(beol));
+  }, [beols, selectedNode, processPlans]);
+
+  // Load process groups on mount if creating plan
+  useEffect(() => {
+    if (selectedNode?.type === 'plan' && selectedNode.id === -1) {
+      fetchProcessGroups();
+    }
+  }, [selectedNode?.type, selectedNode?.id, fetchProcessGroups]);
+
+  // Load beols when design rule is available (for option creation)
+  useEffect(() => {
+    if (selectedNode?.type === 'option' && selectedNode.id === -1 && selectedNode.data?.designRule) {
+      fetchBeols({ variables: { processGrp: selectedNode.data.designRule } });
+    }
+  }, [selectedNode?.type, selectedNode?.id, selectedNode?.data?.designRule, fetchBeols]);
 
   if (!selectedNode) return null;
 
@@ -107,10 +146,14 @@ const MasterDataForm: React.FC = () => {
   };
 
   const handleDelete = async () => {
-    if (!window.confirm('Are you sure you want to delete this item?')) return;
+    if (!window.confirm(`Are you sure you want to delete this ${selectedNode.type}? All related sub-items will also be removed.`)) return;
     try {
       if (selectedNode.type === 'product') {
         await deleteProduct(Number(selectedNode.id));
+      } else if (selectedNode.type === 'option') {
+        await deleteBeolOption(Number(selectedNode.id));
+      } else if (selectedNode.type === 'plan') {
+        await deleteProcessPlan(Number(selectedNode.id));
       }
       setIsFormOpen(false);
       setSelectedNode(null);
@@ -130,7 +173,7 @@ const MasterDataForm: React.FC = () => {
             {mode === 'create' ? 'Create' : 'Edit'} {selectedNode.type}
           </span>
         </div>
-        {mode === 'edit' && selectedNode.type === 'product' && (
+        {mode === 'edit' && (
           <button
             onClick={handleDelete}
             className="flex items-center gap-2 px-4 py-2 text-[8px] font-black text-red-500 hover:bg-red-500/10 rounded-md transition-all uppercase tracking-[0.2em] active:scale-95"
@@ -156,25 +199,82 @@ const MasterDataForm: React.FC = () => {
         <div className="space-y-8">
           {selectedNode.type === 'plan' && (
             <div className="space-y-3">
-              <label className="text-[8px] font-black text-slate-500 uppercase tracking-[0.3em] ml-1">Design Rule</label>
-              <input
-                value={formData.designRule}
-                onChange={(e) => setFormData({ ...formData, designRule: e.target.value })}
-                className="w-full bg-slate-50 dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 rounded-md px-6 py-4 text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-600/50 transition-all font-bold placeholder:text-slate-300 dark:placeholder:text-slate-800 shadow-sm"
-                placeholder="e.g. 14nm"
-              />
+              <label className="text-[8px] font-black text-slate-500 uppercase tracking-[0.3em] ml-1 flex justify-between">
+                Design Rule (Process Group)
+                {mode === 'create' && loadingProcessGroups && <Loader2 className="w-2.5 h-2.5 animate-spin" />}
+              </label>
+              {mode === 'create' ? (
+                <select
+                  value={formData.designRule}
+                  onChange={(e) => setFormData({ ...formData, designRule: e.target.value })}
+                  className="w-full bg-slate-50 dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 rounded-md px-6 py-4 text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-600/50 transition-all font-bold shadow-sm appearance-none"
+                >
+                  <option value="">Select a Process Group...</option>
+                  {availableProcessGroups.map(grp => (
+                    <option key={grp} value={grp}>{grp}</option>
+                  ))}
+                </select>
+              ) : (
+                <div className="w-full bg-slate-100 dark:bg-slate-900/50 border-2 border-transparent rounded-md px-6 py-4 text-sm text-slate-900 dark:text-white font-black uppercase tracking-wider">
+                  {formData.designRule}
+                </div>
+              )}
             </div>
           )}
 
           {selectedNode.type === 'option' && (
             <div className="space-y-3">
-              <label className="text-[8px] font-black text-slate-500 uppercase tracking-[0.3em] ml-1">Option Name (BEOL)</label>
-              <input
-                value={formData.optionName}
-                onChange={(e) => setFormData({ ...formData, optionName: e.target.value })}
-                className="w-full bg-slate-50 dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 rounded-md px-6 py-4 text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-600/50 transition-all font-bold placeholder:text-slate-300 dark:placeholder:text-slate-800 shadow-sm"
-                placeholder="e.g. OPT_A"
-              />
+              <label className="text-[8px] font-black text-slate-500 uppercase tracking-[0.3em] ml-1 flex justify-between">
+                Option Name (BEOL)
+                {mode === 'create' && loadingBeols && <Loader2 className="w-2.5 h-2.5 animate-spin" />}
+              </label>
+              {mode === 'create' ? (
+                <div className="space-y-3">
+                  {!isManualBeol ? (
+                    <select
+                      value={formData.optionName}
+                      onChange={(e) => {
+                        if (e.target.value === 'MANUAL_INPUT') {
+                          setIsManualBeol(true);
+                          setFormData({ ...formData, optionName: '' });
+                        } else {
+                          setFormData({ ...formData, optionName: e.target.value });
+                        }
+                      }}
+                      className="w-full bg-slate-50 dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 rounded-md px-6 py-4 text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-600/50 transition-all font-bold shadow-sm appearance-none"
+                    >
+                      <option value="">Select a BEOL Option...</option>
+                      {availableBeols.map(beol => (
+                        <option key={beol} value={beol}>{beol}</option>
+                      ))}
+                      <option value="MANUAL_INPUT" className="text-indigo-600 dark:text-indigo-400 font-black">+ Add Manually...</option>
+                    </select>
+                  ) : (
+                    <div className="flex gap-2">
+                      <input
+                        autoFocus
+                        value={formData.optionName}
+                        onChange={(e) => setFormData({ ...formData, optionName: e.target.value })}
+                        className="flex-1 bg-slate-50 dark:bg-slate-950 border-2 border-indigo-500/30 rounded-md px-6 py-4 text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-600/50 transition-all font-bold shadow-sm"
+                        placeholder="Type BEOL option name..."
+                      />
+                      <button
+                        onClick={() => {
+                          setIsManualBeol(false);
+                          setFormData({ ...formData, optionName: '' });
+                        }}
+                        className="px-4 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded-md text-[8px] font-black uppercase tracking-widest transition-all"
+                      >
+                        Back to List
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="w-full bg-slate-100 dark:bg-slate-900/50 border-2 border-transparent rounded-md px-6 py-4 text-sm text-slate-900 dark:text-white font-black uppercase tracking-wider">
+                  {formData.optionName}
+                </div>
+              )}
             </div>
           )}
 
@@ -265,14 +365,16 @@ const MasterDataForm: React.FC = () => {
           }}
           className="px-6 py-4 text-[8px] font-black text-slate-400 hover:text-slate-900 dark:text-slate-500 dark:hover:text-slate-300 transition-all uppercase tracking-[0.3em]"
         >
-          Cancel
+          {mode === 'edit' && (selectedNode.type === 'plan' || selectedNode.type === 'option') ? 'Close' : 'Cancel'}
         </button>
-        <button
-          onClick={handleSave}
-          className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white py-4 rounded-md text-[8px] font-black tracking-[0.4em] shadow-md shadow-indigo-600/20 transition-all active:scale-[0.98] uppercase"
-        >
-          {mode === 'create' ? 'Create' : 'Save Changes'}
-        </button>
+        {!(mode === 'edit' && (selectedNode.type === 'plan' || selectedNode.type === 'option')) && (
+          <button
+            onClick={handleSave}
+            className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white py-4 rounded-md text-[8px] font-black tracking-[0.4em] shadow-md shadow-indigo-600/20 transition-all active:scale-[0.98] uppercase"
+          >
+            {mode === 'create' ? 'Create' : 'Save Changes'}
+          </button>
+        )}
       </footer>
     </div>
   );

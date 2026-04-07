@@ -82,3 +82,31 @@ export const DELETE_PRODUCT = gql`
     }
   }
 `;
+
+export const DELETE_PROCESS_PLAN = gql`
+  mutation DeleteProcessPlan($id: Int!) {
+    deleteProcessPlan(id: $id) {
+      id
+    }
+  }
+`;
+
+export const DELETE_BEOL_OPTION = gql`
+  mutation DeleteBeolOption($id: Int!) {
+    deleteBeolOption(id: $id) {
+      id
+    }
+  }
+`;
+
+export const GET_UNIQUE_PROCESS_GROUPS = gql`
+  query GetUniqueProcessGroups {
+    uniqueProcessGroups
+  }
+`;
+
+export const GET_UNIQUE_BEOLS = gql`
+  query GetUniqueBeols($processGrp: String!) {
+    uniqueBeols(processGrp: $processGrp)
+  }
+`;
