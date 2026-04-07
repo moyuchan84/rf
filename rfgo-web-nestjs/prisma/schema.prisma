@@ -1,12 +1,13 @@
 generator client {
   provider = "prisma-client-js"
   binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
-  previewFeatures = ["postgresqlExtensions"]
+  previewFeatures = ["postgresqlExtensions", "multiSchema"]
 }
 
 datasource db {
   provider   = "postgresql"
   extensions = [vector]
+  schemas    = ["public", "smartdne"]
 }
 
 model User {
@@ -25,6 +26,7 @@ model User {
 
   @@index([id], map: "ix_users_id")
   @@map("users")
+  @@schema("public")
 }
 
 model Role {
@@ -35,6 +37,7 @@ model Role {
 
   @@index([id], map: "ix_roles_id")
   @@map("roles")
+  @@schema("public")
 }
 
 model ProcessPlan {
@@ -50,6 +53,7 @@ model ProcessPlan {
 
   @@index([id], map: "ix_process_plans_id")
   @@map("process_plans")
+  @@schema("public")
 }
 
 model BeolOption {
@@ -67,6 +71,7 @@ model BeolOption {
   @@index([id], map: "ix_beol_options_id")
   @@index([optionName], map: "ix_beol_options_option_name")
   @@map("beol_options")
+  @@schema("public")
 }
 
 model Product {
@@ -86,6 +91,7 @@ model Product {
   @@index([id], map: "ix_products_id")
   @@index([productName], map: "ix_products_product_name")
   @@map("products")
+  @@schema("public")
 }
 
 model ProductMeta {
@@ -105,6 +111,7 @@ model ProductMeta {
 
   @@index([id], map: "ix_product_meta_id")
   @@map("product_meta")
+  @@schema("public")
 }
 
 model RequestItem {
@@ -133,6 +140,7 @@ model RequestItem {
 
   @@index([id], map: "ix_request_items_id")
   @@map("request_items")
+  @@schema("public")
 }
 
 model UserApprovalPath {
@@ -145,6 +153,7 @@ model UserApprovalPath {
 
   @@index([userId])
   @@map("user_approval_paths")
+  @@schema("public")
 }
 
 model ApprovalDocument {
@@ -160,6 +169,7 @@ model ApprovalDocument {
   request     RequestItem @relation(fields: [requestId], references: [id], onDelete: Cascade)
 
   @@map("approval_documents")
+  @@schema("public")
 }
 
 model UserMailGroup {
@@ -170,6 +180,7 @@ model UserMailGroup {
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
   @@map("user_mail_groups")
+  @@schema("public")
 }
 
 model SystemDefaultMailer {
@@ -178,6 +189,7 @@ model SystemDefaultMailer {
   recipients  Json     // [{ epId, fullName, email, userId }]
   
   @@map("system_default_mailers")
+  @@schema("public")
 }
 
 model RequestWatcher {
@@ -189,6 +201,7 @@ model RequestWatcher {
   request     RequestItem @relation(fields: [requestId], references: [id], onDelete: Cascade)
 
   @@map("request_watchers")
+  @@schema("public")
 }
 
 model RequestAssignee {
@@ -203,6 +216,7 @@ model RequestAssignee {
 
   @@index([id], map: "ix_request_assignees_id")
   @@map("request_assignees")
+  @@schema("public")
 }
 
 model RequestStep {
@@ -219,6 +233,7 @@ model RequestStep {
 
   @@index([id], map: "ix_request_steps_id")
   @@map("request_steps")
+  @@schema("public")
 }
 
 model PhotoKey {
@@ -247,6 +262,7 @@ model PhotoKey {
 
   @@index([id], map: "ix_photo_keys_id")
   @@map("photo_keys")
+  @@schema("public")
 }
 
 model PhotoKeyEmbedding {
@@ -259,6 +275,7 @@ model PhotoKeyEmbedding {
   photoKey    PhotoKey @relation(fields: [photoKeyId], references: [id], onDelete: Cascade)
 
   @@map("photo_key_embeddings")
+  @@schema("public")
 }
 
 model KeyDesign {
@@ -283,6 +300,7 @@ model KeyDesign {
 
   @@index([id], map: "ix_key_designs_id")
   @@map("key_designs")
+  @@schema("public")
 }
 
 model KeyDesignProcessPlanMap {
@@ -295,6 +313,7 @@ model KeyDesignProcessPlanMap {
 
   @@index([id], map: "ix_key_design_process_plan_maps_id")
   @@map("key_design_process_plan_maps")
+  @@schema("public")
 }
 
 model ReticleLayout {
@@ -315,6 +334,7 @@ model ReticleLayout {
 
   @@index([id], map: "ix_reticle_layouts_id")
   @@map("reticle_layouts")
+  @@schema("public")
 }
 
 model StreamInfo {
@@ -335,6 +355,7 @@ model StreamInfo {
 
   @@index([id], map: "ix_stream_info_id")
   @@map("stream_info")
+  @@schema("public")
 }
 
 model GdsPathInfo {
@@ -351,6 +372,7 @@ model GdsPathInfo {
 
   @@index([id], map: "ix_gds_path_info_id")
   @@map("gds_path_info")
+  @@schema("public")
 }
 
 model RequestTableMap {
@@ -367,6 +389,7 @@ model RequestTableMap {
 
   @@index([id], map: "ix_request_table_maps_id")
   @@map("request_table_maps")
+  @@schema("public")
 }
 
 model N7MaskBeol {
@@ -389,4 +412,5 @@ model N7MaskBeol {
   createdAt        DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
 
   @@map("n7_maskbeol")
+  @@schema("smartdne")
 }
