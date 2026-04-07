@@ -4,42 +4,55 @@ import { PhotoKey } from '../../master-data/types';
 import { useKeyTableCompareStore } from '../store/useKeyTableCompareStore';
 import { useMemo, useEffect } from 'react';
 
+interface PaginatedTableNames {
+  items: string[];
+  totalCount: number;
+}
+
 export const useTableCompare = () => {
   const { 
     searchQuery, 
     selectedTableName, 
     selectedIds,
+    tableNamesPage,
+    tableNamesPageSize,
     setCompareTarget,
     toggleIdSelection,
     setSelectedTableName,
-    setSearchQuery
+    setSearchQuery,
+    setTableNamesPage
   } = useKeyTableCompareStore();
 
-  // 1. Fetch all unique table names for the sidebar/select list
-  const { data: namesData, loading: loadingNames } = useQuery<{ uniqueTableNames: string[] }>(GET_UNIQUE_TABLE_NAMES);
+  // 1. Fetch unique table names with server-side pagination and search
+  const { data: namesData, loading: loadingNames } = useQuery<{ uniqueTableNames: PaginatedTableNames }>(GET_UNIQUE_TABLE_NAMES, {
+    variables: {
+      skip: 0, // Always start from 0 for the first fetch or when search changes
+      take: tableNamesPageSize * (tableNamesPage + 1), // Fetch up to current page
+      search: searchQuery
+    },
+    notifyOnNetworkStatusChange: true,
+  });
 
-  // 2. Lazy query for searching/fetching details of a specific table or searching by query
-  const [search, { data: searchData, loading: loadingSearch }] = useLazyQuery<{ searchPhotoKeys: PhotoKey[] }>(SEARCH_PHOTO_KEYS);
+  // 2. Lazy query for fetching details of a specific table
+  const [fetchTableDetails, { data: searchData, loading: loadingRevisions }] = useLazyQuery<{ searchPhotoKeys: PhotoKey[] }>(SEARCH_PHOTO_KEYS);
 
-  // Initial fetch when a table is selected
+  // Fetch revisions when a table is selected
   useEffect(() => {
     if (selectedTableName) {
-      search({ variables: { query: selectedTableName } });
+      fetchTableDetails({ variables: { query: selectedTableName } });
     }
-  }, [selectedTableName, search]);
+  }, [selectedTableName, fetchTableDetails]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    if (query.trim().length > 1) {
-      search({ variables: { query } });
-    }
+    // setTableNamesPage(0) is already handled in setSearchQuery action
   };
 
-  const filteredTableNames = useMemo(() => {
-    const allNames = namesData?.uniqueTableNames || [];
-    if (!searchQuery) return allNames;
-    return allNames.filter(name => name.toLowerCase().includes(searchQuery.toLowerCase()));
-  }, [namesData, searchQuery]);
+  const loadMore = () => {
+    if (namesData && namesData.uniqueTableNames.items.length < namesData.uniqueTableNames.totalCount) {
+      setTableNamesPage(tableNamesPage + 1);
+    }
+  };
 
   const tableRevisions = useMemo(() => {
     if (!selectedTableName || !searchData) return [];
@@ -65,16 +78,19 @@ export const useTableCompare = () => {
   };
 
   return {
-    tableNames: filteredTableNames,
+    tableNames: namesData?.uniqueTableNames.items || [],
+    totalTableCount: namesData?.uniqueTableNames.totalCount || 0,
     loadingNames,
     selectedTableName,
     setSelectedTableName,
     searchQuery,
     setSearchQuery: handleSearch,
     tableRevisions,
-    loadingRevisions: loadingSearch,
+    loadingRevisions,
     selectedIds,
     toggleIdSelection,
-    executeCompare
+    executeCompare,
+    loadMore,
+    hasMore: namesData ? namesData.uniqueTableNames.items.length < namesData.uniqueTableNames.totalCount : false
   };
 };

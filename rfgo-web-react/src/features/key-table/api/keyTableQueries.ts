@@ -34,7 +34,10 @@ export const SEARCH_PHOTO_KEYS = gql`
 `;
 
 export const GET_UNIQUE_TABLE_NAMES = gql`
-  query GetUniqueTableNames {
-    uniqueTableNames
+  query GetUniqueTableNames($skip: Int, $take: Int, $search: String) {
+    uniqueTableNames(skip: $skip, take: $take, search: $search) {
+      items
+      totalCount
+    }
   }
 `;
