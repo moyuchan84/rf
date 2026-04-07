@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { ChevronRight, Trash2, Loader2 } from 'lucide-react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { ChevronRight, Trash2, Loader2, Search, Check, ChevronDown } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
 import { useMasterData } from '../hooks/useMasterData';
 import {type ProductMeta } from '../types';
@@ -11,6 +11,111 @@ interface FormData {
   productName: string;
   metaInfo: Partial<ProductMeta>;
 }
+
+// Searchable Select Component
+interface SearchableSelectProps {
+  value: string;
+  options: string[];
+  onChange: (value: string) => void;
+  placeholder: string;
+  loading?: boolean;
+  onManualClick?: () => void;
+}
+
+const SearchableSelect: React.FC<SearchableSelectProps> = ({ 
+  value, 
+  options, 
+  onChange, 
+  placeholder, 
+  loading,
+  onManualClick 
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const filteredOptions = useMemo(() => {
+    return options.filter(opt => opt.toLowerCase().includes(search.toLowerCase()));
+  }, [options, search]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div className="relative" ref={containerRef}>
+      <div 
+        onClick={() => !loading && setIsOpen(!isOpen)}
+        className={cn(
+          "w-full bg-slate-50 dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 rounded-md px-6 py-4 flex items-center justify-between cursor-pointer transition-all",
+          isOpen ? "border-indigo-600/50 shadow-md" : "hover:border-slate-300 dark:hover:border-slate-700",
+          loading && "opacity-50 cursor-not-allowed"
+        )}
+      >
+        <span className={cn("text-sm font-bold", !value && "text-slate-400")}>
+          {value || placeholder}
+        </span>
+        {loading ? <Loader2 className="w-4 h-4 animate-spin text-indigo-500" /> : <ChevronDown className={cn("w-4 h-4 text-slate-400 transition-transform", isOpen && "rotate-180")} />}
+      </div>
+
+      {isOpen && (
+        <div className="absolute z-50 w-full mt-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-100">
+          <div className="p-3 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2 bg-slate-50/50 dark:bg-slate-950/50">
+            <Search className="w-3.5 h-3.5 text-slate-400" />
+            <input 
+              autoFocus
+              className="bg-transparent border-none outline-none text-xs font-bold w-full"
+              placeholder="Search..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+          <div className="max-h-60 overflow-y-auto custom-scrollbar">
+            {filteredOptions.length > 0 ? (
+              filteredOptions.map(opt => (
+                <div 
+                  key={opt}
+                  onClick={() => {
+                    onChange(opt);
+                    setIsOpen(false);
+                    setSearch('');
+                  }}
+                  className={cn(
+                    "px-5 py-3 text-xs font-bold cursor-pointer flex items-center justify-between transition-colors",
+                    value === opt ? "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600" : "hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400"
+                  )}
+                >
+                  {opt}
+                  {value === opt && <Check className="w-3.5 h-3.5" />}
+                </div>
+              ))
+            ) : (
+              <div className="px-5 py-10 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">No matching items</div>
+            )}
+          </div>
+          {onManualClick && (
+            <div 
+              onClick={() => {
+                onManualClick();
+                setIsOpen(false);
+              }}
+              className="p-4 bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest text-center cursor-pointer hover:bg-indigo-700 transition-colors"
+            >
+              + Add Manually...
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const MasterDataForm: React.FC = () => {
   const { 
@@ -201,19 +306,15 @@ const MasterDataForm: React.FC = () => {
             <div className="space-y-3">
               <label className="text-[8px] font-black text-slate-500 uppercase tracking-[0.3em] ml-1 flex justify-between">
                 Design Rule (Process Group)
-                {mode === 'create' && loadingProcessGroups && <Loader2 className="w-2.5 h-2.5 animate-spin" />}
               </label>
               {mode === 'create' ? (
-                <select
+                <SearchableSelect 
                   value={formData.designRule}
-                  onChange={(e) => setFormData({ ...formData, designRule: e.target.value })}
-                  className="w-full bg-slate-50 dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 rounded-md px-6 py-4 text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-600/50 transition-all font-bold shadow-sm appearance-none"
-                >
-                  <option value="">Select a Process Group...</option>
-                  {availableProcessGroups.map(grp => (
-                    <option key={grp} value={grp}>{grp}</option>
-                  ))}
-                </select>
+                  options={availableProcessGroups}
+                  onChange={(val) => setFormData({ ...formData, designRule: val })}
+                  placeholder="Select a Process Group..."
+                  loading={loadingProcessGroups}
+                />
               ) : (
                 <div className="w-full bg-slate-100 dark:bg-slate-900/50 border-2 border-transparent rounded-md px-6 py-4 text-sm text-slate-900 dark:text-white font-black uppercase tracking-wider">
                   {formData.designRule}
@@ -226,29 +327,21 @@ const MasterDataForm: React.FC = () => {
             <div className="space-y-3">
               <label className="text-[8px] font-black text-slate-500 uppercase tracking-[0.3em] ml-1 flex justify-between">
                 Option Name (BEOL)
-                {mode === 'create' && loadingBeols && <Loader2 className="w-2.5 h-2.5 animate-spin" />}
               </label>
               {mode === 'create' ? (
                 <div className="space-y-3">
                   {!isManualBeol ? (
-                    <select
+                    <SearchableSelect 
                       value={formData.optionName}
-                      onChange={(e) => {
-                        if (e.target.value === 'MANUAL_INPUT') {
-                          setIsManualBeol(true);
-                          setFormData({ ...formData, optionName: '' });
-                        } else {
-                          setFormData({ ...formData, optionName: e.target.value });
-                        }
+                      options={availableBeols}
+                      onChange={(val) => setFormData({ ...formData, optionName: val })}
+                      placeholder="Select a BEOL Option..."
+                      loading={loadingBeols}
+                      onManualClick={() => {
+                        setIsManualBeol(true);
+                        setFormData({ ...formData, optionName: '' });
                       }}
-                      className="w-full bg-slate-50 dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 rounded-md px-6 py-4 text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-600/50 transition-all font-bold shadow-sm appearance-none"
-                    >
-                      <option value="">Select a BEOL Option...</option>
-                      {availableBeols.map(beol => (
-                        <option key={beol} value={beol}>{beol}</option>
-                      ))}
-                      <option value="MANUAL_INPUT" className="text-indigo-600 dark:text-indigo-400 font-black">+ Add Manually...</option>
-                    </select>
+                    />
                   ) : (
                     <div className="flex gap-2">
                       <input
