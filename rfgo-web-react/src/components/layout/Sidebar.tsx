@@ -29,12 +29,19 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
   });
 
   const renderNavItem = (item: NavItem, isChild = false) => {
-    const isExactMatch = location.pathname === item.path;
-    const isRootPath = item.path !== '/' && !item.path.startsWith('#') && location.pathname.startsWith(item.path + '/');
-    const isActive = isExactMatch || isRootPath;
-    
     const hasChildren = item.children && item.children.length > 0;
-    const isExpanded = expandedItems.includes(item.label) || (hasChildren && item.children?.some(child => location.pathname === child.path));
+    
+    // Exact match for the current path
+    const isExactMatch = location.pathname === item.path;
+    
+    // Check if any child is active (exactly matches current path)
+    const isAnyChildActive = hasChildren && item.children?.some(child => location.pathname === child.path);
+    
+    // A menu item is highlighted if it's the exact match
+    const isActive = isExactMatch;
+    
+    // A parent menu is expanded if its children are active or it's manually expanded
+    const isExpanded = expandedItems.includes(item.label) || isAnyChildActive;
 
     if (hasChildren && !isCollapsed) {
       return (
@@ -43,12 +50,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
             onClick={() => toggleExpand(item.label)}
             className={cn(
               'w-full flex items-center gap-3 px-3.5 py-2.5 rounded-md transition-all group relative',
-              isActive 
+              isAnyChildActive 
                 ? 'text-indigo-600 dark:text-indigo-400 font-black' 
                 : 'text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-900 hover:text-indigo-600 dark:hover:text-slate-200'
             )}
           >
-            <item.icon className={cn('w-4 h-4 transition-transform group-hover:scale-110 shrink-0', isActive ? 'text-indigo-600' : 'text-slate-400 dark:text-slate-500')} />
+            <item.icon className={cn('w-4 h-4 transition-transform group-hover:scale-110 shrink-0', isAnyChildActive ? 'text-indigo-600' : 'text-slate-400 dark:text-slate-500')} />
             <span className="text-xs font-bold tracking-tight flex-1 text-left">
               {item.label}
             </span>

@@ -14,7 +14,7 @@ const KeyTableComparePage: React.FC = () => {
   }, [resetSelection]);
 
   return (
-    <div className="flex-1 flex flex-col min-w-0 bg-slate-50 dark:bg-slate-950 overflow-hidden">
+    <div className="absolute inset-0 flex flex-col bg-slate-50 dark:bg-slate-950 overflow-hidden">
       <TableCompareSelector />
       
       {compareTarget && (
