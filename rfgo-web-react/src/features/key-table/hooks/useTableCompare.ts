@@ -14,20 +14,18 @@ export const useTableCompare = () => {
     searchQuery, 
     selectedTableName, 
     selectedIds,
-    tableNamesPage,
     tableNamesPageSize,
     setCompareTarget,
     toggleIdSelection,
     setSelectedTableName,
     setSearchQuery,
-    setTableNamesPage
   } = useKeyTableCompareStore();
 
   // 1. Fetch unique table names with server-side pagination and search
-  const { data: namesData, loading: loadingNames } = useQuery<{ uniqueTableNames: PaginatedTableNames }>(GET_UNIQUE_TABLE_NAMES, {
+  const { data: namesData, loading: loadingNames, fetchMore } = useQuery<{ uniqueTableNames: PaginatedTableNames }>(GET_UNIQUE_TABLE_NAMES, {
     variables: {
-      skip: 0, // Always start from 0 for the first fetch or when search changes
-      take: tableNamesPageSize * (tableNamesPage + 1), // Fetch up to current page
+      skip: 0,
+      take: tableNamesPageSize,
       search: searchQuery
     },
     notifyOnNetworkStatusChange: true,
@@ -45,13 +43,33 @@ export const useTableCompare = () => {
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    // setTableNamesPage(0) is already handled in setSearchQuery action
   };
 
   const loadMore = () => {
-    if (namesData && namesData.uniqueTableNames.items.length < namesData.uniqueTableNames.totalCount) {
-      setTableNamesPage(tableNamesPage + 1);
-    }
+    if (!namesData || loadingNames) return;
+    
+    const currentCount = namesData.uniqueTableNames.items.length;
+    if (currentCount >= namesData.uniqueTableNames.totalCount) return;
+
+    fetchMore({
+      variables: {
+        skip: currentCount,
+        take: tableNamesPageSize,
+        search: searchQuery
+      },
+      updateQuery: (prev, { fetchMoreResult }) => {
+        if (!fetchMoreResult) return prev;
+        return {
+          uniqueTableNames: {
+            ...fetchMoreResult.uniqueTableNames,
+            items: [
+              ...prev.uniqueTableNames.items,
+              ...fetchMoreResult.uniqueTableNames.items
+            ]
+          }
+        };
+      }
+    });
   };
 
   const tableRevisions = useMemo(() => {

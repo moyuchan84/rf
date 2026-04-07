@@ -7,8 +7,7 @@ interface KeyTableCompareState {
   selectedTableName: string | null;
   selectedIds: number[];
   
-  // Pagination
-  tableNamesPage: number;
+  // Pagination config
   tableNamesPageSize: number;
 
   // Results for Comparison
@@ -25,7 +24,6 @@ interface KeyTableCompareState {
   setSelectedIds: (ids: number[]) => void;
   toggleIdSelection: (id: number) => void;
   setCompareTarget: (target: KeyTableCompareState['compareTarget']) => void;
-  setTableNamesPage: (page: number) => void;
   resetSelection: () => void;
 }
 
@@ -35,11 +33,10 @@ export const useKeyTableCompareStore = create<KeyTableCompareState>()(
       searchQuery: '',
       selectedTableName: null,
       selectedIds: [],
-      tableNamesPage: 0,
       tableNamesPageSize: 20,
       compareTarget: null,
 
-      setSearchQuery: (query) => set({ searchQuery: query, tableNamesPage: 0 }),
+      setSearchQuery: (query) => set({ searchQuery: query }),
       
       setSelectedTableName: (name) => set({ 
         selectedTableName: name, 
@@ -60,13 +57,10 @@ export const useKeyTableCompareStore = create<KeyTableCompareState>()(
 
       setCompareTarget: (target) => set({ compareTarget: target }),
 
-      setTableNamesPage: (page) => set({ tableNamesPage: page }),
-
       resetSelection: () => set({ 
         selectedTableName: null, 
         selectedIds: [], 
         compareTarget: null,
-        tableNamesPage: 0,
         searchQuery: ''
       }),
     }),
