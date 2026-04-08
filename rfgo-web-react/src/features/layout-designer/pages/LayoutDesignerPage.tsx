@@ -7,8 +7,9 @@ import { StepFinalize } from '../components/StepFinalize';
 import { useLayoutDesigner } from '../hooks/useLayoutDesigner';
 import { useLayoutStore } from '../store/useLayoutStore';
 import { useMasterData } from '@/features/master-data/hooks/useMasterData';
-import { Save, Trash2, ArrowRight, ArrowLeft, Filter, Cpu, Layers, Settings } from 'lucide-react';
+import { Save, Trash2, ArrowRight, ArrowLeft, Filter } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
+import toast from 'react-hot-toast';
 
 const STEPS: Step[] = [
   { id: 'input', name: 'Input', description: 'Paste Image or Enter Spec' },
@@ -24,8 +25,9 @@ interface LayoutDesignerPageProps {
 export const LayoutDesignerPage: React.FC<LayoutDesignerPageProps> = ({ onBack }) => {
   const { autoArrange, saveLayout, handlePaste, nextStep, prevStep, runDetection } = useLayoutDesigner();
   const { 
-    setShotInfo, setProductId, reset, 
-    id, title, setTitle, currentStep, setCurrentStep, imageUrl, boundary, productId: storeProductId 
+    setShotInfo, setProductId, setProcessPlanId, setBeolOptionId, reset, 
+    id, title, setTitle, currentStep, setCurrentStep, imageUrl, boundary, productId: storeProductId,
+    processPlanId: storePlanId, beolOptionId: storeOptionId
   } = useLayoutStore();
 
   const { processPlans } = useMasterData();
@@ -36,6 +38,29 @@ export const LayoutDesignerPage: React.FC<LayoutDesignerPageProps> = ({ onBack }
   const availableOptions = selectedPlan?.beolOptions || [];
   const selectedOption = availableOptions.find(o => o.id === localOptionId);
   const availableProducts = selectedOption?.products || [];
+
+  // Sync local hierarchy selectors with store if editing OR store changes
+  useEffect(() => {
+    if (storePlanId) setLocalPlanId(storePlanId);
+    if (storeOptionId) setLocalOptionId(storeOptionId);
+  }, [storePlanId, storeOptionId]);
+
+  // If we only have productId (old data or direct load), try to find parent hierarchy
+  useEffect(() => {
+    if (storeProductId && !storePlanId && processPlans.length > 0) {
+      for (const plan of processPlans) {
+        for (const option of plan.beolOptions) {
+          if (option.products.some(p => p.id === storeProductId)) {
+            setLocalPlanId(plan.id);
+            setLocalOptionId(option.id);
+            setProcessPlanId(plan.id);
+            setBeolOptionId(option.id);
+            return;
+          }
+        }
+      }
+    }
+  }, [storeProductId, storePlanId, processPlans, setProcessPlanId, setBeolOptionId]);
 
   useEffect(() => {
     // Global paste listener
@@ -90,7 +115,7 @@ export const LayoutDesignerPage: React.FC<LayoutDesignerPageProps> = ({ onBack }
               type="text" 
               value={title} 
               onChange={(e) => setTitle(e.target.value)}
-              className="bg-transparent border-none focus:ring-0 text-xl font-black text-slate-900 dark:text-slate-100 placeholder-slate-300 dark:placeholder-slate-800 p-0"
+              className="bg-transparent border-none focus:ring-0 text-xl font-black text-slate-900 dark:text-slate-100 placeholder-slate-300 dark:placeholder:text-slate-800 p-0"
               placeholder="Layout Name..."
             />
             <span className="text-[8px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-[0.3em]">Reticle Deployment System v1.0</span>
@@ -101,7 +126,14 @@ export const LayoutDesignerPage: React.FC<LayoutDesignerPageProps> = ({ onBack }
             <Filter className="w-3 h-3 text-slate-400 shrink-0" />
             <select 
               value={localPlanId || ''} 
-              onChange={(e) => { setLocalPlanId(Number(e.target.value)); setLocalOptionId(null); setProductId(null); }}
+              onChange={(e) => { 
+                const pid = Number(e.target.value);
+                setLocalPlanId(pid); 
+                setProcessPlanId(pid);
+                setLocalOptionId(null); 
+                setBeolOptionId(null);
+                setProductId(null); 
+              }}
               className="bg-transparent text-[10px] font-black uppercase text-slate-600 dark:text-slate-400 outline-none border-none focus:ring-0 cursor-pointer min-w-[100px]"
             >
               <option value="">Plan...</option>
@@ -111,7 +143,12 @@ export const LayoutDesignerPage: React.FC<LayoutDesignerPageProps> = ({ onBack }
             <select 
               disabled={!localPlanId}
               value={localOptionId || ''} 
-              onChange={(e) => { setLocalOptionId(Number(e.target.value)); setProductId(null); }}
+              onChange={(e) => { 
+                const oid = Number(e.target.value);
+                setLocalOptionId(oid); 
+                setBeolOptionId(oid);
+                setProductId(null); 
+              }}
               className="bg-transparent text-[10px] font-black uppercase text-slate-600 dark:text-slate-400 outline-none border-none focus:ring-0 cursor-pointer disabled:opacity-30 min-w-[100px]"
             >
               <option value="">Option...</option>
@@ -144,13 +181,22 @@ export const LayoutDesignerPage: React.FC<LayoutDesignerPageProps> = ({ onBack }
              </button>
            </div>
            <div className="w-px h-8 bg-slate-200 dark:bg-slate-900 mx-2"></div>
-           <button onClick={reset} className="text-slate-400 hover:text-red-500 dark:text-slate-600 dark:hover:text-red-400 transition-colors"><Trash2 className="w-4 h-4" /></button>
+           <button 
+             onClick={() => {
+               if (window.confirm('Reset all changes?')) reset();
+             }} 
+             className="text-slate-400 hover:text-red-500 dark:text-slate-600 dark:hover:text-red-400 transition-colors"
+           >
+             <Trash2 className="w-4 h-4" />
+           </button>
            {currentStep === 3 && (
              <button 
                onClick={async () => {
-                 if (!storeProductId) { alert('Please select a product before saving.'); return; }
+                 if (!storeProductId) { 
+                   toast.error('Please select a product before saving.'); 
+                   return; 
+                 }
                  await saveLayout();
-                 if (onBack) onBack();
                }} 
                className="flex items-center gap-2 px-8 py-2.5 bg-emerald-600 hover:bg-emerald-700 rounded-xl text-xs font-black text-white transition-all shadow-xl shadow-emerald-600/20 active:scale-95 animate-in zoom-in"
              >

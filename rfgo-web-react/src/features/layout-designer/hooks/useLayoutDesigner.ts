@@ -1,18 +1,23 @@
-import { useLayoutStore, GeometricObject, LaneElement } from '../store/useLayoutStore';
+import { useLayoutStore } from '../store/useLayoutStore';
 import { useCallback } from 'react';
 import { useMutation } from '@apollo/client/react';
-import { SAVE_LAYOUT, UPDATE_LAYOUT } from '../api/layoutQueries';
+import { SAVE_LAYOUT, UPDATE_LAYOUT, GET_LAYOUTS } from '../api/layoutQueries';
 import { OpencvDetector } from '../utils/OpencvDetector';
 import { v4 as uuidv4 } from 'uuid';
 import { LayoutService } from '../services/LayoutService';
+import toast from 'react-hot-toast';
 
 export const useLayoutDesigner = () => {
   const {
-    id, currentStep, setCurrentStep, imageUrl, boundary, productId, setLaneElements, setPlacements, updatePlacement, setImageUrl
+    setCurrentStep, setLaneElements, setPlacements, updatePlacement, setImageUrl
   } = useLayoutStore();
 
-  const [saveLayoutMutation] = useMutation(SAVE_LAYOUT);
-  const [updateLayoutMutation] = useMutation(UPDATE_LAYOUT);
+  const [saveLayoutMutation] = useMutation<{ saveLayout: { id: number } }>(SAVE_LAYOUT, {
+    refetchQueries: [GET_LAYOUTS, 'GetLayouts'],
+  });
+  const [updateLayoutMutation] = useMutation<{ updateLayout: { id: number } }>(UPDATE_LAYOUT, {
+    refetchQueries: [GET_LAYOUTS, 'GetLayouts'],
+  });
 
   const runDetection = useCallback(async (imageSrc: string) => {
     return new Promise<void>((resolve) => {
@@ -130,18 +135,45 @@ export const useLayoutDesigner = () => {
 
   const saveLayout = async () => {
     const store = useLayoutStore.getState();
-    const { id, productId } = store;
+    const { id, productId, beolOptionId, processPlanId, stageRef } = store;
     if (!productId) return;
+    
     try {
-      const input = LayoutService.prepareLayoutInput(store);
-      if (id) {
-        await updateLayoutMutation({ variables: { id, input: { ...input, id } } });
-        alert('Layout updated successfully!');
-      } else {
-        await saveLayoutMutation({ variables: { input } });
-        alert('Layout saved successfully!');
+      // Capture Canvas Thumbnail if possible
+      let finalImageUrl = store.imageUrl;
+      if (stageRef?.current) {
+        // High compression for thumbnail
+        finalImageUrl = stageRef.current.toDataURL({ pixelRatio: 0.2 });
       }
-    } catch (error) { console.error(error); }
+
+      const input = {
+        ...LayoutService.prepareLayoutInput(store),
+        imageUrl: finalImageUrl
+      };
+
+      if (id) {
+        await updateLayoutMutation({ 
+          variables: { 
+            id, 
+            input: { ...input, id, productId, beolOptionId, processPlanId } 
+          },
+          onCompleted: () => toast.success('Layout updated successfully!'),
+        });
+      } else {
+        const { data } = await saveLayoutMutation({ 
+          variables: { 
+            input: { ...input, productId, beolOptionId, processPlanId } 
+          },
+          onCompleted: () => toast.success('Layout saved successfully!'),
+        });
+        if (data?.saveLayout?.id) {
+          useLayoutStore.setState({ id: data.saveLayout.id });
+        }
+      }
+    } catch (error) { 
+      console.error(error); 
+      toast.error('Failed to save layout');
+    }
   };
 
   const handlePaste = useCallback((e: ClipboardEvent) => {
@@ -160,7 +192,7 @@ export const useLayoutDesigner = () => {
   }, [setImageUrl]);
 
   const nextStep = useCallback(async () => {
-    const { currentStep, imageUrl, boundary } = useLayoutStore.getState();
+    const { currentStep, imageUrl } = useLayoutStore.getState();
     if (currentStep === 0 && imageUrl) await runDetection(imageUrl);
     if (currentStep === 1) analyzeScribelane();
     setCurrentStep(Math.min(currentStep + 1, 3));

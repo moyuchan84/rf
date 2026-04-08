@@ -137,14 +137,12 @@ const KeyLayoutPage: React.FC = () => {
         )}
       </div>
 
-      {productId ? (
-        <LayoutList productId={productId} onEdit={handleEdit} onCreate={handleCreate} />
-      ) : (
-        <div className="flex flex-col items-center justify-center py-32 bg-white dark:bg-slate-900/30 border border-dashed border-slate-200 dark:border-slate-800 rounded-xl opacity-60">
-          <Filter className="w-12 h-12 mb-4 text-slate-300 dark:text-slate-700" />
-          <p className="text-xs font-black uppercase tracking-widest text-slate-500">Select a product to view reticle layouts</p>
-        </div>
-      )}
+      <LayoutList 
+        productId={productId} 
+        search={searchQuery}
+        onEdit={handleEdit} 
+        onCreate={handleCreate} 
+      />
     </div>
   );
 };

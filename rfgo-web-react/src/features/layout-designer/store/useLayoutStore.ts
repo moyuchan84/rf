@@ -44,6 +44,8 @@ interface LayoutState {
   id: number | null;
   title: string;
   productId: number | null;
+  beolOptionId: number | null;
+  processPlanId: number | null;
   boundary: GeometricObject | null;
   chips: GeometricObject[];
   laneElements: LaneElement[];
@@ -54,10 +56,14 @@ interface LayoutState {
   imageUrl: string | null;
   currentStep: number;
   isAddMode: boolean;
+  stageRef: React.RefObject<any> | null;
 
   // Actions
+  setStageRef: (ref: React.RefObject<any> | null) => void;
   setTitle: (title: string) => void;
   setProductId: (id: number | null) => void;
+  setBeolOptionId: (id: number | null) => void;
+  setProcessPlanId: (id: number | null) => void;
   setBoundary: (boundary: GeometricObject | null) => void;
   setChips: (chips: GeometricObject[]) => void;
   addChip: (chip: Omit<GeometricObject, 'id' | 'tag' | 'visible'>) => void;
@@ -89,6 +95,8 @@ export const useLayoutStore = create<LayoutState>((set) => ({
   id: null,
   title: 'Untitled Layout',
   productId: null,
+  beolOptionId: null,
+  processPlanId: null,
   boundary: null,
   chips: [],
   laneElements: [],
@@ -99,9 +107,13 @@ export const useLayoutStore = create<LayoutState>((set) => ({
   imageUrl: null,
   currentStep: 0,
   isAddMode: false,
+  stageRef: null,
 
+  setStageRef: (stageRef) => set({ stageRef }),
   setTitle: (title) => set({ title }),
   setProductId: (productId) => set({ productId }),
+  setBeolOptionId: (beolOptionId) => set({ beolOptionId }),
+  setProcessPlanId: (processPlanId) => set({ processPlanId }),
   setBoundary: (boundary) => set({ boundary: boundary ? { ...boundary, tag: 'BOUNDARY', visible: boundary.visible ?? true } : null }),
   setChips: (chips) => set({ chips: chips.map(c => ({ ...c, tag: 'CHIP', visible: c.visible ?? true })) }),
   addChip: (chip) => set((state) => ({ 
@@ -143,6 +155,8 @@ export const useLayoutStore = create<LayoutState>((set) => ({
     id: layout.id,
     title: layout.title,
     productId: layout.productId,
+    beolOptionId: layout.beolOptionId,
+    processPlanId: layout.processPlanId,
     boundary: layout.boundary,
     chips: layout.chips || [],
     laneElements: layout.scribelanes || [],
@@ -154,7 +168,8 @@ export const useLayoutStore = create<LayoutState>((set) => ({
   }),
   reset: () => set({
     id: null,
-    title: 'Untitled Layout', productId: null, boundary: null, chips: [], laneElements: [], 
+    title: 'Untitled Layout', productId: null, beolOptionId: null, processPlanId: null,
+    boundary: null, chips: [], laneElements: [], 
     placements: [], shotInfo: null, config: initialConfig, selectedId: null, 
     imageUrl: null, currentStep: 0, isAddMode: false,
   }),

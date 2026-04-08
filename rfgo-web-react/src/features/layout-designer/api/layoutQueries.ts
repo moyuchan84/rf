@@ -6,6 +6,53 @@ export const GET_LAYOUTS = gql`
       id
       title
       productId
+      beolOptionId
+      processPlanId
+      boundary
+      chips
+      scribelanes
+      placements
+      shotInfo
+      config
+      imageUrl
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const PAGINATED_LAYOUTS = gql`
+  query PaginatedLayouts($skip: Int, $take: Int, $search: String, $productId: Int) {
+    paginatedLayouts(skip: $skip, take: $take, search: $search, productId: $productId) {
+      items {
+        id
+        title
+        productId
+        beolOptionId
+        processPlanId
+        boundary
+        chips
+        scribelanes
+        placements
+        shotInfo
+        config
+        imageUrl
+        createdAt
+        updatedAt
+      }
+      totalCount
+    }
+  }
+`;
+
+export const GET_ALL_LAYOUTS = gql`
+  query GetAllLayouts {
+    allLayouts {
+      id
+      title
+      productId
+      beolOptionId
+      processPlanId
       boundary
       chips
       scribelanes
@@ -25,6 +72,8 @@ export const GET_LAYOUT = gql`
       id
       title
       productId
+      beolOptionId
+      processPlanId
       boundary
       chips
       scribelanes
@@ -41,6 +90,18 @@ export const SAVE_LAYOUT = gql`
     saveLayout(input: $input) {
       id
       title
+      productId
+      beolOptionId
+      processPlanId
+      boundary
+      chips
+      scribelanes
+      placements
+      shotInfo
+      config
+      imageUrl
+      createdAt
+      updatedAt
     }
   }
 `;
@@ -50,6 +111,18 @@ export const UPDATE_LAYOUT = gql`
     updateLayout(id: $id, input: $input) {
       id
       title
+      productId
+      beolOptionId
+      processPlanId
+      boundary
+      chips
+      scribelanes
+      placements
+      shotInfo
+      config
+      imageUrl
+      createdAt
+      updatedAt
     }
   }
 `;
