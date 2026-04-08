@@ -1,42 +1,75 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { Stage, Layer, Rect, Image as KonvaImage, Circle, Group, Text } from 'react-konva';
 import { useLayoutStore } from '../store/useLayoutStore';
 import { useCanvasLogic } from '../hooks/useCanvasLogic';
 
+// Sub-component for Boundary & Chips to minimize re-renders
+const StaticElements = memo(({ boundary, chips, selectedId, stageScale }: any) => (
+  <Layer>
+    {/* SCRIBELANE AREA VISUALIZATION */}
+    {boundary?.visible && (
+      <Group opacity={0.4}>
+        <Rect
+          x={boundary.x} y={boundary.y} width={boundary.width} height={boundary.height}
+          fill="rgba(99, 102, 241, 0.3)"
+        />
+        {chips.filter((c: any) => c.visible).map((chip: any) => (
+          <Rect
+            key={`sc-cut-${chip.id}`}
+            x={chip.x} y={chip.y} width={chip.width} height={chip.height}
+            fill="black"
+            globalCompositeOperation="destination-out"
+          />
+        ))}
+      </Group>
+    )}
+
+    {/* BOUNDARY & CHIPS */}
+    {boundary?.visible && (
+      <Rect
+        x={boundary.x} y={boundary.y} width={boundary.width} height={boundary.height}
+        stroke={selectedId === boundary.id ? "#6366f1" : "#ef4444"}
+        strokeWidth={2 / stageScale} dash={[10 / stageScale, 5 / stageScale]}
+      />
+    )}
+    {chips.filter((c: any) => c.visible).map((chip: any) => (
+      <Rect
+        key={chip.id}
+        x={chip.x} y={chip.y} width={chip.width} height={chip.height}
+        stroke={selectedId === chip.id ? "#6366f1" : "#10b981"}
+        strokeWidth={1.5 / stageScale}
+        fill={chip.isManual ? "rgba(245, 158, 11, 0.05)" : "rgba(16, 185, 129, 0.02)"}
+      />
+    ))}
+  </Layer>
+));
+
 export const LayoutCanvas: React.FC = () => {
-  const { boundary, chips, placements, updatePlacement, currentStep, selectedId, selectElement } = useLayoutStore();
+  // Use fine-grained selectors to prevent unnecessary re-renders
+  const boundary = useLayoutStore(state => state.boundary);
+  const chips = useLayoutStore(state => state.chips);
+  const placements = useLayoutStore(state => state.placements);
+  const updatePlacement = useLayoutStore(state => state.updatePlacement);
+  const currentStep = useLayoutStore(state => state.currentStep);
+  const selectedId = useLayoutStore(state => state.selectedId);
+  const selectElement = useLayoutStore(state => state.selectElement);
+  const setStageRef = useLayoutStore(state => state.setStageRef);
+
   const {
     containerRef, stageRef, img, status, dimensions,
     stageScale, stagePos, setStagePos, handleWheel,
     handleMouseDown, handleMouseMove, handleMouseUp, tempRect
   } = useCanvasLogic();
 
+  // Register stageRef globally for thumbnail capture
+  React.useEffect(() => {
+    setStageRef(stageRef);
+    return () => setStageRef(null);
+  }, [stageRef, setStageRef]);
+
   if (status === 'loading') {
     return <div className="w-full h-full min-h-[400px] flex items-center justify-center bg-slate-50 dark:bg-slate-900 animate-pulse rounded-md border border-slate-200 dark:border-slate-800" />;
   }
-
-  // Constraint Logic: Keep KEY within Scribelane (Inside Boundary & Outside Chips)
-  const getConstrainedPos = (absX: number, absY: number, pWidth: number, pHeight: number) => {
-    if (!boundary) return { x: absX, y: absY };
-
-    const centerX = absX;
-    const centerY = absY;
-
-    // 1. Must be inside boundary
-    let targetX = Math.max(boundary.x, Math.min(boundary.x + boundary.width, centerX));
-    let targetY = Math.max(boundary.y, Math.min(boundary.y + boundary.height, centerY));
-
-    // 2. Check if inside any chip
-    const activeChips = chips.filter(c => c.visible);
-    const isInsideAnyChip = activeChips.some(c => 
-      targetX >= c.x && targetX <= c.x + c.width && 
-      targetY >= c.y && targetY <= c.y + c.height
-    );
-
-    // Simple constraint: if inside chip, don't update (stay at previous)
-    // For smoother feel, we'll allow dragging but the Circle's dragBoundFunc will handle the visual snap
-    return { x: targetX, y: targetY };
-  };
 
   return (
     <div 
@@ -62,77 +95,34 @@ export const LayoutCanvas: React.FC = () => {
             <KonvaImage image={img} opacity={1} />
           </Layer>
 
+          {/* Optimized Static Layer */}
+          <StaticElements 
+            boundary={boundary} 
+            chips={chips} 
+            selectedId={selectedId} 
+            stageScale={stageScale} 
+          />
+
           <Layer>
-            {/* SCRIBELANE AREA VISUALIZATION */}
-            {boundary?.visible && currentStep >= 1 && (
-              <Group opacity={0.4}>
-                <Rect
-                  x={boundary.x} y={boundary.y} width={boundary.width} height={boundary.height}
-                  fill="rgba(99, 102, 241, 0.3)"
-                />
-                {chips.filter(c => c.visible).map(chip => (
-                  <Rect
-                    key={`sc-cut-${chip.id}`}
-                    x={chip.x} y={chip.y} width={chip.width} height={chip.height}
-                    fill="black"
-                    globalCompositeOperation="destination-out"
-                  />
-                ))}
-              </Group>
-            )}
-
-            {/* BOUNDARY & CHIPS */}
-            {boundary?.visible && (
-              <Rect
-                x={boundary.x} y={boundary.y} width={boundary.width} height={boundary.height}
-                stroke={selectedId === boundary.id ? "#6366f1" : "#ef4444"}
-                strokeWidth={2 / stageScale} dash={[10 / stageScale, 5 / stageScale]}
-              />
-            )}
-            {chips.filter(c => c.visible).map((chip) => (
-              <Rect
-                key={chip.id}
-                x={chip.x} y={chip.y} width={chip.width} height={chip.height}
-                stroke={selectedId === chip.id ? "#6366f1" : "#10b981"}
-                strokeWidth={1.5 / stageScale}
-                fill={chip.isManual ? "rgba(245, 158, 11, 0.05)" : "rgba(16, 185, 129, 0.02)"}
-              />
-            ))}
-
-            {/* PLACEMENTS */}
+            {/* PLACEMENTS (Interactive) */}
             {currentStep >= 2 && placements.map((p) => (
                <Group 
                   key={p.id}
                   x={p.x + p.width / 2} y={p.y + p.height / 2}
                   draggable
                   dragBoundFunc={(pos) => {
-                    // Convert absolute screen pos to stage pos
                     const transform = stageRef.current?.getAbsoluteTransform().copy().invert();
                     if (!transform || !boundary) return pos;
                     const stagePos = transform.point(pos);
                     
-                    // Constrain within Boundary
                     let tx = Math.max(boundary.x, Math.min(boundary.x + boundary.width, stagePos.x));
                     let ty = Math.max(boundary.y, Math.min(boundary.y + boundary.height, stagePos.y));
 
-                    // Simple "Stick to Scribelane" logic: 
-                    // If moving into a chip, we can either snap to edge or block.
-                    // For best UX, we allow free drag but provide feedback or snap on end.
-                    // Here we let it move freely but the center should ideally stay in scribelane.
-                    const activeChips = chips.filter(c => c.visible);
-                    const isInsideChip = activeChips.some(c => 
-                      tx >= c.x && tx <= c.x + c.width && ty >= c.y && ty <= c.y + c.height
-                    );
-
-                    // If inside chip, we can try to find nearest edge, but for now we just return current stage pos
                     return stageRef.current!.getAbsoluteTransform().point({ x: tx, y: ty });
                   }}
                   onDragEnd={(e) => {
                     const nx = e.target.x();
                     const ny = e.target.y();
-                    
-                    // Final check: if landed inside a chip, maybe snap to nearest valid?
-                    // For now, just update store.
                     updatePlacement(p.id, { x: nx - p.width / 2, y: ny - p.height / 2 });
                   }}
                >

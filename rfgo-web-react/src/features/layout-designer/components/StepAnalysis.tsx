@@ -6,10 +6,17 @@ import { useLayoutDesigner } from '../hooks/useLayoutDesigner';
 import { cn } from '@/shared/utils/cn';
 
 export const StepAnalysis: React.FC = () => {
-  const { 
-    boundary, chips, setBoundary, removeChip, setChips, 
-    toggleRole, isAddMode, setAddMode, selectedId, selectElement 
-  } = useLayoutStore();
+  // Use selectors to minimize re-renders
+  const boundary = useLayoutStore(state => state.boundary);
+  const chips = useLayoutStore(state => state.chips);
+  const setBoundary = useLayoutStore(state => state.setBoundary);
+  const removeChip = useLayoutStore(state => state.removeChip);
+  const setChips = useLayoutStore(state => state.setChips);
+  const toggleRole = useLayoutStore(state => state.toggleRole);
+  const isAddMode = useLayoutStore(state => state.isAddMode);
+  const setAddMode = useLayoutStore(state => state.setAddMode);
+  const selectedId = useLayoutStore(state => state.selectedId);
+  const selectElement = useLayoutStore(state => state.selectElement);
   
   const { analyzeScribelane } = useLayoutDesigner();
 
@@ -107,7 +114,8 @@ export const StepAnalysis: React.FC = () => {
           </div>
         </div>
         
-        <div className="flex-1 bg-white dark:bg-slate-950 rounded-md border border-slate-200 dark:border-slate-800 overflow-hidden relative shadow-inner transition-colors">
+        {/* Unified Height Container */}
+        <div className="h-[calc(100vh-280px)] bg-white dark:bg-slate-950 rounded-md border border-slate-200 dark:border-slate-800 overflow-hidden relative shadow-inner transition-colors">
           <LayoutCanvas />
           {isAddMode && (
             <div className="absolute top-6 left-1/2 -translate-x-1/2 px-6 py-3 bg-indigo-600/90 dark:bg-indigo-600/90 backdrop-blur-xl rounded-full shadow-2xl pointer-events-none animate-bounce border border-indigo-400">
@@ -120,7 +128,7 @@ export const StepAnalysis: React.FC = () => {
       </div>
 
       <div className="w-80 flex flex-col gap-4 shrink-0">
-        <div className="flex-1 bg-white/50 dark:bg-slate-900/50 border border-slate-200/60 dark:border-slate-800 rounded-md flex flex-col overflow-hidden max-h-[calc(100vh-220px)] transition-colors shadow-sm dark:shadow-xl">
+        <div className="flex-1 bg-white/50 dark:bg-slate-900/50 border border-slate-200/60 dark:border-slate-800 rounded-md flex flex-col overflow-hidden max-h-[calc(100vh-280px)] transition-colors shadow-sm dark:shadow-xl">
           <div className="p-5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 backdrop-blur-md shrink-0 flex items-center justify-between">
             <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Elements Inventory</h4>
             <span className="text-[8px] font-black px-2 py-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-transparent rounded-sm text-slate-500 dark:text-slate-400 shadow-sm uppercase">

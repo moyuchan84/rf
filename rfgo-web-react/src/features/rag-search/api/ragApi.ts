@@ -32,7 +32,7 @@ export const ragApi = {
     });
     return response.data;
   },
-  chat: async (messages: ChatMessage[]): Promise<{ role: string, content: string, tool_calls?: any[] }> => {
+  chat: async (messages: ChatMessage[]): Promise<{ role: string, content: string, tool_calls?: any[], references?: RagSearchResult[] }> => {
     const response = await axios.post(`${RAG_BASE_URL}/chat`, {
       messages
     });

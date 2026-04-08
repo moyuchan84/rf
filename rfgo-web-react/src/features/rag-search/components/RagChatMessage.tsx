@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, FileText, Database } from 'lucide-react';
+import { Sparkles, Database } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { RagSearchResult } from '../api/ragApi';
