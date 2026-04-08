@@ -57,80 +57,104 @@ export const useLayoutDesigner = () => {
 
     const activeChips = chips.filter(c => c.visible);
     const targetCount = config.n;
+    const elemSize = Math.max(15, Math.min(boundary.width, boundary.height) * 0.03);
     
-    // 1. Grid Extraction
-    const xCoords = Array.from(new Set([boundary.x, boundary.x + boundary.width, ...activeChips.flatMap(c => [c.x, c.x + c.width])])).sort((a, b) => a - b);
-    const yCoords = Array.from(new Set([boundary.y, boundary.y + boundary.height, ...activeChips.flatMap(c => [c.y, c.y + c.height])])).sort((a, b) => a - b);
+    // 1. Grid Extraction (All edges)
+    const xCoords = Array.from(new Set([
+      boundary.x, boundary.x + boundary.width, 
+      ...activeChips.flatMap(c => [c.x, c.x + c.width])
+    ])).sort((a, b) => a - b);
+    
+    const yCoords = Array.from(new Set([
+      boundary.y, boundary.y + boundary.height, 
+      ...activeChips.flatMap(c => [c.y, c.y + c.height])
+    ])).sort((a, b) => a - b);
 
-    // 2. Find Free Slots
-    const freePoints: { x: number, y: number }[] = [];
-    const minSize = 10;
+    // 2. Identify Free Slots (Grid Cells)
+    const freeCells: { x: number, y: number, w: number, h: number, cx: number, cy: number }[] = [];
     for (let i = 0; i < xCoords.length - 1; i++) {
       for (let j = 0; j < yCoords.length - 1; j++) {
         const w = xCoords[i+1] - xCoords[i];
         const h = yCoords[j+1] - yCoords[j];
-        if (w < minSize && h < minSize) continue;
+        if (w < elemSize * 0.8 || h < elemSize * 0.8) continue; // Too small for a key
         
         const cx = xCoords[i] + w / 2;
         const cy = yCoords[j] + h / 2;
         
-        const isInsideChip = activeChips.some(c => cx >= c.x - 1 && cx <= c.x + c.width + 1 && cy >= c.y - 1 && cy <= c.y + c.height + 1);
-        if (!isInsideChip) freePoints.push({ x: cx, y: cy });
-      }
-    }
+        // Check if inside boundary and outside all chips
+        const isInsideBoundary = cx >= boundary.x && cx <= boundary.x + boundary.width && 
+                                 cy >= boundary.y && cy <= boundary.y + boundary.height;
+        const isInsideAnyChip = activeChips.some(c => 
+          cx >= c.x - 1 && cx <= c.x + c.width + 1 && 
+          cy >= c.y - 1 && cy <= c.y + c.height + 1
+        );
 
-    if (freePoints.length === 0) return;
-
-    // 3. Selection Strategy: Center + 4 Corners
-    const finalPoints: { x: number, y: number }[] = [];
-    const bx = boundary.x + boundary.width / 2;
-    const by = boundary.y + boundary.height / 2;
-
-    const getDist = (p1: {x:number, y:number}, p2: {x:number, y:number}) => Math.sqrt((p1.x-p2.x)**2 + (p1.y-p2.y)**2);
-
-    // 3.1 Pick Center
-    const centerPoint = [...freePoints].sort((a, b) => getDist(a, {x:bx, y:by}) - getDist(b, {x:bx, y:by}))[0];
-    finalPoints.push(centerPoint);
-
-    // 3.2 Pick Corners
-    const cornerTargets = [
-      { x: boundary.x, y: boundary.y },
-      { x: boundary.x + boundary.width, y: boundary.y },
-      { x: boundary.x, y: boundary.y + boundary.height },
-      { x: boundary.x + boundary.width, y: boundary.y + boundary.height }
-    ];
-
-    cornerTargets.forEach(target => {
-      const best = [...freePoints].sort((a, b) => getDist(a, target) - getDist(b, target))[0];
-      if (!finalPoints.some(p => p.x === best.x && p.y === best.y)) {
-        finalPoints.push(best);
-      }
-    });
-
-    // 3.3 Pick Remainder by Max-Min distance (Equidistance)
-    while (finalPoints.length < Math.min(targetCount, freePoints.length)) {
-      let maxMinDist = -1;
-      let bestPoint = freePoints[0];
-
-      for (const fp of freePoints) {
-        if (finalPoints.some(p => p.x === fp.x && p.y === fp.y)) continue;
-        const minDistToExisting = Math.min(...finalPoints.map(p => getDist(fp, p)));
-        if (minDistToExisting > maxMinDist) {
-          maxMinDist = minDistToExisting;
-          bestPoint = fp;
+        if (isInsideBoundary && !isInsideAnyChip) {
+          freeCells.push({ x: xCoords[i], y: yCoords[j], w, h, cx, cy });
         }
       }
-      finalPoints.push(bestPoint);
     }
 
-    // 4. Map to GeometricObjects
-    const elemSize = Math.max(15, Math.min(boundary.width, boundary.height) * 0.03);
-    setPlacements(finalPoints.slice(0, targetCount).map(p => ({
+    if (freeCells.length === 0) {
+      toast.error("No free space found for placement");
+      return;
+    }
+
+    let selectedPoints: { x: number, y: number }[] = [];
+
+    // 3. Apply Strategy
+    if (config.strategy === 'UNIFORM_LINEAR') {
+      // Find long streets (horizontal or vertical)
+      // For simplicity, pick the largest contiguous set of cells in a row/column
+      selectedPoints = freeCells
+        .sort((a, b) => (b.w * b.h) - (a.w * a.h)) // Prefer larger areas
+        .slice(0, targetCount)
+        .map(c => ({ x: c.cx, y: c.cy }));
+    } 
+    else if (config.strategy === 'GREEDY_GRID') {
+      const bx = boundary.x + boundary.width / 2;
+      const by = boundary.y + boundary.height / 2;
+      const getDist = (p1: {x:number, y:number}, p2: {x:number, y:number}) => Math.sqrt((p1.x-p2.x)**2 + (p1.y-p2.y)**2);
+
+      // Prioritize points near center and corners
+      const interestPoints = [
+        { x: bx, y: by },
+        { x: boundary.x, y: boundary.y },
+        { x: boundary.x + boundary.width, y: boundary.y },
+        { x: boundary.x, y: boundary.y + boundary.height },
+        { x: boundary.x + boundary.width, y: boundary.y + boundary.height }
+      ];
+
+      const scoredCells = freeCells.map(cell => {
+        const minDist = Math.min(...interestPoints.map(p => getDist({ x: cell.cx, y: cell.cy }, p)));
+        return { cell, score: minDist };
+      }).sort((a, b) => a.score - b.score);
+
+      selectedPoints = scoredCells.slice(0, targetCount).map(s => ({ x: s.cell.cx, y: s.cell.cy }));
+    }
+    else { // BEST_FIT_BIN_PACKING or Fallback
+      // Just distribute as evenly as possible
+      selectedPoints = [];
+      const step = Math.max(1, Math.floor(freeCells.length / targetCount));
+      for (let i = 0; i < targetCount && i * step < freeCells.length; i++) {
+        const c = freeCells[i * step];
+        selectedPoints.push({ x: c.cx, y: c.cy });
+      }
+    }
+
+    // 4. Map to GeometricObjects with tag: 'KEY'
+    setPlacements(selectedPoints.map(p => ({
       id: uuidv4(),
       x: p.x - elemSize / 2,
       y: p.y - elemSize / 2,
-      width: elemSize, height: elemSize, tag: 'CHIP', visible: true, isManual: false
+      width: elemSize, 
+      height: elemSize, 
+      tag: 'KEY', 
+      visible: true, 
+      isManual: false
     })));
+
+    toast.success(`Automatically placed ${selectedPoints.length} elements`);
   }, [setPlacements]);
 
   const saveLayout = async () => {

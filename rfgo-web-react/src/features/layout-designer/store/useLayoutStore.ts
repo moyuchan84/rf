@@ -14,7 +14,7 @@ export interface GeometricObject {
   height: number;
   isManual?: boolean;
   visible: boolean; // 필수 속성으로 변경
-  tag: 'BOUNDARY' | 'CHIP';
+  tag: 'BOUNDARY' | 'CHIP' | 'KEY';
 }
 
 export interface LaneElement {
