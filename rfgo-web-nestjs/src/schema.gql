@@ -262,6 +262,11 @@ type Mutation {
   updateUserRole(roleId: Int!, userId: Int!): UserType!
 }
 
+type PaginatedLayouts {
+  items: [ReticleLayout!]!
+  totalCount: Int!
+}
+
 type PaginatedRequests {
   items: [RequestItem!]!
   totalCount: Int!
@@ -351,9 +356,9 @@ type Query {
   keyDesign(id: Int!): KeyDesign!
   keyDesigns(keyType: String, processPlanId: Int, search: String): [KeyDesign!]!
   layout(id: Int!): ReticleLayout
-  layouts(productId: Int!): [ReticleLayout!]!
   me: UserType
   myMailGroups(userId: String!): [UserMailGroupDto!]!
+  paginatedLayouts(productId: Int, search: String, skip: Int! = 0, take: Int! = 12): PaginatedLayouts!
   photoKeys(beolOptionId: Int, processPlanId: Int, productId: Int): [PhotoKey!]!
   processPlans: [ProcessPlan!]!
   requestItem(id: Int!): RequestItem
@@ -516,12 +521,15 @@ input UpdateKeyDesignInput {
 }
 
 input UpdateLayoutInput {
+  beolOptionId: Int
   boundary: JSON
   chips: JSON
   config: JSON
   id: Int!
   imageUrl: String
   placements: JSON
+  processPlanId: Int
+  productId: Int
   scribelanes: JSON
   shotInfo: JSON
   title: String

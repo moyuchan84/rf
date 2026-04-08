@@ -45,3 +45,12 @@ export class ReticleLayout {
   @Field()
   updatedAt: Date;
 }
+
+@ObjectType()
+export class PaginatedLayouts {
+  @Field(() => [ReticleLayout])
+  items: ReticleLayout[];
+
+  @Field(() => Int)
+  totalCount: number;
+}

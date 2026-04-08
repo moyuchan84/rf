@@ -1,15 +1,20 @@
 import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { LayoutsService } from './layout.service';
-import { ReticleLayout } from './layout.model';
+import { ReticleLayout, PaginatedLayouts } from './layout.model';
 import { CreateLayoutInput, UpdateLayoutInput } from './layout.dto';
 
 @Resolver(() => ReticleLayout)
 export class LayoutsResolver {
   constructor(private service: LayoutsService) {}
 
-  @Query(() => [ReticleLayout], { name: 'layouts' })
-  async layouts(@Args('productId', { type: () => Int }) productId: number) {
-    return this.service.findByProduct(productId);
+  @Query(() => PaginatedLayouts, { name: 'paginatedLayouts' })
+  async paginatedLayouts(
+    @Args('skip', { type: () => Int, defaultValue: 0 }) skip: number,
+    @Args('take', { type: () => Int, defaultValue: 12 }) take: number,
+    @Args('search', { type: () => String, nullable: true }) search?: string,
+    @Args('productId', { type: () => Int, nullable: true }) productId?: number,
+  ) {
+    return this.service.findPaginated(skip, take, search, productId);
   }
 
   @Query(() => ReticleLayout, { name: 'layout', nullable: true })
@@ -19,8 +24,6 @@ export class LayoutsResolver {
 
   @Mutation(() => ReticleLayout, { name: 'saveLayout' })
   async saveLayout(@Args('input') input: CreateLayoutInput) {
-    // In this simplified version, we'll just create a new layout.
-    // In a real app, you might want to upsert or handle specific logic.
     return this.service.create(input);
   }
 

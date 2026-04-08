@@ -45,6 +45,15 @@ export class UpdateLayoutInput {
   @Field({ nullable: true })
   title?: string;
 
+  @Field(() => Int, { nullable: true })
+  productId?: number;
+
+  @Field(() => Int, { nullable: true })
+  beolOptionId?: number;
+
+  @Field(() => Int, { nullable: true })
+  processPlanId?: number;
+
   @Field(() => GraphQLJSON, { nullable: true })
   shotInfo?: any;
 
