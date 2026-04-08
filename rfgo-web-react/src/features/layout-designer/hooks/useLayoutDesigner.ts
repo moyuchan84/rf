@@ -1,7 +1,7 @@
 import { useLayoutStore } from '../store/useLayoutStore';
 import { useCallback } from 'react';
 import { useMutation } from '@apollo/client/react';
-import { SAVE_LAYOUT, UPDATE_LAYOUT, GET_LAYOUTS } from '../api/layoutQueries';
+import { SAVE_LAYOUT, UPDATE_LAYOUT, PAGINATED_LAYOUTS } from '../api/layoutQueries';
 import { OpencvDetector } from '../utils/OpencvDetector';
 import { v4 as uuidv4 } from 'uuid';
 import { LayoutService } from '../services/LayoutService';
@@ -13,10 +13,10 @@ export const useLayoutDesigner = () => {
   } = useLayoutStore();
 
   const [saveLayoutMutation] = useMutation<{ saveLayout: { id: number } }>(SAVE_LAYOUT, {
-    refetchQueries: [GET_LAYOUTS, 'GetLayouts'],
+    refetchQueries: [PAGINATED_LAYOUTS, 'PaginatedLayouts'],
   });
   const [updateLayoutMutation] = useMutation<{ updateLayout: { id: number } }>(UPDATE_LAYOUT, {
-    refetchQueries: [GET_LAYOUTS, 'GetLayouts'],
+    refetchQueries: [PAGINATED_LAYOUTS, 'PaginatedLayouts'],
   });
 
   const runDetection = useCallback(async (imageSrc: string) => {

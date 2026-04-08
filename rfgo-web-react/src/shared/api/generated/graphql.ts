@@ -154,6 +154,14 @@ export type CreateUserMailGroupInput = {
   members: Array<EmployeeInput>;
 };
 
+export type DiffRow = {
+  __typename?: 'DiffRow';
+  baseData?: Maybe<Scalars['JSON']['output']>;
+  changedFields?: Maybe<Array<Scalars['String']['output']>>;
+  data: Scalars['JSON']['output'];
+  status: Scalars['String']['output'];
+};
+
 export type DocSecuType =
   | 'OFFICIAL'
   | 'PERSONAL';
@@ -444,9 +452,21 @@ export type MutationUpdateUserRoleArgs = {
   userId: Scalars['Int']['input'];
 };
 
+export type PaginatedLayouts = {
+  __typename?: 'PaginatedLayouts';
+  items: Array<ReticleLayout>;
+  totalCount: Scalars['Int']['output'];
+};
+
 export type PaginatedRequests = {
   __typename?: 'PaginatedRequests';
   items: Array<RequestItem>;
+  totalCount: Scalars['Int']['output'];
+};
+
+export type PaginatedTableNames = {
+  __typename?: 'PaginatedTableNames';
+  items: Array<Scalars['String']['output']>;
   totalCount: Scalars['Int']['output'];
 };
 
@@ -528,15 +548,16 @@ export type ProductMetaInput = {
 export type Query = {
   __typename?: 'Query';
   allSystemDefaultMailers: Array<SystemDefaultMailerDto>;
+  comparePhotoKeys: Array<SheetDiff>;
   gdsPathInfoByRequest: Array<GdsPathInfo>;
   gdsPathInfosByProduct: Array<GdsPathInfo>;
   getMyApprovalPaths: Array<UserApprovalPathModel>;
   keyDesign: KeyDesign;
   keyDesigns: Array<KeyDesign>;
   layout?: Maybe<ReticleLayout>;
-  layouts: Array<ReticleLayout>;
   me?: Maybe<UserType>;
   myMailGroups: Array<UserMailGroupDto>;
+  paginatedLayouts: PaginatedLayouts;
   photoKeys: Array<PhotoKey>;
   processPlans: Array<ProcessPlan>;
   requestItem?: Maybe<RequestItem>;
@@ -545,11 +566,21 @@ export type Query = {
   requestTables: Array<RequestTableMap>;
   roles: Array<RoleType>;
   searchEmployees: EmployeeSearchResponseDto;
+  searchPhotoKeys: Array<PhotoKey>;
   searchPhotoKeysByStream: Array<PhotoKey>;
   streamInfoByRequest: Array<StreamInfo>;
   streamInfosByBeolOption: Array<StreamInfo>;
   streamInfosByProduct: Array<StreamInfo>;
+  uniqueBeols: Array<Scalars['String']['output']>;
+  uniqueProcessGroups: Array<Scalars['String']['output']>;
+  uniqueTableNames: PaginatedTableNames;
   users: PaginatedUsers;
+};
+
+
+export type QueryComparePhotoKeysArgs = {
+  baseId: Scalars['Int']['input'];
+  targetId: Scalars['Int']['input'];
 };
 
 
@@ -585,13 +616,16 @@ export type QueryLayoutArgs = {
 };
 
 
-export type QueryLayoutsArgs = {
-  productId: Scalars['Int']['input'];
+export type QueryMyMailGroupsArgs = {
+  userId: Scalars['String']['input'];
 };
 
 
-export type QueryMyMailGroupsArgs = {
-  userId: Scalars['String']['input'];
+export type QueryPaginatedLayoutsArgs = {
+  productId?: InputMaybe<Scalars['Int']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
+  skip?: Scalars['Int']['input'];
+  take?: Scalars['Int']['input'];
 };
 
 
@@ -633,6 +667,11 @@ export type QuerySearchEmployeesArgs = {
 };
 
 
+export type QuerySearchPhotoKeysArgs = {
+  query: Scalars['String']['input'];
+};
+
+
 export type QuerySearchPhotoKeysByStreamArgs = {
   query: Scalars['String']['input'];
 };
@@ -650,6 +689,18 @@ export type QueryStreamInfosByBeolOptionArgs = {
 
 export type QueryStreamInfosByProductArgs = {
   productId: Scalars['Int']['input'];
+};
+
+
+export type QueryUniqueBeolsArgs = {
+  processGrp: Scalars['String']['input'];
+};
+
+
+export type QueryUniqueTableNamesArgs = {
+  search?: InputMaybe<Scalars['String']['input']>;
+  skip?: Scalars['Int']['input'];
+  take?: Scalars['Int']['input'];
 };
 
 
@@ -762,6 +813,13 @@ export type SenderDto = {
   emailAddress: Scalars['String']['input'];
 };
 
+export type SheetDiff = {
+  __typename?: 'SheetDiff';
+  diffRows?: Maybe<Array<DiffRow>>;
+  sheetName: Scalars['String']['output'];
+  status: Scalars['String']['output'];
+};
+
 export type StreamInfo = {
   __typename?: 'StreamInfo';
   beolOption?: Maybe<BeolOption>;
@@ -804,12 +862,15 @@ export type UpdateKeyDesignInput = {
 };
 
 export type UpdateLayoutInput = {
+  beolOptionId?: InputMaybe<Scalars['Int']['input']>;
   boundary?: InputMaybe<Scalars['JSON']['input']>;
   chips?: InputMaybe<Scalars['JSON']['input']>;
   config?: InputMaybe<Scalars['JSON']['input']>;
   id: Scalars['Int']['input'];
   imageUrl?: InputMaybe<Scalars['String']['input']>;
   placements?: InputMaybe<Scalars['JSON']['input']>;
+  processPlanId?: InputMaybe<Scalars['Int']['input']>;
+  productId?: InputMaybe<Scalars['Int']['input']>;
   scribelanes?: InputMaybe<Scalars['JSON']['input']>;
   shotInfo?: InputMaybe<Scalars['JSON']['input']>;
   title?: InputMaybe<Scalars['String']['input']>;
@@ -1008,19 +1069,68 @@ export type GetPhotoKeysQueryVariables = Exact<{
 
 export type GetPhotoKeysQuery = { __typename?: 'Query', photoKeys: Array<{ __typename?: 'PhotoKey', id: number, tableName: string, revNo: number, rfgCategory?: string | null, photoCategory?: string | null, isReference: boolean, filename: string, log?: string | null, updateDate: any, productId: number, processPlanId?: number | null, beolOptionId?: number | null, workbookData?: any | null }> };
 
-export type GetLayoutsQueryVariables = Exact<{
-  productId: Scalars['Int']['input'];
+export type SearchPhotoKeysQueryVariables = Exact<{
+  query: Scalars['String']['input'];
 }>;
 
 
-export type GetLayoutsQuery = { __typename?: 'Query', layouts: Array<{ __typename?: 'ReticleLayout', id: number, title: string, boundary?: any | null, chips?: any | null, scribelanes?: any | null, placements?: any | null, shotInfo?: any | null, config?: any | null, imageUrl?: string | null }> };
+export type SearchPhotoKeysQuery = { __typename?: 'Query', searchPhotoKeys: Array<{ __typename?: 'PhotoKey', id: number, tableName: string, revNo: number, photoCategory?: string | null, filename: string, updateDate: any }> };
+
+export type GetUniqueTableNamesQueryVariables = Exact<{
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  take?: InputMaybe<Scalars['Int']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type GetUniqueTableNamesQuery = { __typename?: 'Query', uniqueTableNames: { __typename?: 'PaginatedTableNames', items: Array<string>, totalCount: number } };
+
+export type ComparePhotoKeysQueryVariables = Exact<{
+  baseId: Scalars['Int']['input'];
+  targetId: Scalars['Int']['input'];
+}>;
+
+
+export type ComparePhotoKeysQuery = { __typename?: 'Query', comparePhotoKeys: Array<{ __typename?: 'SheetDiff', sheetName: string, status: string, diffRows?: Array<{ __typename?: 'DiffRow', status: string, data: any, baseData?: any | null, changedFields?: Array<string> | null }> | null }> };
+
+export type PaginatedLayoutsQueryVariables = Exact<{
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  take?: InputMaybe<Scalars['Int']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
+  productId?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type PaginatedLayoutsQuery = { __typename?: 'Query', paginatedLayouts: { __typename?: 'PaginatedLayouts', totalCount: number, items: Array<{ __typename?: 'ReticleLayout', id: number, title: string, productId: number, beolOptionId?: number | null, processPlanId?: number | null, boundary?: any | null, chips?: any | null, scribelanes?: any | null, placements?: any | null, shotInfo?: any | null, config?: any | null, imageUrl?: string | null, createdAt: any, updatedAt: any }> } };
+
+export type GetLayoutQueryVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type GetLayoutQuery = { __typename?: 'Query', layout?: { __typename?: 'ReticleLayout', id: number, title: string, productId: number, beolOptionId?: number | null, processPlanId?: number | null, boundary?: any | null, chips?: any | null, scribelanes?: any | null, placements?: any | null, shotInfo?: any | null, config?: any | null, imageUrl?: string | null } | null };
 
 export type SaveLayoutMutationVariables = Exact<{
   input: CreateLayoutInput;
 }>;
 
 
-export type SaveLayoutMutation = { __typename?: 'Mutation', saveLayout: { __typename?: 'ReticleLayout', id: number, title: string } };
+export type SaveLayoutMutation = { __typename?: 'Mutation', saveLayout: { __typename?: 'ReticleLayout', id: number, title: string, productId: number, beolOptionId?: number | null, processPlanId?: number | null, boundary?: any | null, chips?: any | null, scribelanes?: any | null, placements?: any | null, shotInfo?: any | null, config?: any | null, imageUrl?: string | null, createdAt: any, updatedAt: any } };
+
+export type UpdateLayoutMutationVariables = Exact<{
+  id: Scalars['Int']['input'];
+  input: UpdateLayoutInput;
+}>;
+
+
+export type UpdateLayoutMutation = { __typename?: 'Mutation', updateLayout: { __typename?: 'ReticleLayout', id: number, title: string, productId: number, beolOptionId?: number | null, processPlanId?: number | null, boundary?: any | null, chips?: any | null, scribelanes?: any | null, placements?: any | null, shotInfo?: any | null, config?: any | null, imageUrl?: string | null, createdAt: any, updatedAt: any } };
+
+export type DeleteLayoutMutationVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type DeleteLayoutMutation = { __typename?: 'Mutation', deleteLayout: { __typename?: 'ReticleLayout', id: number } };
 
 export type SendTestMailMutationVariables = Exact<{
   input: MailRequestDto;
@@ -1101,6 +1211,32 @@ export type DeleteProductMutationVariables = Exact<{
 
 
 export type DeleteProductMutation = { __typename?: 'Mutation', deleteProduct: { __typename?: 'Product', id: number } };
+
+export type DeleteProcessPlanMutationVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type DeleteProcessPlanMutation = { __typename?: 'Mutation', deleteProcessPlan: { __typename?: 'ProcessPlan', id: number } };
+
+export type DeleteBeolOptionMutationVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type DeleteBeolOptionMutation = { __typename?: 'Mutation', deleteBeolOption: { __typename?: 'BeolOption', id: number } };
+
+export type GetUniqueProcessGroupsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetUniqueProcessGroupsQuery = { __typename?: 'Query', uniqueProcessGroups: Array<string> };
+
+export type GetUniqueBeolsQueryVariables = Exact<{
+  processGrp: Scalars['String']['input'];
+}>;
+
+
+export type GetUniqueBeolsQuery = { __typename?: 'Query', uniqueBeols: Array<string> };
 
 export type CreateGdsPathInfoMutationVariables = Exact<{
   input: CreateGdsPathInfoInput;
@@ -1264,8 +1400,14 @@ export const CreateKeyDesignDocument = {"kind":"Document","definitions":[{"kind"
 export const UpdateKeyDesignDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateKeyDesign"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"UpdateKeyDesignInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateKeyDesign"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}},{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]} as unknown as DocumentNode<UpdateKeyDesignMutation, UpdateKeyDesignMutationVariables>;
 export const RemoveKeyDesignDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"RemoveKeyDesign"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"removeKeyDesign"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<RemoveKeyDesignMutation, RemoveKeyDesignMutationVariables>;
 export const GetPhotoKeysDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetPhotoKeys"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"productId"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"beolOptionId"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"processPlanId"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"photoKeys"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"productId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"productId"}}},{"kind":"Argument","name":{"kind":"Name","value":"beolOptionId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"beolOptionId"}}},{"kind":"Argument","name":{"kind":"Name","value":"processPlanId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"processPlanId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"tableName"}},{"kind":"Field","name":{"kind":"Name","value":"revNo"}},{"kind":"Field","name":{"kind":"Name","value":"rfgCategory"}},{"kind":"Field","name":{"kind":"Name","value":"photoCategory"}},{"kind":"Field","name":{"kind":"Name","value":"isReference"}},{"kind":"Field","name":{"kind":"Name","value":"filename"}},{"kind":"Field","name":{"kind":"Name","value":"log"}},{"kind":"Field","name":{"kind":"Name","value":"updateDate"}},{"kind":"Field","name":{"kind":"Name","value":"productId"}},{"kind":"Field","name":{"kind":"Name","value":"processPlanId"}},{"kind":"Field","name":{"kind":"Name","value":"beolOptionId"}},{"kind":"Field","name":{"kind":"Name","value":"workbookData"}}]}}]}}]} as unknown as DocumentNode<GetPhotoKeysQuery, GetPhotoKeysQueryVariables>;
-export const GetLayoutsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetLayouts"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"productId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"layouts"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"productId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"productId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"boundary"}},{"kind":"Field","name":{"kind":"Name","value":"chips"}},{"kind":"Field","name":{"kind":"Name","value":"scribelanes"}},{"kind":"Field","name":{"kind":"Name","value":"placements"}},{"kind":"Field","name":{"kind":"Name","value":"shotInfo"}},{"kind":"Field","name":{"kind":"Name","value":"config"}},{"kind":"Field","name":{"kind":"Name","value":"imageUrl"}}]}}]}}]} as unknown as DocumentNode<GetLayoutsQuery, GetLayoutsQueryVariables>;
-export const SaveLayoutDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SaveLayout"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateLayoutInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"saveLayout"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}}]}}]}}]} as unknown as DocumentNode<SaveLayoutMutation, SaveLayoutMutationVariables>;
+export const SearchPhotoKeysDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"SearchPhotoKeys"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"query"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"searchPhotoKeys"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"query"},"value":{"kind":"Variable","name":{"kind":"Name","value":"query"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"tableName"}},{"kind":"Field","name":{"kind":"Name","value":"revNo"}},{"kind":"Field","name":{"kind":"Name","value":"photoCategory"}},{"kind":"Field","name":{"kind":"Name","value":"filename"}},{"kind":"Field","name":{"kind":"Name","value":"updateDate"}}]}}]}}]} as unknown as DocumentNode<SearchPhotoKeysQuery, SearchPhotoKeysQueryVariables>;
+export const GetUniqueTableNamesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetUniqueTableNames"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"skip"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"take"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"search"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"uniqueTableNames"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"skip"},"value":{"kind":"Variable","name":{"kind":"Name","value":"skip"}}},{"kind":"Argument","name":{"kind":"Name","value":"take"},"value":{"kind":"Variable","name":{"kind":"Name","value":"take"}}},{"kind":"Argument","name":{"kind":"Name","value":"search"},"value":{"kind":"Variable","name":{"kind":"Name","value":"search"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"items"}},{"kind":"Field","name":{"kind":"Name","value":"totalCount"}}]}}]}}]} as unknown as DocumentNode<GetUniqueTableNamesQuery, GetUniqueTableNamesQueryVariables>;
+export const ComparePhotoKeysDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ComparePhotoKeys"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"baseId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"targetId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"comparePhotoKeys"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"baseId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"baseId"}}},{"kind":"Argument","name":{"kind":"Name","value":"targetId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"targetId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"sheetName"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"diffRows"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"data"}},{"kind":"Field","name":{"kind":"Name","value":"baseData"}},{"kind":"Field","name":{"kind":"Name","value":"changedFields"}}]}}]}}]}}]} as unknown as DocumentNode<ComparePhotoKeysQuery, ComparePhotoKeysQueryVariables>;
+export const PaginatedLayoutsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"PaginatedLayouts"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"skip"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"take"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"search"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"productId"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"paginatedLayouts"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"skip"},"value":{"kind":"Variable","name":{"kind":"Name","value":"skip"}}},{"kind":"Argument","name":{"kind":"Name","value":"take"},"value":{"kind":"Variable","name":{"kind":"Name","value":"take"}}},{"kind":"Argument","name":{"kind":"Name","value":"search"},"value":{"kind":"Variable","name":{"kind":"Name","value":"search"}}},{"kind":"Argument","name":{"kind":"Name","value":"productId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"productId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"items"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"productId"}},{"kind":"Field","name":{"kind":"Name","value":"beolOptionId"}},{"kind":"Field","name":{"kind":"Name","value":"processPlanId"}},{"kind":"Field","name":{"kind":"Name","value":"boundary"}},{"kind":"Field","name":{"kind":"Name","value":"chips"}},{"kind":"Field","name":{"kind":"Name","value":"scribelanes"}},{"kind":"Field","name":{"kind":"Name","value":"placements"}},{"kind":"Field","name":{"kind":"Name","value":"shotInfo"}},{"kind":"Field","name":{"kind":"Name","value":"config"}},{"kind":"Field","name":{"kind":"Name","value":"imageUrl"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}},{"kind":"Field","name":{"kind":"Name","value":"totalCount"}}]}}]}}]} as unknown as DocumentNode<PaginatedLayoutsQuery, PaginatedLayoutsQueryVariables>;
+export const GetLayoutDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetLayout"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"layout"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"productId"}},{"kind":"Field","name":{"kind":"Name","value":"beolOptionId"}},{"kind":"Field","name":{"kind":"Name","value":"processPlanId"}},{"kind":"Field","name":{"kind":"Name","value":"boundary"}},{"kind":"Field","name":{"kind":"Name","value":"chips"}},{"kind":"Field","name":{"kind":"Name","value":"scribelanes"}},{"kind":"Field","name":{"kind":"Name","value":"placements"}},{"kind":"Field","name":{"kind":"Name","value":"shotInfo"}},{"kind":"Field","name":{"kind":"Name","value":"config"}},{"kind":"Field","name":{"kind":"Name","value":"imageUrl"}}]}}]}}]} as unknown as DocumentNode<GetLayoutQuery, GetLayoutQueryVariables>;
+export const SaveLayoutDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SaveLayout"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateLayoutInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"saveLayout"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"productId"}},{"kind":"Field","name":{"kind":"Name","value":"beolOptionId"}},{"kind":"Field","name":{"kind":"Name","value":"processPlanId"}},{"kind":"Field","name":{"kind":"Name","value":"boundary"}},{"kind":"Field","name":{"kind":"Name","value":"chips"}},{"kind":"Field","name":{"kind":"Name","value":"scribelanes"}},{"kind":"Field","name":{"kind":"Name","value":"placements"}},{"kind":"Field","name":{"kind":"Name","value":"shotInfo"}},{"kind":"Field","name":{"kind":"Name","value":"config"}},{"kind":"Field","name":{"kind":"Name","value":"imageUrl"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}}]}}]} as unknown as DocumentNode<SaveLayoutMutation, SaveLayoutMutationVariables>;
+export const UpdateLayoutDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateLayout"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"UpdateLayoutInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateLayout"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}},{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"productId"}},{"kind":"Field","name":{"kind":"Name","value":"beolOptionId"}},{"kind":"Field","name":{"kind":"Name","value":"processPlanId"}},{"kind":"Field","name":{"kind":"Name","value":"boundary"}},{"kind":"Field","name":{"kind":"Name","value":"chips"}},{"kind":"Field","name":{"kind":"Name","value":"scribelanes"}},{"kind":"Field","name":{"kind":"Name","value":"placements"}},{"kind":"Field","name":{"kind":"Name","value":"shotInfo"}},{"kind":"Field","name":{"kind":"Name","value":"config"}},{"kind":"Field","name":{"kind":"Name","value":"imageUrl"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}}]}}]} as unknown as DocumentNode<UpdateLayoutMutation, UpdateLayoutMutationVariables>;
+export const DeleteLayoutDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteLayout"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"deleteLayout"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<DeleteLayoutMutation, DeleteLayoutMutationVariables>;
 export const SendTestMailDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SendTestMail"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"MailRequestDto"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"sendTestMail"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}]}]}}]} as unknown as DocumentNode<SendTestMailMutation, SendTestMailMutationVariables>;
 export const GetMyMailGroupsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetMyMailGroups"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"userId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"myMailGroups"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"userId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"userId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"userId"}},{"kind":"Field","name":{"kind":"Name","value":"groupName"}},{"kind":"Field","name":{"kind":"Name","value":"members"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"epId"}},{"kind":"Field","name":{"kind":"Name","value":"fullName"}},{"kind":"Field","name":{"kind":"Name","value":"userId"}},{"kind":"Field","name":{"kind":"Name","value":"departmentName"}},{"kind":"Field","name":{"kind":"Name","value":"emailAddress"}}]}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}}]}}]}}]} as unknown as DocumentNode<GetMyMailGroupsQuery, GetMyMailGroupsQueryVariables>;
 export const CreateMailGroupDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateMailGroup"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"userId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateUserMailGroupInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createMailGroup"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"userId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"userId"}}},{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"groupName"}},{"kind":"Field","name":{"kind":"Name","value":"members"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"epId"}},{"kind":"Field","name":{"kind":"Name","value":"fullName"}},{"kind":"Field","name":{"kind":"Name","value":"userId"}},{"kind":"Field","name":{"kind":"Name","value":"departmentName"}},{"kind":"Field","name":{"kind":"Name","value":"emailAddress"}}]}}]}}]}}]} as unknown as DocumentNode<CreateMailGroupMutation, CreateMailGroupMutationVariables>;
@@ -1277,6 +1419,10 @@ export const CreateBeolOptionDocument = {"kind":"Document","definitions":[{"kind
 export const CreateProductDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateProduct"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateProductInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createProduct"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"partId"}},{"kind":"Field","name":{"kind":"Name","value":"productName"}}]}}]}}]} as unknown as DocumentNode<CreateProductMutation, CreateProductMutationVariables>;
 export const UpdateProductDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateProduct"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"UpdateProductInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateProduct"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}},{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"productName"}},{"kind":"Field","name":{"kind":"Name","value":"metaInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"processId"}},{"kind":"Field","name":{"kind":"Name","value":"customer"}},{"kind":"Field","name":{"kind":"Name","value":"application"}},{"kind":"Field","name":{"kind":"Name","value":"chipSizeX"}},{"kind":"Field","name":{"kind":"Name","value":"chipSizeY"}},{"kind":"Field","name":{"kind":"Name","value":"slSizeX"}},{"kind":"Field","name":{"kind":"Name","value":"slSizeY"}}]}}]}}]}}]} as unknown as DocumentNode<UpdateProductMutation, UpdateProductMutationVariables>;
 export const DeleteProductDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteProduct"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"deleteProduct"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<DeleteProductMutation, DeleteProductMutationVariables>;
+export const DeleteProcessPlanDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteProcessPlan"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"deleteProcessPlan"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<DeleteProcessPlanMutation, DeleteProcessPlanMutationVariables>;
+export const DeleteBeolOptionDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteBeolOption"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"deleteBeolOption"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<DeleteBeolOptionMutation, DeleteBeolOptionMutationVariables>;
+export const GetUniqueProcessGroupsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetUniqueProcessGroups"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"uniqueProcessGroups"}}]}}]} as unknown as DocumentNode<GetUniqueProcessGroupsQuery, GetUniqueProcessGroupsQueryVariables>;
+export const GetUniqueBeolsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetUniqueBeols"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"processGrp"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"uniqueBeols"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"processGrp"},"value":{"kind":"Variable","name":{"kind":"Name","value":"processGrp"}}}]}]}}]} as unknown as DocumentNode<GetUniqueBeolsQuery, GetUniqueBeolsQueryVariables>;
 export const CreateGdsPathInfoDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateGdsPathInfo"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateGdsPathInfoInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createGdsPathInfo"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"gdsPathList"}}]}}]}}]} as unknown as DocumentNode<CreateGdsPathInfoMutation, CreateGdsPathInfoMutationVariables>;
 export const GetGdsPathInfoByRequestDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetGdsPathInfoByRequest"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"requestId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"gdsPathInfoByRequest"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"requestId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"requestId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"gdsPathList"}}]}}]}}]} as unknown as DocumentNode<GetGdsPathInfoByRequestQuery, GetGdsPathInfoByRequestQueryVariables>;
 export const CreateRequestItemDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateRequestItem"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateRequestItemInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createRequestItem"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"requestType"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"mtoDate"}},{"kind":"Field","name":{"kind":"Name","value":"layoutRequestDescription"}},{"kind":"Field","name":{"kind":"Name","value":"edmList"}},{"kind":"Field","name":{"kind":"Name","value":"pkdVersions"}},{"kind":"Field","name":{"kind":"Name","value":"requesterId"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}}]}}]}}]} as unknown as DocumentNode<CreateRequestItemMutation, CreateRequestItemMutationVariables>;

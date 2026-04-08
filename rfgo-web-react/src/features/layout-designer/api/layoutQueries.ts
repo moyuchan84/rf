@@ -1,26 +1,5 @@
 import { gql } from '@apollo/client';
 
-export const GET_LAYOUTS = gql`
-  query GetLayouts($productId: Int!) {
-    layouts(productId: $productId) {
-      id
-      title
-      productId
-      beolOptionId
-      processPlanId
-      boundary
-      chips
-      scribelanes
-      placements
-      shotInfo
-      config
-      imageUrl
-      createdAt
-      updatedAt
-    }
-  }
-`;
-
 export const PAGINATED_LAYOUTS = gql`
   query PaginatedLayouts($skip: Int, $take: Int, $search: String, $productId: Int) {
     paginatedLayouts(skip: $skip, take: $take, search: $search, productId: $productId) {
@@ -41,27 +20,6 @@ export const PAGINATED_LAYOUTS = gql`
         updatedAt
       }
       totalCount
-    }
-  }
-`;
-
-export const GET_ALL_LAYOUTS = gql`
-  query GetAllLayouts {
-    allLayouts {
-      id
-      title
-      productId
-      beolOptionId
-      processPlanId
-      boundary
-      chips
-      scribelanes
-      placements
-      shotInfo
-      config
-      imageUrl
-      createdAt
-      updatedAt
     }
   }
 `;

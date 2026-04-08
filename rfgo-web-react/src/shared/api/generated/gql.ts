@@ -33,8 +33,14 @@ type Documents = {
     "\n  mutation UpdateKeyDesign($id: Int!, $input: UpdateKeyDesignInput!) {\n    updateKeyDesign(id: $id, input: $input) {\n      id\n      name\n    }\n  }\n": typeof types.UpdateKeyDesignDocument,
     "\n  mutation RemoveKeyDesign($id: Int!) {\n    removeKeyDesign(id: $id) {\n      id\n    }\n  }\n": typeof types.RemoveKeyDesignDocument,
     "\n  query GetPhotoKeys($productId: Int, $beolOptionId: Int, $processPlanId: Int) {\n    photoKeys(productId: $productId, beolOptionId: $beolOptionId, processPlanId: $processPlanId) {\n      id\n      tableName\n      revNo\n      rfgCategory\n      photoCategory\n      isReference\n      filename\n      log\n      updateDate\n      productId\n      processPlanId\n      beolOptionId\n      workbookData\n    }\n  }\n": typeof types.GetPhotoKeysDocument,
-    "\n  query GetLayouts($productId: Int!) {\n    layouts(productId: $productId) {\n      id\n      title\n      boundary\n      chips\n      scribelanes\n      placements\n      shotInfo\n      config\n      imageUrl\n    }\n  }\n": typeof types.GetLayoutsDocument,
-    "\n  mutation SaveLayout($input: CreateLayoutInput!) {\n    saveLayout(input: $input) {\n      id\n      title\n    }\n  }\n": typeof types.SaveLayoutDocument,
+    "\n  query SearchPhotoKeys($query: String!) {\n    searchPhotoKeys(query: $query) {\n      id\n      tableName\n      revNo\n      photoCategory\n      filename\n      updateDate\n    }\n  }\n": typeof types.SearchPhotoKeysDocument,
+    "\n  query GetUniqueTableNames($skip: Int, $take: Int, $search: String) {\n    uniqueTableNames(skip: $skip, take: $take, search: $search) {\n      items\n      totalCount\n    }\n  }\n": typeof types.GetUniqueTableNamesDocument,
+    "\n  query ComparePhotoKeys($baseId: Int!, $targetId: Int!) {\n    comparePhotoKeys(baseId: $baseId, targetId: $targetId) {\n      sheetName\n      status\n      diffRows {\n        status\n        data\n        baseData\n        changedFields\n      }\n    }\n  }\n": typeof types.ComparePhotoKeysDocument,
+    "\n  query PaginatedLayouts($skip: Int, $take: Int, $search: String, $productId: Int) {\n    paginatedLayouts(skip: $skip, take: $take, search: $search, productId: $productId) {\n      items {\n        id\n        title\n        productId\n        beolOptionId\n        processPlanId\n        boundary\n        chips\n        scribelanes\n        placements\n        shotInfo\n        config\n        imageUrl\n        createdAt\n        updatedAt\n      }\n      totalCount\n    }\n  }\n": typeof types.PaginatedLayoutsDocument,
+    "\n  query GetLayout($id: Int!) {\n    layout(id: $id) {\n      id\n      title\n      productId\n      beolOptionId\n      processPlanId\n      boundary\n      chips\n      scribelanes\n      placements\n      shotInfo\n      config\n      imageUrl\n    }\n  }\n": typeof types.GetLayoutDocument,
+    "\n  mutation SaveLayout($input: CreateLayoutInput!) {\n    saveLayout(input: $input) {\n      id\n      title\n      productId\n      beolOptionId\n      processPlanId\n      boundary\n      chips\n      scribelanes\n      placements\n      shotInfo\n      config\n      imageUrl\n      createdAt\n      updatedAt\n    }\n  }\n": typeof types.SaveLayoutDocument,
+    "\n  mutation UpdateLayout($id: Int!, $input: UpdateLayoutInput!) {\n    updateLayout(id: $id, input: $input) {\n      id\n      title\n      productId\n      beolOptionId\n      processPlanId\n      boundary\n      chips\n      scribelanes\n      placements\n      shotInfo\n      config\n      imageUrl\n      createdAt\n      updatedAt\n    }\n  }\n": typeof types.UpdateLayoutDocument,
+    "\n  mutation DeleteLayout($id: Int!) {\n    deleteLayout(id: $id) {\n      id\n    }\n  }\n": typeof types.DeleteLayoutDocument,
     "\n  mutation SendTestMail($input: MailRequestDto!) {\n    sendTestMail(input: $input)\n  }\n": typeof types.SendTestMailDocument,
     "\n  query GetMyMailGroups($userId: String!) {\n    myMailGroups(userId: $userId) {\n      id\n      userId\n      groupName\n      members {\n        epId\n        fullName\n        userId\n        departmentName\n        emailAddress\n      }\n      createdAt\n    }\n  }\n": typeof types.GetMyMailGroupsDocument,
     "\n  mutation CreateMailGroup($userId: String!, $input: CreateUserMailGroupInput!) {\n    createMailGroup(userId: $userId, input: $input) {\n      id\n      groupName\n      members {\n        epId\n        fullName\n        userId\n        departmentName\n        emailAddress\n      }\n    }\n  }\n": typeof types.CreateMailGroupDocument,
@@ -46,6 +52,10 @@ type Documents = {
     "\n  mutation CreateProduct($input: CreateProductInput!) {\n    createProduct(input: $input) {\n      id\n      partId\n      productName\n    }\n  }\n": typeof types.CreateProductDocument,
     "\n  mutation UpdateProduct($id: Int!, $input: UpdateProductInput!) {\n    updateProduct(id: $id, input: $input) {\n      id\n      productName\n      metaInfo {\n        id\n        processId\n        customer\n        application\n        chipSizeX\n        chipSizeY\n        slSizeX\n        slSizeY\n      }\n    }\n  }\n": typeof types.UpdateProductDocument,
     "\n  mutation DeleteProduct($id: Int!) {\n    deleteProduct(id: $id) {\n      id\n    }\n  }\n": typeof types.DeleteProductDocument,
+    "\n  mutation DeleteProcessPlan($id: Int!) {\n    deleteProcessPlan(id: $id) {\n      id\n    }\n  }\n": typeof types.DeleteProcessPlanDocument,
+    "\n  mutation DeleteBeolOption($id: Int!) {\n    deleteBeolOption(id: $id) {\n      id\n    }\n  }\n": typeof types.DeleteBeolOptionDocument,
+    "\n  query GetUniqueProcessGroups {\n    uniqueProcessGroups\n  }\n": typeof types.GetUniqueProcessGroupsDocument,
+    "\n  query GetUniqueBeols($processGrp: String!) {\n    uniqueBeols(processGrp: $processGrp)\n  }\n": typeof types.GetUniqueBeolsDocument,
     "\n  mutation CreateGdsPathInfo($input: CreateGdsPathInfoInput!) {\n    createGdsPathInfo(input: $input) {\n      id\n      gdsPathList\n    }\n  }\n": typeof types.CreateGdsPathInfoDocument,
     "\n  query GetGdsPathInfoByRequest($requestId: Int!) {\n    gdsPathInfoByRequest(requestId: $requestId) {\n      id\n      gdsPathList\n    }\n  }\n": typeof types.GetGdsPathInfoByRequestDocument,
     "\n  mutation CreateRequestItem($input: CreateRequestItemInput!) {\n    createRequestItem(input: $input) {\n      id\n      requestType\n      title\n      description\n      mtoDate\n      layoutRequestDescription\n      edmList\n      pkdVersions\n      requesterId\n      createdAt\n    }\n  }\n": typeof types.CreateRequestItemDocument,
@@ -86,8 +96,14 @@ const documents: Documents = {
     "\n  mutation UpdateKeyDesign($id: Int!, $input: UpdateKeyDesignInput!) {\n    updateKeyDesign(id: $id, input: $input) {\n      id\n      name\n    }\n  }\n": types.UpdateKeyDesignDocument,
     "\n  mutation RemoveKeyDesign($id: Int!) {\n    removeKeyDesign(id: $id) {\n      id\n    }\n  }\n": types.RemoveKeyDesignDocument,
     "\n  query GetPhotoKeys($productId: Int, $beolOptionId: Int, $processPlanId: Int) {\n    photoKeys(productId: $productId, beolOptionId: $beolOptionId, processPlanId: $processPlanId) {\n      id\n      tableName\n      revNo\n      rfgCategory\n      photoCategory\n      isReference\n      filename\n      log\n      updateDate\n      productId\n      processPlanId\n      beolOptionId\n      workbookData\n    }\n  }\n": types.GetPhotoKeysDocument,
-    "\n  query GetLayouts($productId: Int!) {\n    layouts(productId: $productId) {\n      id\n      title\n      boundary\n      chips\n      scribelanes\n      placements\n      shotInfo\n      config\n      imageUrl\n    }\n  }\n": types.GetLayoutsDocument,
-    "\n  mutation SaveLayout($input: CreateLayoutInput!) {\n    saveLayout(input: $input) {\n      id\n      title\n    }\n  }\n": types.SaveLayoutDocument,
+    "\n  query SearchPhotoKeys($query: String!) {\n    searchPhotoKeys(query: $query) {\n      id\n      tableName\n      revNo\n      photoCategory\n      filename\n      updateDate\n    }\n  }\n": types.SearchPhotoKeysDocument,
+    "\n  query GetUniqueTableNames($skip: Int, $take: Int, $search: String) {\n    uniqueTableNames(skip: $skip, take: $take, search: $search) {\n      items\n      totalCount\n    }\n  }\n": types.GetUniqueTableNamesDocument,
+    "\n  query ComparePhotoKeys($baseId: Int!, $targetId: Int!) {\n    comparePhotoKeys(baseId: $baseId, targetId: $targetId) {\n      sheetName\n      status\n      diffRows {\n        status\n        data\n        baseData\n        changedFields\n      }\n    }\n  }\n": types.ComparePhotoKeysDocument,
+    "\n  query PaginatedLayouts($skip: Int, $take: Int, $search: String, $productId: Int) {\n    paginatedLayouts(skip: $skip, take: $take, search: $search, productId: $productId) {\n      items {\n        id\n        title\n        productId\n        beolOptionId\n        processPlanId\n        boundary\n        chips\n        scribelanes\n        placements\n        shotInfo\n        config\n        imageUrl\n        createdAt\n        updatedAt\n      }\n      totalCount\n    }\n  }\n": types.PaginatedLayoutsDocument,
+    "\n  query GetLayout($id: Int!) {\n    layout(id: $id) {\n      id\n      title\n      productId\n      beolOptionId\n      processPlanId\n      boundary\n      chips\n      scribelanes\n      placements\n      shotInfo\n      config\n      imageUrl\n    }\n  }\n": types.GetLayoutDocument,
+    "\n  mutation SaveLayout($input: CreateLayoutInput!) {\n    saveLayout(input: $input) {\n      id\n      title\n      productId\n      beolOptionId\n      processPlanId\n      boundary\n      chips\n      scribelanes\n      placements\n      shotInfo\n      config\n      imageUrl\n      createdAt\n      updatedAt\n    }\n  }\n": types.SaveLayoutDocument,
+    "\n  mutation UpdateLayout($id: Int!, $input: UpdateLayoutInput!) {\n    updateLayout(id: $id, input: $input) {\n      id\n      title\n      productId\n      beolOptionId\n      processPlanId\n      boundary\n      chips\n      scribelanes\n      placements\n      shotInfo\n      config\n      imageUrl\n      createdAt\n      updatedAt\n    }\n  }\n": types.UpdateLayoutDocument,
+    "\n  mutation DeleteLayout($id: Int!) {\n    deleteLayout(id: $id) {\n      id\n    }\n  }\n": types.DeleteLayoutDocument,
     "\n  mutation SendTestMail($input: MailRequestDto!) {\n    sendTestMail(input: $input)\n  }\n": types.SendTestMailDocument,
     "\n  query GetMyMailGroups($userId: String!) {\n    myMailGroups(userId: $userId) {\n      id\n      userId\n      groupName\n      members {\n        epId\n        fullName\n        userId\n        departmentName\n        emailAddress\n      }\n      createdAt\n    }\n  }\n": types.GetMyMailGroupsDocument,
     "\n  mutation CreateMailGroup($userId: String!, $input: CreateUserMailGroupInput!) {\n    createMailGroup(userId: $userId, input: $input) {\n      id\n      groupName\n      members {\n        epId\n        fullName\n        userId\n        departmentName\n        emailAddress\n      }\n    }\n  }\n": types.CreateMailGroupDocument,
@@ -99,6 +115,10 @@ const documents: Documents = {
     "\n  mutation CreateProduct($input: CreateProductInput!) {\n    createProduct(input: $input) {\n      id\n      partId\n      productName\n    }\n  }\n": types.CreateProductDocument,
     "\n  mutation UpdateProduct($id: Int!, $input: UpdateProductInput!) {\n    updateProduct(id: $id, input: $input) {\n      id\n      productName\n      metaInfo {\n        id\n        processId\n        customer\n        application\n        chipSizeX\n        chipSizeY\n        slSizeX\n        slSizeY\n      }\n    }\n  }\n": types.UpdateProductDocument,
     "\n  mutation DeleteProduct($id: Int!) {\n    deleteProduct(id: $id) {\n      id\n    }\n  }\n": types.DeleteProductDocument,
+    "\n  mutation DeleteProcessPlan($id: Int!) {\n    deleteProcessPlan(id: $id) {\n      id\n    }\n  }\n": types.DeleteProcessPlanDocument,
+    "\n  mutation DeleteBeolOption($id: Int!) {\n    deleteBeolOption(id: $id) {\n      id\n    }\n  }\n": types.DeleteBeolOptionDocument,
+    "\n  query GetUniqueProcessGroups {\n    uniqueProcessGroups\n  }\n": types.GetUniqueProcessGroupsDocument,
+    "\n  query GetUniqueBeols($processGrp: String!) {\n    uniqueBeols(processGrp: $processGrp)\n  }\n": types.GetUniqueBeolsDocument,
     "\n  mutation CreateGdsPathInfo($input: CreateGdsPathInfoInput!) {\n    createGdsPathInfo(input: $input) {\n      id\n      gdsPathList\n    }\n  }\n": types.CreateGdsPathInfoDocument,
     "\n  query GetGdsPathInfoByRequest($requestId: Int!) {\n    gdsPathInfoByRequest(requestId: $requestId) {\n      id\n      gdsPathList\n    }\n  }\n": types.GetGdsPathInfoByRequestDocument,
     "\n  mutation CreateRequestItem($input: CreateRequestItemInput!) {\n    createRequestItem(input: $input) {\n      id\n      requestType\n      title\n      description\n      mtoDate\n      layoutRequestDescription\n      edmList\n      pkdVersions\n      requesterId\n      createdAt\n    }\n  }\n": types.CreateRequestItemDocument,
@@ -213,11 +233,35 @@ export function gql(source: "\n  query GetPhotoKeys($productId: Int, $beolOption
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function gql(source: "\n  query GetLayouts($productId: Int!) {\n    layouts(productId: $productId) {\n      id\n      title\n      boundary\n      chips\n      scribelanes\n      placements\n      shotInfo\n      config\n      imageUrl\n    }\n  }\n"): (typeof documents)["\n  query GetLayouts($productId: Int!) {\n    layouts(productId: $productId) {\n      id\n      title\n      boundary\n      chips\n      scribelanes\n      placements\n      shotInfo\n      config\n      imageUrl\n    }\n  }\n"];
+export function gql(source: "\n  query SearchPhotoKeys($query: String!) {\n    searchPhotoKeys(query: $query) {\n      id\n      tableName\n      revNo\n      photoCategory\n      filename\n      updateDate\n    }\n  }\n"): (typeof documents)["\n  query SearchPhotoKeys($query: String!) {\n    searchPhotoKeys(query: $query) {\n      id\n      tableName\n      revNo\n      photoCategory\n      filename\n      updateDate\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function gql(source: "\n  mutation SaveLayout($input: CreateLayoutInput!) {\n    saveLayout(input: $input) {\n      id\n      title\n    }\n  }\n"): (typeof documents)["\n  mutation SaveLayout($input: CreateLayoutInput!) {\n    saveLayout(input: $input) {\n      id\n      title\n    }\n  }\n"];
+export function gql(source: "\n  query GetUniqueTableNames($skip: Int, $take: Int, $search: String) {\n    uniqueTableNames(skip: $skip, take: $take, search: $search) {\n      items\n      totalCount\n    }\n  }\n"): (typeof documents)["\n  query GetUniqueTableNames($skip: Int, $take: Int, $search: String) {\n    uniqueTableNames(skip: $skip, take: $take, search: $search) {\n      items\n      totalCount\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(source: "\n  query ComparePhotoKeys($baseId: Int!, $targetId: Int!) {\n    comparePhotoKeys(baseId: $baseId, targetId: $targetId) {\n      sheetName\n      status\n      diffRows {\n        status\n        data\n        baseData\n        changedFields\n      }\n    }\n  }\n"): (typeof documents)["\n  query ComparePhotoKeys($baseId: Int!, $targetId: Int!) {\n    comparePhotoKeys(baseId: $baseId, targetId: $targetId) {\n      sheetName\n      status\n      diffRows {\n        status\n        data\n        baseData\n        changedFields\n      }\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(source: "\n  query PaginatedLayouts($skip: Int, $take: Int, $search: String, $productId: Int) {\n    paginatedLayouts(skip: $skip, take: $take, search: $search, productId: $productId) {\n      items {\n        id\n        title\n        productId\n        beolOptionId\n        processPlanId\n        boundary\n        chips\n        scribelanes\n        placements\n        shotInfo\n        config\n        imageUrl\n        createdAt\n        updatedAt\n      }\n      totalCount\n    }\n  }\n"): (typeof documents)["\n  query PaginatedLayouts($skip: Int, $take: Int, $search: String, $productId: Int) {\n    paginatedLayouts(skip: $skip, take: $take, search: $search, productId: $productId) {\n      items {\n        id\n        title\n        productId\n        beolOptionId\n        processPlanId\n        boundary\n        chips\n        scribelanes\n        placements\n        shotInfo\n        config\n        imageUrl\n        createdAt\n        updatedAt\n      }\n      totalCount\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(source: "\n  query GetLayout($id: Int!) {\n    layout(id: $id) {\n      id\n      title\n      productId\n      beolOptionId\n      processPlanId\n      boundary\n      chips\n      scribelanes\n      placements\n      shotInfo\n      config\n      imageUrl\n    }\n  }\n"): (typeof documents)["\n  query GetLayout($id: Int!) {\n    layout(id: $id) {\n      id\n      title\n      productId\n      beolOptionId\n      processPlanId\n      boundary\n      chips\n      scribelanes\n      placements\n      shotInfo\n      config\n      imageUrl\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(source: "\n  mutation SaveLayout($input: CreateLayoutInput!) {\n    saveLayout(input: $input) {\n      id\n      title\n      productId\n      beolOptionId\n      processPlanId\n      boundary\n      chips\n      scribelanes\n      placements\n      shotInfo\n      config\n      imageUrl\n      createdAt\n      updatedAt\n    }\n  }\n"): (typeof documents)["\n  mutation SaveLayout($input: CreateLayoutInput!) {\n    saveLayout(input: $input) {\n      id\n      title\n      productId\n      beolOptionId\n      processPlanId\n      boundary\n      chips\n      scribelanes\n      placements\n      shotInfo\n      config\n      imageUrl\n      createdAt\n      updatedAt\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(source: "\n  mutation UpdateLayout($id: Int!, $input: UpdateLayoutInput!) {\n    updateLayout(id: $id, input: $input) {\n      id\n      title\n      productId\n      beolOptionId\n      processPlanId\n      boundary\n      chips\n      scribelanes\n      placements\n      shotInfo\n      config\n      imageUrl\n      createdAt\n      updatedAt\n    }\n  }\n"): (typeof documents)["\n  mutation UpdateLayout($id: Int!, $input: UpdateLayoutInput!) {\n    updateLayout(id: $id, input: $input) {\n      id\n      title\n      productId\n      beolOptionId\n      processPlanId\n      boundary\n      chips\n      scribelanes\n      placements\n      shotInfo\n      config\n      imageUrl\n      createdAt\n      updatedAt\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(source: "\n  mutation DeleteLayout($id: Int!) {\n    deleteLayout(id: $id) {\n      id\n    }\n  }\n"): (typeof documents)["\n  mutation DeleteLayout($id: Int!) {\n    deleteLayout(id: $id) {\n      id\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -262,6 +306,22 @@ export function gql(source: "\n  mutation UpdateProduct($id: Int!, $input: Updat
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(source: "\n  mutation DeleteProduct($id: Int!) {\n    deleteProduct(id: $id) {\n      id\n    }\n  }\n"): (typeof documents)["\n  mutation DeleteProduct($id: Int!) {\n    deleteProduct(id: $id) {\n      id\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(source: "\n  mutation DeleteProcessPlan($id: Int!) {\n    deleteProcessPlan(id: $id) {\n      id\n    }\n  }\n"): (typeof documents)["\n  mutation DeleteProcessPlan($id: Int!) {\n    deleteProcessPlan(id: $id) {\n      id\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(source: "\n  mutation DeleteBeolOption($id: Int!) {\n    deleteBeolOption(id: $id) {\n      id\n    }\n  }\n"): (typeof documents)["\n  mutation DeleteBeolOption($id: Int!) {\n    deleteBeolOption(id: $id) {\n      id\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(source: "\n  query GetUniqueProcessGroups {\n    uniqueProcessGroups\n  }\n"): (typeof documents)["\n  query GetUniqueProcessGroups {\n    uniqueProcessGroups\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(source: "\n  query GetUniqueBeols($processGrp: String!) {\n    uniqueBeols(processGrp: $processGrp)\n  }\n"): (typeof documents)["\n  query GetUniqueBeols($processGrp: String!) {\n    uniqueBeols(processGrp: $processGrp)\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
