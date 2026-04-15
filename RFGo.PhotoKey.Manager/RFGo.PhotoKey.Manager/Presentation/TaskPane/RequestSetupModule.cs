@@ -5,25 +5,28 @@ using Newtonsoft.Json;
 using RFGo.PhotoKey.Manager.Application.Interfaces;
 using RFGo.PhotoKey.Manager.Domain.Models;
 using System.Windows.Forms;
+using RFGo.PhotoKey.Manager;
 
 namespace RFGo.PhotoKey.Manager.Presentation.TaskPane
 {
     [System.Runtime.InteropServices.ComVisible(true)]
-    public class RequestSetupModule : IBridgeModule
+    [System.Runtime.InteropServices.ClassInterface(System.Runtime.InteropServices.ClassInterfaceType.AutoDual)]
+    public class RequestSetupModule : SafeBridgeModule
     {
         private readonly IWorkbookService _workbookService;
 
-        public RequestSetupModule(IWorkbookService workbookService)
+        public RequestSetupModule(IWorkbookService workbookService) : base()
         {
             _workbookService = workbookService;
         }
 
-        public string Name => "request";
+        public override string Name => "request";
 
         public void LoadReferenceToExcel(string jsonReferences)
         {
-            try
+            RunOnUI(() =>
             {
+                if (string.IsNullOrEmpty(jsonReferences)) return;
                 var references = JsonConvert.DeserializeObject<List<PhotoKeyModel>>(jsonReferences);
                 if (references == null || references.Count == 0) return;
 
@@ -31,24 +34,20 @@ namespace RFGo.PhotoKey.Manager.Presentation.TaskPane
                 {
                     if (refItem.workbook_data != null)
                     {
-                        // Load each reference table into the active workbook
                         _workbookService.LoadToActiveWorkbook(refItem.workbook_data);
                     }
                 }
-                
-                MessageBox.Show($"{references.Count} reference tables loaded to Excel.", 
+
+                MessageBox.Show(GetOwner(), $"{references.Count} reference tables loaded to Excel.",
                                 "Load Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Failed to load to Excel: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            });
         }
 
         public void DownloadAsExcel(string jsonReferences, string targetFolder)
         {
-            try
+            RunOnUI(() =>
             {
+                if (string.IsNullOrEmpty(jsonReferences)) return;
                 var references = JsonConvert.DeserializeObject<List<PhotoKeyModel>>(jsonReferences);
                 if (references == null || references.Count == 0) return;
 
@@ -59,70 +58,62 @@ namespace RFGo.PhotoKey.Manager.Presentation.TaskPane
                 {
                     if (refItem.workbook_data != null)
                     {
-                        string safeFileName = string.IsNullOrEmpty(refItem.filename) 
-                            ? $"{refItem.table_name}_Rev{refItem.rev_no}.xlsx" 
+                        string safeFileName = string.IsNullOrEmpty(refItem.filename)
+                            ? $"{refItem.table_name}_Rev{refItem.rev_no}.xlsx"
                             : refItem.filename;
-                        
+
+                        foreach (char c in Path.GetInvalidFileNameChars()) { safeFileName = safeFileName.Replace(c, '_'); }
+
                         string fullPath = Path.Combine(targetFolder, safeFileName);
                         _workbookService.RestoreToExcel(refItem.workbook_data, fullPath, false);
                         count++;
                     }
                 }
 
-                MessageBox.Show($"Successfully downloaded {count} files to:\n{targetFolder}", 
+                MessageBox.Show(GetOwner(), $"Successfully downloaded {count} files to:\n{targetFolder}",
                                 "Download Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Download failed: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            });
         }
 
         public string RestoreToExcel(string jsonItems, string baseFolder, bool openAfterRestore = false)
         {
-            try
+            return RunOnUI(() =>
             {
+                if (string.IsNullOrEmpty(jsonItems)) return "Error: No data";
                 var items = JsonConvert.DeserializeObject<List<RestoreItem>>(jsonItems);
-                if (items == null) return "Error: Invalid data";
+                if (items == null || items.Count == 0) return "Error: Invalid data format";
 
                 foreach (var item in items)
                 {
+                    if (item.WorkbookData == null || string.IsNullOrEmpty(item.TargetPath)) continue;
+
                     string directory = Path.GetDirectoryName(item.TargetPath);
                     if (!Directory.Exists(directory)) Directory.CreateDirectory(directory);
 
                     _workbookService.RestoreToExcel(item.WorkbookData, item.TargetPath, openAfterRestore);
                 }
 
-                MessageBox.Show("Successfully restored all files to:\n" + baseFolder, 
-                                "Restore Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                
+                MessageBox.Show(GetOwner(), "Successfully processed files to:\n" + baseFolder,
+                                "Process Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
                 return "Success";
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Restore failed: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return "Error: " + ex.Message;
-            }
+            });
         }
 
         public string SelectFolder()
         {
-            string selectedPath = string.Empty;
-            var thread = new System.Threading.Thread(() =>
+            return RunOnUI(() =>
             {
                 using (var dialog = new FolderBrowserDialog())
                 {
                     dialog.Description = "Select a folder to save the Excel files.";
-                    if (dialog.ShowDialog(new NativeWindow { Handle = (IntPtr)Globals.ThisAddIn.Application.Hwnd }) == DialogResult.OK)
+                    if (dialog.ShowDialog(GetOwner()) == DialogResult.OK)
                     {
-                        selectedPath = dialog.SelectedPath;
+                        return dialog.SelectedPath;
                     }
                 }
+                return string.Empty;
             });
-            thread.SetApartmentState(System.Threading.ApartmentState.STA);
-            thread.Start();
-            thread.Join();
-            return selectedPath;
         }
 
         private class RestoreItem

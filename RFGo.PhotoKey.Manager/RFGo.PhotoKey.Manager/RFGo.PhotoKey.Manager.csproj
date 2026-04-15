@@ -260,7 +260,7 @@
     <Compile Include="Infrastructure\Auth\AuthService.cs" />
     <Compile Include="Presentation\Ribbon\RFGoRibbon.cs" />
     <Compile Include="Presentation\TaskPane\TaskPaneManager.cs" />
-    <Compile Include="Presentation\TaskPane\IBridgeModule.cs" />
+    <Compile Include="Presentation\TaskPane\SafeBridgeModule.cs" />
     <Compile Include="Presentation\TaskPane\WorkSheetsLoaderModule.cs" />
     <Compile Include="Presentation\TaskPane\DataInquiryModule.cs" />
     <Compile Include="Presentation\TaskPane\RequestSetupModule.cs" />
