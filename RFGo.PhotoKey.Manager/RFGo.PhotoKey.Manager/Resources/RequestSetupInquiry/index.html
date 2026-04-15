@@ -99,7 +99,7 @@
                     @toggle-ref="toggleRefSelection"
                     @show-detail="showDetail"
                     @load-excel="loadSelectedToExcel"
-                    @download-excel="downloadSelectedAsExcel"
+                    @download-excel="() => downloadSelectedAsExcel(false)"
                     @update-folder-structure="(val) => folderStructure = val">
                 </request-panel>
             </div>

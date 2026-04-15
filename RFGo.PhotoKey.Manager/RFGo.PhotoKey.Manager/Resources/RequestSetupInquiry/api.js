@@ -28,7 +28,21 @@ const apiClient = {
         const baseUrl = await getBaseUrl();
         const response = await fetch(`${baseUrl}/photo-keys/${keyId}`);
         if (!response.ok) throw new Error('Failed to fetch photo key detail');
-        return await response.json();
+        const data = await response.json();
+        // Ensure workbook_data is an object
+        if (data && typeof data.workbook_data === 'string') {
+            try { data.workbook_data = JSON.parse(data.workbook_data); } catch(e) {}
+        }
+        return data;
+    },
+
+    async getRestoreData(keyId) {
+        const baseUrl = await getBaseUrl();
+        const response = await fetch(`${baseUrl}/photo-keys/restore/${keyId}`);
+        if (!response.ok) throw new Error('Failed to fetch restore data');
+        const data = await response.json();
+        // This endpoint returns JUST the workbook_data object
+        return typeof data === 'string' ? JSON.parse(data) : data;
     }
 };
 

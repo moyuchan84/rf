@@ -114,10 +114,17 @@ const app = createApp({
             status.value = 'LOADING';
             try {
                 const data = await apiClient.getHierarchy();
-                hierarchy.value = data.map(pp => ({
+                // Flatten: ProcessPlan -> BeolOption (skip BeolGroup for tree display)
+                hierarchy.value = (data || []).map(pp => ({
                     ...pp,
                     expanded: false,
-                    beol_options: pp.beol_options.map(bo => ({ ...bo, expanded: false }))
+                    beol_options: (pp.beol_groups || []).flatMap(bg => 
+                        (bg.beol_options || []).map(bo => ({ 
+                            ...bo, 
+                            expanded: false,
+                            group_name: bg.group_name // Reference group name if needed
+                        }))
+                    )
                 }));
             } catch (error) {
                 console.error('Failed to load hierarchy:', error);
@@ -198,17 +205,19 @@ const app = createApp({
         const ensureFullData = async (refs) => {
             const results = [];
             for (const refItem of refs) {
-                if (!refItem.workbook_data) {
+                let itemWithData = { ...refItem };
+                if (!itemWithData.workbook_data) {
                     try {
-                        const detail = await apiClient.getPhotoKeyDetail(refItem.id);
-                        results.push(detail);
+                        // Use getRestoreData to fetch just the workbook_data object
+                        const wbData = await apiClient.getRestoreData(refItem.id);
+                        itemWithData.workbook_data = typeof wbData === 'string' ? JSON.parse(wbData) : wbData;
                     } catch (e) {
-                        console.error(`Failed to fetch detail for key ${refItem.id}`, e);
-                        results.push(refItem);
+                        console.error(`Failed to fetch restore data for key ${refItem.id}`, e);
                     }
-                } else {
-                    results.push(refItem);
+                } else if (typeof itemWithData.workbook_data === 'string') {
+                    try { itemWithData.workbook_data = JSON.parse(itemWithData.workbook_data); } catch(e) {}
                 }
+                results.push(itemWithData);
             }
             return results;
         };
@@ -216,7 +225,11 @@ const app = createApp({
         const loadSelectedToExcel = () => downloadSelectedAsExcel(true);
 
         const downloadSelectedAsExcel = async (openAfterRestore) => {
-            if (selectedRefs.value.length === 0) return;
+            if (selectedRefs.value.length === 0) {
+                alert('Select tables to process.');
+                return;
+            }
+            
             if (!targetFolderPath.value) {
                 await pickFolder();
                 if (!targetFolderPath.value) return;
@@ -228,34 +241,40 @@ const app = createApp({
                 const bridge = getBridge();
                 if (!bridge?.request) throw new Error("Bridge 'request' module not available.");
 
-                const itemsToRestore = fullRefs.map(key => {
-                    const pp = selectedPP.value?.design_rule || "UnknownPP";
-                    const bo = selectedBO.value?.option_name || "UnknownBO";
-                    const partId = selectedProduct.value?.partid || "UnknownPart";
-                    const prodName = selectedProduct.value?.product_name || "";
-                    const tableName = key.table_name || "UnknownTable";
-                    const rev = key.rev_no;
-                    const dateStr = key.update_date ? new Date(key.update_date).toISOString().split('T')[0].replace(/-/g, '') : "UnknownDate";
+                if (openAfterRestore) {
+                    // Use RestoreToExcel for 'Load & Open' - Expects RestoreItem { WorkbookData, TargetPath }
+                    const itemsToRestore = fullRefs.map(key => {
+                        const pp = selectedPP.value?.design_rule || "UnknownPP";
+                        const bo = selectedBO.value?.option_name || "UnknownBO";
+                        const partId = selectedProduct.value?.partid || "UnknownPart";
+                        const prodName = selectedProduct.value?.product_name || "";
+                        const tableName = key.table_name || "UnknownTable";
+                        const rev = key.rev_no;
+                        const dateStr = key.update_date ? new Date(key.update_date).toISOString().split('T')[0].replace(/-/g, '') : "UnknownDate";
 
-                    let targetDir = "";
-                    if (folderStructure.value === 'nested') {
-                        targetDir = `${targetFolderPath.value}\\RFGO\\${pp}\\${bo}\\${partId}`;
-                    } else {
-                        const flatName = `${pp}_${bo}_${partId}_${prodName}`.replace(/[\\\/:*?"<>|]/g, '_');
-                        targetDir = `${targetFolderPath.value}\\RFGO\\${flatName}`;
-                    }
+                        let targetDir = "";
+                        if (folderStructure.value === 'nested') {
+                            targetDir = `${targetFolderPath.value}\\RFGO\\${pp}\\${bo}\\${partId}`;
+                        } else {
+                            const flatName = `${pp}_${bo}_${partId}_${prodName}`.replace(/[\\\/:*?"<>|]/g, '_');
+                            targetDir = `${targetFolderPath.value}\\RFGO\\${flatName}`;
+                        }
 
-                    const safeTableName = tableName.replace(/[\\\/:*?"<>|]/g, '_');
-                    const fileName = `${pp}_${bo}_${partId}_${safeTableName}_Rev${rev}_${dateStr}.xlsx`;
-                    
-                    return {
-                        WorkbookData: key.workbook_data,
-                        TargetPath: `${targetDir}\\${fileName}`
-                    };
-                });
-
-                await bridge.request.RestoreToExcel(JSON.stringify(itemsToRestore), targetFolderPath.value, openAfterRestore === true);
+                        const safeTableName = tableName.replace(/[\\\/:*?"<>|]/g, '_');
+                        const fileName = `${pp}_${bo}_${partId}_${safeTableName}_Rev${rev}_${dateStr}.xlsx`;
+                        
+                        return {
+                            WorkbookData: key.workbook_data,
+                            TargetPath: `${targetDir}\\${fileName}`
+                        };
+                    });
+                    await bridge.request.RestoreToExcel(JSON.stringify(itemsToRestore), targetFolderPath.value, true);
+                } else {
+                    // Use DownloadAsExcel for 'Download Only' - Expects List<PhotoKeyModel> { id, table_name, rev_no, workbook_data, filename }
+                    await bridge.request.DownloadAsExcel(JSON.stringify(fullRefs), targetFolderPath.value);
+                }
             } catch (err) {
+                console.error("Operation failed", err);
                 alert("Operation failed: " + err.message);
             } finally {
                 status.value = 'READY';
