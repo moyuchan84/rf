@@ -10,6 +10,7 @@ import { UseGuards } from '@nestjs/common';
 import { GqlAuthGuard } from '../auth/interface/guards/gql-auth.guard';
 import { CurrentUser } from '../auth/interface/decorators/current-user.decorator';
 import { DiffService } from './diff.service';
+import { BeolGroup, ProcessPlan } from '../master-data/master-data.model';
 
 @Resolver(() => RequestItem)
 export class RequestsResolver {
@@ -84,9 +85,10 @@ export class RequestsResolver {
   async photoKeys(
     @Args('productId', { type: () => Int, nullable: true }) productId?: number,
     @Args('beolOptionId', { type: () => Int, nullable: true }) beolOptionId?: number,
+    @Args('beolGroupId', { type: () => Int, nullable: true }) beolGroupId?: number,
     @Args('processPlanId', { type: () => Int, nullable: true }) processPlanId?: number,
   ) {
-    return this.service.findPhotoKeys({ productId, beolOptionId, processPlanId });
+    return this.service.findPhotoKeys({ productId, beolOptionId, beolGroupId, processPlanId });
   }
 
   @Query(() => [SheetDiff])
@@ -182,5 +184,39 @@ export class PhotoKeyResolver {
       return photoKey.rawBinary.toString('base64');
     }
     return null;
+  }
+
+  @ResolveField(() => Int, { nullable: true })
+  beolOptionId(@Parent() photoKey: any): number | null {
+    return photoKey.beolOptionId || photoKey.beolGroupId || null;
+  }
+
+  @ResolveField(() => BeolGroup, { nullable: true })
+  beolGroup(@Parent() photoKey: any) {
+    return photoKey.beolGroup || null;
+  }
+}
+
+@Resolver(() => StreamInfo)
+export class StreamInfoResolver {
+  @ResolveField(() => Int, { nullable: true })
+  beolOptionId(@Parent() info: any) {
+    return info.beolOptionId || info.beolGroupId || null;
+  }
+}
+
+@Resolver(() => RequestTableMap)
+export class RequestTableMapResolver {
+  @ResolveField(() => Int, { nullable: true })
+  beolOptionId(@Parent() map: any) {
+    return map.beolOptionId || map.beolGroupId || null;
+  }
+}
+
+@Resolver(() => GdsPathInfo)
+export class GdsPathInfoResolver {
+  @ResolveField(() => Int, { nullable: true })
+  beolOptionId(@Parent() info: any) {
+    return info.beolOptionId || info.beolGroupId || null;
   }
 }

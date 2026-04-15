@@ -1,7 +1,7 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
 import { PhotoKey } from './workflow.model';
 import { RequestItem } from './requests.model';
-import { Product, ProcessPlan, BeolOption } from '../master-data/master-data.model';
+import { Product, ProcessPlan, BeolOption, BeolGroup } from '../master-data/master-data.model';
 
 @ObjectType()
 export class StreamInfo {
@@ -26,11 +26,17 @@ export class StreamInfo {
   @Field(() => ProcessPlan, { nullable: true })
   processPlan?: ProcessPlan;
 
-  @Field(() => Int)
-  beolOptionId: number;
+  @Field(() => Int, { nullable: true })
+  beolGroupId: number;
+
+  @Field(() => Int, { nullable: true })
+  beolOptionId?: number;
 
   @Field(() => BeolOption, { nullable: true })
   beolOption?: BeolOption;
+
+  @Field(() => BeolGroup, { nullable: true })
+  beolGroup?: BeolGroup;
 
   @Field()
   streamPath: string;
@@ -60,6 +66,9 @@ export class RequestTableMap {
   processPlanId?: number;
 
   @Field(() => Int, { nullable: true })
+  beolGroupId?: number;
+
+  @Field(() => Int, { nullable: true })
   beolOptionId?: number;
 
   @Field(() => Int)
@@ -67,6 +76,9 @@ export class RequestTableMap {
 
   @Field(() => PhotoKey, { nullable: true })
   photoKey?: PhotoKey;
+
+  @Field(() => BeolGroup, { nullable: true })
+  beolGroup?: BeolGroup;
 
   @Field()
   type: string; // REFERENCE, SETUP
@@ -89,8 +101,11 @@ export class GdsPathInfo {
   @Field(() => Int)
   processPlanId: number;
 
-  @Field(() => Int)
-  beolOptionId: number;
+  @Field(() => Int, { nullable: true })
+  beolGroupId?: number;
+
+  @Field(() => Int, { nullable: true })
+  beolOptionId?: number;
 
   @Field(() => [String])
   gdsPathList: string[];

@@ -66,7 +66,11 @@ export class ApprovalService {
             metaInfo: true,
             beolOption: {
               include: {
-                processPlan: true,
+                beolGroup: {
+                  include: {
+                    processPlan: true,
+                  },
+                },
               },
             },
           },

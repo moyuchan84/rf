@@ -50,11 +50,19 @@ class ProcessPlan(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     update_time = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+class BeolGroup(Base):
+    __tablename__ = "beol_groups"
+    id = Column(Integer, primary_key=True, index=True)
+    group_name = Column(String, index=True)
+    process_plan_id = Column(Integer, ForeignKey("process_plans.id", ondelete="CASCADE"))
+    created_at = Column(DateTime, default=datetime.utcnow)
+    update_time = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
 class BeolOption(Base):
     __tablename__ = "beol_options"
     id = Column(Integer, primary_key=True, index=True)
     option_name = Column(String, index=True)
-    process_plan_id = Column(Integer, ForeignKey("process_plans.id", ondelete="CASCADE"))
+    beol_group_id = Column(Integer, ForeignKey("beol_groups.id", ondelete="CASCADE"))
     created_at = Column(DateTime, default=datetime.utcnow)
     update_time = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -104,7 +112,7 @@ class PhotoKey(Base):
     id = Column(Integer, primary_key=True, index=True)
     product_id = Column(Integer, ForeignKey("products.id", ondelete="CASCADE"))
     process_plan_id = Column(Integer, ForeignKey("process_plans.id", ondelete="CASCADE"))
-    beol_option_id = Column(Integer, ForeignKey("beol_options.id", ondelete="CASCADE"))
+    beol_group_id = Column(Integer, ForeignKey("beol_groups.id", ondelete="CASCADE"))
     rfg_category = Column(String)
     photo_category = Column(String)
     is_reference = Column(Boolean, default=False)
@@ -123,11 +131,21 @@ class StreamInfo(Base):
     request_id = Column(Integer, ForeignKey("request_items.id", ondelete="CASCADE"))
     product_id = Column(Integer, nullable=False)
     process_plan_id = Column(Integer, nullable=False)
-    beol_option_id = Column(Integer, nullable=False)
+    beol_group_id = Column(Integer, ForeignKey("beol_groups.id", ondelete="CASCADE"))
     stream_path = Column(String, nullable=False)
     stream_input_output_file = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     update_time = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+class RequestTableMap(Base):
+    __tablename__ = "request_table_maps"
+    id = Column(Integer, primary_key=True, index=True)
+    request_id = Column(Integer, ForeignKey("request_items.id", ondelete="CASCADE"))
+    product_id = Column(Integer, nullable=True)
+    process_plan_id = Column(Integer, nullable=True)
+    beol_group_id = Column(Integer, ForeignKey("beol_groups.id", ondelete="CASCADE"), nullable=True)
+    photo_key_id = Column(Integer, ForeignKey("photo_keys.id", ondelete="CASCADE"))
+    type = Column(String, nullable=False) # REFERENCE, SETUP
 
 class N7MaskBeol(Base):
     __tablename__ = "n7_maskbeol"
@@ -152,6 +170,17 @@ class N7MaskBeol(Base):
 
 # --- Seeding Logic ---
 
+def clear_data(db):
+    print("--- Clearing existing data ---")
+    tables = [
+        "request_table_maps", "stream_info", "photo_keys", "request_assignees", 
+        "request_steps", "request_items", "products", "beol_options", 
+        "beol_groups", "process_plans", "users", "roles"
+    ]
+    for table in tables:
+        db.execute(text(f"TRUNCATE TABLE {table} RESTART IDENTITY CASCADE"))
+    db.commit()
+
 def seed_roles(db):
     print("--- Seeding Roles ---")
     roles = [
@@ -161,189 +190,86 @@ def seed_roles(db):
         {"name": "USER", "description": "General System User"},
     ]
     for r_data in roles:
-        if not db.query(Role).filter(Role.name == r_data["name"]).first():
-            db.add(Role(**r_data))
+        db.add(Role(**r_data))
     db.commit()
 
 def seed_users(db):
     print("--- Seeding Users ---")
     role_map = {r.name: r.id for r in db.query(Role).all()}
     
-    # Essential users
     essentials = [
         ("admin_user", "11112222", "Admin Manager", "ADMIN"),
         ("rfg_manager", "22223333", "RFG Expert", "RFG"),
         ("regular_dev", "99990000", "Junior Engineer", "USER"),
     ]
     for uid, ep, name, rname in essentials:
-        if not db.query(User).filter(User.user_id == uid).first():
-            db.add(User(user_id=uid, epid=ep, full_name=name, dept_name="HQ", email=f"{uid}@samsung.com", role_id=role_map[rname]))
+        db.add(User(user_id=uid, epid=ep, full_name=name, dept_name="HQ", email=f"{uid}@samsung.com", role_id=role_map[rname]))
     
-    # Bulk users for search/pagination testing
     for i in range(1, 51):
         uid = f"user_{i:03d}"
-        if not db.query(User).filter(User.user_id == uid).first():
-            db.add(User(
-                user_id=uid, epid=f"EP{80000000+i}", 
-                full_name=f"Test User {i:03d}", 
-                dept_name=random.choice(["Memory", "Foundry", "LSI"]),
-                email=f"test{i}@samsung.com", 
-                role_id=role_map["USER"]
-            ))
+        db.add(User(
+            user_id=uid, epid=f"EP{80000000+i}", 
+            full_name=f"Test User {i:03d}", 
+            dept_name=random.choice(["Memory", "Foundry", "LSI"]),
+            email=f"test{i}@samsung.com", 
+            role_id=role_map["USER"]
+        ))
     db.commit()
 
 def seed_master_data(db):
-    print("--- Seeding Master Data ---")
-    # Process Plans
-    plans = ["14nm_GAA", "7nm_EUV", "5nm_FinFET", "3nm_GAA_V1", "2nm_NextGen"]
-    for p_name in plans:
-        if not db.query(ProcessPlan).filter(ProcessPlan.design_rule == p_name).first():
-            db.add(ProcessPlan(design_rule=p_name))
-    db.commit()
+    print("--- Seeding Master Data (Plan > Group > Option) ---")
+    plan_names = ["14nm_GAA", "7nm_EUV", "5nm_FinFET", "3nm_GAA_V1", "2nm_NextGen"]
+    plans = []
+    for p_name in plan_names:
+        p = ProcessPlan(design_rule=p_name)
+        db.add(p)
+        plans.append(p)
+    db.flush()
     
-    plan_ids = [p.id for p in db.query(ProcessPlan).all()]
+    options_to_seed = [
+        "700000_Standard", "700000_HighDensity", 
+        "800000_LowPower", "800000_Special",
+        "900000_Ultra", "900000_Core"
+    ]
     
-    # Beol Options
-    for pid in plan_ids:
-        for opt in ["Standard", "HighDensity", "LowPower"]:
-            if not db.query(BeolOption).filter(BeolOption.process_plan_id == pid, BeolOption.option_name == opt).first():
-                db.add(BeolOption(option_name=opt, process_plan_id=pid))
-    db.commit()
+    all_options = []
+    for p in plans:
+        groups = {}
+        for opt_full_name in options_to_seed:
+            prefix = opt_full_name.split('_')[0]
+            if prefix not in groups:
+                bg = BeolGroup(group_name=prefix, process_plan_id=p.id)
+                db.add(bg)
+                db.flush()
+                groups[prefix] = bg
+            
+            bo = BeolOption(option_name=opt_full_name, beol_group_id=groups[prefix].id)
+            db.add(bo)
+            all_options.append(bo)
+    db.flush()
     
-    beol_ids = [b.id for b in db.query(BeolOption).all()]
-    
-    # Products
+    products_created = []
     for i in range(1, 31):
         pid = f"PART_{i:04d}"
-        if not db.query(Product).filter(Product.partid == pid).first():
-            db.add(Product(
-                partid=pid, 
-                product_name=f"Chipset_XYZ_{i}", 
-                beol_option_id=random.choice(beol_ids)
-            ))
-    db.commit()
-
-def seed_requests(db):
-    print("--- Seeding 200 Requests ---")
-    products = db.query(Product).all()
-    users = db.query(User).all()
-    req_types = ["new", "rev", "rev_special"] # From types.ts
-    statuses = ["TODO", "IN_PROGRESS", "DONE", "REJECTED"]
-    
-    step_names = ['ReferenceTable', 'KeyTableSetup', 'RequestSubmission', 'GDSPath', 'StreamInfo']
-
-    for i in range(1, 201):
-        prod = random.choice(products)
-        requester = random.choice(users)
-        rtype = random.choice(req_types)
-        
-        # Create request item with spread out creation dates for pagination testing
-        created_at = datetime.utcnow() - timedelta(days=random.randint(0, 60), hours=random.randint(0, 23))
-        
-        request = RequestItem(
-            product_id=prod.id,
-            request_type=rtype,
-            title=f"Request for {prod.product_name} - Batch {i:03d}",
-            description=f"Auto-generated mock request for testing pagination and filters. Index: {i}",
-            edm_list=[f"http://edm.samsung.com/v{random.randint(1,10)}"],
-            pkd_versions=[f"v{random.randint(1,5)}.{random.randint(0,9)}"],
-            requester_id=requester.user_id,
-            created_at=created_at
+        target_bo = random.choice(all_options)
+        p = Product(
+            partid=pid, product_name=f"Chipset_XYZ_{i}", beol_option_id=target_bo.id
         )
-        db.add(request)
-        db.flush() # Get request.id
-
-        # 5 Default Steps
-        for idx, name in enumerate(step_names):
-            step_status = random.choice(statuses)
-            db.add(RequestStep(
-                request_id=request.id,
-                step_order=idx + 1,
-                step_name=name,
-                status=step_status,
-                worker_id=random.choice(users).user_id if step_status != "TODO" else None,
-                completed_at=datetime.utcnow() if step_status == "DONE" else None
-            ))
-            
-        # Assignees
-        for cat in ["RFG", "INNO"]:
-            assignee = random.choice([u for u in users if u.user_id != requester.user_id])
-            db.add(RequestAssignee(
-                request_id=request.id,
-                category=cat,
-                user_id=assignee.user_id,
-                user_name=assignee.full_name
-            ))
-
+        db.add(p)
+        products_created.append(p)
     db.commit()
-    print("Requests seeding finished.")
+    return products_created
 
 def create_mock_workbook(filename, table_name, rev_no=1, variation_seed=0):
-    """Generates a simplified WorkbookData JSON structure with variations based on rev_no."""
-    
-    # Base data
-    data = [
-        {"col_0": "K101", "col_1": 10.523, "col_2": -42.112, "col_3": "ALIGN", "col_4": 80.0},
-        {"col_0": "K102", "col_1": 50.112, "col_2": 12.887, "col_3": "ALIGN", "col_4": 80.0},
-        {"col_0": "OVL1", "col_1": -12.000, "col_2": -5.500, "col_3": "OVERLAY", "col_4": 45.0},
-        {"col_0": "OVL2", "col_1": 112.44, "col_2": 88.33, "col_3": "OVERLAY", "col_4": 45.0}
+    processed_data = [
+        {"col_0": "K101", "col_1": 10.5 + variation_seed, "col_2": -42.1, "col_3": "ALIGN", "col_4": 80.0},
+        {"col_0": "OVL1", "col_1": -12.0, "col_2": -5.5, "col_3": "OVERLAY", "col_4": 45.0}
     ]
-
-    # Apply variations for higher revisions or variation_seed
-    processed_data = []
-    for row in data:
-        new_row = copy.deepcopy(row)
-        if rev_no > 1 or variation_seed > 0:
-            # Shift coordinates slightly
-            new_row["col_1"] = round(new_row["col_1"] + (rev_no * 0.01) + (variation_seed * 0.005), 4)
-            new_row["col_2"] = round(new_row["col_2"] - (rev_no * 0.01) - (variation_seed * 0.005), 4)
-            
-            # Randomly change type for one row to test 'modified'
-            if new_row["col_0"] == "K101" and rev_no % 2 == 0:
-                new_row["col_3"] = "ALIGN_UPDATED"
-        processed_data.append(new_row)
-
-    # Add a row in later revisions to test 'added'
-    if rev_no >= 3:
-        processed_data.append({"col_0": f"NEW_{rev_no}", "col_1": 0.0, "col_2": 0.0, "col_3": "TEMP", "col_4": 10.0})
-
-    # Remove a row in specific variation to test 'removed'
-    if variation_seed > 5:
-        processed_data = [r for r in processed_data if r["col_0"] != "OVL2"]
-
     return {
-        "Meta": {
-            "FileName": filename,
-            "FullPath": f"C:\\Users\\Mock\\Documents\\{filename}",
-            "Revision": rev_no,
-            "SuggestedTableName": table_name
-        },
+        "Meta": {"FileName": filename, "Revision": rev_no, "SuggestedTableName": table_name},
         "Worksheets": [
             {
-                "SheetName": "HISTORY",
-                "SheetType": "HISTORY",
-                "Origin": {"Row": 1, "Col": 1},
-                "Columns": [
-                    {"Key": "col_0", "Name": "REV", "Index": 0},
-                    {"Key": "col_1", "Name": "DATE", "Index": 1},
-                    {"Key": "col_2", "Name": "AUTHOR", "Index": 2},
-                    {"Key": "col_3", "Name": "LOG", "Index": 3}
-                ],
-                "TableData": [
-                    {"col_0": f"{rev_no}.0", "col_1": datetime.utcnow().strftime("%Y-%m-%d"), "col_2": "admin", "col_3": f"Rev {rev_no} Update"}
-                ],
-                "MetaInfo": {}
-            },
-            {
-                "SheetName": "DATA_SHEET",
-                "SheetType": "DATA",
-                "Origin": {"Row": 1, "Col": 1},
-                "PhotoCategory": "key",
-                "MetaInfo": {
-                    "Product": "MOCK_PROD",
-                    "Step": "PHOTO_STEP_01",
-                    "Revision": f"{rev_no}.0"
-                },
+                "SheetName": "DATA_SHEET", "SheetType": "DATA", "Origin": {"Row": 1, "Col": 1},
                 "Columns": [
                     {"Key": "col_0", "Name": "KEY_ID", "Index": 0},
                     {"Key": "col_1", "Name": "POS_X", "Index": 1},
@@ -357,152 +283,93 @@ def create_mock_workbook(filename, table_name, rev_no=1, variation_seed=0):
     }
 
 def seed_photo_keys(db):
-    print("--- Seeding Photo Keys (Enhanced for Comparison) ---")
+    print("--- Seeding Photo Keys ---")
     products = db.query(Product).all()
-    beol_options = {b.id: b for b in db.query(BeolOption).all()}
+    bo_map = {bo.id: bo for bo in db.query(BeolOption).all()}
+    bg_map = {bg.id: bg for bg in db.query(BeolGroup).all()}
     
-    # 1. Common Tables across different products (UseCase: Different Product - Same Table Name)
-    common_table_names = ["GLOBAL_ALIGN_STANDARD", "GOLDEN_OVERLAY_RULE", "META_PROCESS_COMMON"]
+    common_table_names = ["GLOBAL_ALIGN_STANDARD", "GOLDEN_OVERLAY_RULE"]
+    all_keys = []
     
     for table_name in common_table_names:
-        # Pick 5 random products to share this table
-        shared_products = random.sample(products, 5)
-        for prod in shared_products:
-            plan_id = beol_options[prod.beol_option_id].process_plan_id
-            
-            # Each product has 1-2 revisions of this common table
-            for rev in range(1, random.randint(2, 3)):
-                filename = f"COMMON_{table_name}_{prod.partid}_R{rev}.xlsx"
+        for prod in random.sample(products, 10):
+            bo = bo_map[prod.beol_option_id]
+            bg = bg_map[bo.beol_group_id]
+            for rev in range(1, 3):
+                filename = f"MASTER_{table_name}_{bg.group_name}_R{rev}.xlsx"
                 pk = PhotoKey(
-                    product_id=prod.id,
-                    process_plan_id=plan_id,
-                    beol_option_id=prod.beol_option_id,
-                    rfg_category="common",
-                    photo_category="key",
-                    is_reference=(rev == 1),
-                    table_name=table_name,
-                    rev_no=rev,
-                    workbook_data=create_mock_workbook(filename, table_name, rev, variation_seed=prod.id % 10),
-                    filename=filename,
-                    updater="admin_user",
-                    log=f"Shared table {table_name} for product {prod.partid}"
+                    product_id=prod.id, process_plan_id=bg.process_plan_id, beol_group_id=bg.id,
+                    rfg_category="common", photo_category="key", is_reference=(rev == 1),
+                    table_name=table_name, rev_no=rev, workbook_data=create_mock_workbook(filename, table_name, rev),
+                    filename=filename, updater="admin_user"
                 )
                 db.add(pk)
-
-    # 2. Product-specific Tables with multiple revisions (UseCase: Same Product - Same Table Name - Different Rev)
-    for prod in random.sample(products, 10):
-        plan_id = beol_options[prod.beol_option_id].process_plan_id
-        
-        # Create 3-5 revisions for a specific table to test history comparison
-        table_name = f"PK_{prod.partid}_LOCAL_ALIGN"
-        for rev in range(1, random.randint(4, 6)):
-            filename = f"{table_name}_R{rev}.xlsx"
-            pk = PhotoKey(
-                product_id=prod.id,
-                process_plan_id=plan_id,
-                beol_option_id=prod.beol_option_id,
-                rfg_category="option",
-                photo_category="key",
-                is_reference=(rev == 1),
-                table_name=table_name,
-                rev_no=rev,
-                workbook_data=create_mock_workbook(filename, table_name, rev),
-                filename=filename,
-                updater="rfg_manager",
-                log=f"Internal revision {rev} for {prod.partid}"
-            )
-            db.add(pk)
-
-    # 3. Bulk tables for searching
-    for i in range(1, 101):
-        prod = random.choice(products)
-        plan_id = beol_options[prod.beol_option_id].process_plan_id
-        table_name = f"TEST_SEARCH_TABLE_{i:03d}"
-        filename = f"SEARCH_TEST_{i}.xlsx"
-        pk = PhotoKey(
-            product_id=prod.id,
-            process_plan_id=plan_id,
-            beol_option_id=prod.beol_option_id,
-            rfg_category="test",
-            photo_category="key",
-            is_reference=True,
-            table_name=table_name,
-            rev_no=1,
-            workbook_data=create_mock_workbook(filename, table_name),
-            filename=filename,
-            updater="tester",
-            log="Search test data"
-        )
-        db.add(pk)
-
+                all_keys.append(pk)
     db.commit()
-    print("Photo Keys seeding finished.")
+    return all_keys
 
-def seed_stream_info(db):
-    print("--- Seeding Stream Info ---")
-    requests = db.query(RequestItem).all()
-    products = {p.id: p for p in db.query(Product).all()}
-    beol_options = {b.id: b.process_plan_id for b in db.query(BeolOption).all()}
-
-    # Seed for 50 requests
-    for req in random.sample(requests, 50):
-        prod = products[req.product_id]
-        plan_id = beol_options[prod.beol_option_id]
-        
-        si = StreamInfo(
-            request_id=req.id,
-            product_id=prod.id,
-            process_plan_id=plan_id,
-            beol_option_id=prod.beol_option_id,
-            stream_path=f"//NAS/GDS/STREAM/{prod.partid}/{req.id}_output.gds",
-            stream_input_output_file=f"STREAM_INFO_FOR_REQUEST_{req.id}\nVERSION: 1.0\nLAYERS: 1, 2, 3, 4, 5\nPROCESS: {plan_id}"
-        )
-        db.add(si)
-    db.commit()
-
-def seed_n7_maskbeol(db):
-    print("--- Seeding N7 MaskBeol ---")
-    data = [
-        # Process Grp A
-        {"n7process_grp": "GAA_V1", "n7beol": "7METAL", "obid": "OBID001"},
-        {"n7process_grp": "GAA_V1", "n7beol": "9METAL", "obid": "OBID002"},
-        {"n7process_grp": "GAA_V1", "n7beol": "11METAL", "obid": "OBID003"},
-        # Process Grp B
-        {"n7process_grp": "FINFET_LPE", "n7beol": "5METAL", "obid": "OBID004"},
-        {"n7process_grp": "FINFET_LPE", "n7beol": "8METAL", "obid": "OBID005"},
-        # Process Grp C
-        {"n7process_grp": "EUV_ULTRA", "n7beol": "13METAL", "obid": "OBID006"},
-        {"n7process_grp": "EUV_ULTRA", "n7beol": "15METAL", "obid": "OBID007"},
-    ]
+def seed_requests_and_stream(db, all_photo_keys):
+    print("--- Seeding Requests, Table Maps, and Stream Info ---")
+    products = db.query(Product).all()
+    users = db.query(User).all()
+    bo_map = {bo.id: bo for bo in db.query(BeolOption).all()}
+    bg_map = {bg.id: bg for bg in db.query(BeolGroup).all()}
     
-    for item in data:
-        if not db.query(N7MaskBeol).filter(
-            N7MaskBeol.n7process_grp == item["n7process_grp"], 
-            N7MaskBeol.n7beol == item["n7beol"]
-        ).first():
-            db.add(N7MaskBeol(
-                **item,
-                n7make_date="20240101",
-                n7make_id="admin",
-                n7make_name="Admin",
-                n7use_flag="Y",
-                n7customer_flag="ALL"
+    step_names = ['ReferenceTable', 'KeyTableSetup', 'RequestSubmission', 'GDSPath', 'StreamInfo']
+
+    for i in range(1, 201):
+        prod = random.choice(products)
+        bo = bo_map[prod.beol_option_id]
+        bg = bg_map[bo.beol_group_id]
+        requester = random.choice(users)
+        
+        request = RequestItem(
+            product_id=prod.id, request_type=random.choice(["new", "rev"]),
+            title=f"Request {i:03d} for {prod.partid}",
+            requester_id=requester.user_id, created_at=datetime.utcnow() - timedelta(days=random.randint(0, 30))
+        )
+        db.add(request)
+        db.flush()
+
+        # 1. Steps
+        for idx, name in enumerate(step_names):
+            db.add(RequestStep(
+                request_id=request.id, step_order=idx + 1, step_name=name,
+                status=random.choice(["TODO", "IN_PROGRESS", "DONE"]), worker_id=random.choice(users).user_id
             ))
+            
+        # 2. Table Maps (REFERENCE)
+        sample_keys = random.sample(all_photo_keys, min(len(all_photo_keys), 2))
+        for pk in sample_keys:
+            db.add(RequestTableMap(
+                request_id=request.id, photo_key_id=pk.id, type="REFERENCE",
+                product_id=pk.product_id, process_plan_id=pk.process_plan_id, beol_group_id=pk.beol_group_id
+            ))
+            
+        # 3. Stream Info (Linking to Request and its Group)
+        db.add(StreamInfo(
+            request_id=request.id,
+            product_id=prod.id,
+            process_plan_id=bg.process_plan_id,
+            beol_group_id=bg.id,
+            stream_path=f"//NAS/GDS/STREAM/{prod.partid}/",
+            stream_input_output_file=f"{prod.partid}_STREAM_V{i:03d}.gds"
+        ))
+        
     db.commit()
 
 def run_seed():
     db = SessionLocal()
     try:
+        clear_data(db)
         seed_roles(db)
         seed_users(db)
         seed_master_data(db)
-        seed_n7_maskbeol(db)
-        seed_requests(db)
-        seed_photo_keys(db)
-        seed_stream_info(db)
-        print("\nAll Seeding completed successfully!")
+        keys = seed_photo_keys(db)
+        seed_requests_and_stream(db, keys)
+        print("\nFull Seeding (including Group-based StreamInfo) completed successfully!")
     except Exception as e:
-        print(f"Error seeding database: {e}")
+        print(f"Error: {e}")
         db.rollback()
     finally:
         db.close()

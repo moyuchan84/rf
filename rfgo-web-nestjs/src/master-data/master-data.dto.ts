@@ -7,12 +7,24 @@ export class CreateProcessPlanInput {
 }
 
 @InputType()
+export class CreateBeolGroupInput {
+  @Field()
+  groupName: string;
+
+  @Field(() => Int)
+  processPlanId: number;
+}
+
+@InputType()
 export class CreateBeolOptionInput {
   @Field()
   optionName: string;
 
-  @Field(() => Int)
-  processPlanId: number;
+  @Field(() => Int, { nullable: true })
+  processPlanId?: number;
+
+  @Field(() => Int, { nullable: true })
+  beolGroupId?: number;
 }
 
 @InputType()

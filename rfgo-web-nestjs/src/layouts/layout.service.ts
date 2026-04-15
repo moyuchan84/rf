@@ -43,7 +43,7 @@ export class LayoutsService {
       data: {
         title: input.title,
         productId: input.productId,
-        beolOptionId: input.beolOptionId,
+        beolGroupId: input.beolOptionId,
         processPlanId: input.processPlanId,
         shotInfo: input.shotInfo,
         imageUrl: input.imageUrl,
@@ -62,7 +62,7 @@ export class LayoutsService {
       data: {
         title: input.title,
         productId: input.productId,
-        beolOptionId: input.beolOptionId,
+        beolGroupId: input.beolOptionId,
         processPlanId: input.processPlanId,
         shotInfo: input.shotInfo,
         imageUrl: input.imageUrl,

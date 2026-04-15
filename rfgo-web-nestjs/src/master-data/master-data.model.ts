@@ -46,11 +46,38 @@ export class ProcessPlan {
   @Field()
   designRule: string;
 
+  @Field(() => [BeolGroup], { nullable: true })
+  beolGroups?: BeolGroup[];
+
   @Field(() => [BeolOption])
   beolOptions: BeolOption[];
 
   @Field(() => [KeyDesign], { nullable: true })
   keyDesigns?: KeyDesign[];
+
+  @Field()
+  createdAt: Date;
+
+  @Field()
+  updatedAt: Date;
+}
+
+@ObjectType()
+export class BeolGroup {
+  @Field(() => Int)
+  id: number;
+
+  @Field()
+  groupName: string;
+
+  @Field(() => Int)
+  processPlanId: number;
+
+  @Field(() => ProcessPlan, { nullable: true })
+  processPlan?: ProcessPlan;
+
+  @Field(() => [BeolOption])
+  beolOptions: BeolOption[];
 
   @Field()
   createdAt: Date;
@@ -68,7 +95,10 @@ export class BeolOption {
   optionName: string;
 
   @Field(() => Int)
-  processPlanId: number;
+  beolGroupId: number;
+
+  @Field(() => BeolGroup, { nullable: true })
+  beolGroup?: BeolGroup;
 
   @Field(() => ProcessPlan, { nullable: true })
   processPlan?: ProcessPlan;

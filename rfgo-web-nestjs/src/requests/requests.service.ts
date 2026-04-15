@@ -23,10 +23,14 @@ export class RequestsService {
 
   // Step Data Management
   async createStreamInfo(input: CreateStreamInfoInput) {
+    const { beolOptionId, ...rest } = input;
     return this.prisma.$transaction(async (tx) => {
       await tx.streamInfo.deleteMany({ where: { requestId: input.requestId } });
       return tx.streamInfo.create({
-        data: input,
+        data: {
+          ...rest,
+          beolGroupId: beolOptionId,
+        },
       });
     });
   }
@@ -39,9 +43,9 @@ export class RequestsService {
     });
   }
 
-  async findStreamInfosByBeolOption(beolOptionId: number) {
+  async findStreamInfosByBeolOption(beolGroupId: number) {
     return this.prisma.streamInfo.findMany({
-      where: { beolOptionId },
+      where: { beolGroupId },
       include: { request: true, product: true },
       orderBy: { updatedAt: 'desc' },
     });
@@ -54,10 +58,14 @@ export class RequestsService {
   }
 
   async createGdsPathInfo(input: CreateGdsPathInfoInput) {
+    const { beolOptionId, ...rest } = input;
     return this.prisma.$transaction(async (tx) => {
       await tx.gdsPathInfo.deleteMany({ where: { requestId: input.requestId } });
       return tx.gdsPathInfo.create({
-        data: input,
+        data: {
+          ...rest,
+          beolGroupId: beolOptionId,
+        },
       });
     });
   }
@@ -94,7 +102,7 @@ export class RequestsService {
             type,
             productId,
             processPlanId,
-            beolOptionId,
+            beolGroupId: beolOptionId,
           })),
         });
       }
@@ -184,7 +192,13 @@ export class RequestsService {
         include: {
           product: {
             include: {
-              beolOption: { include: { processPlan: true } },
+              beolOption: { 
+                include: { 
+                  beolGroup: { 
+                    include: { processPlan: true } 
+                  } 
+                } 
+              },
               metaInfo: true
             }
           },
@@ -242,7 +256,9 @@ export class RequestsService {
         product: {
           include: {
             beolOption: {
-              include: { processPlan: true },
+              include: {
+                beolGroup: { include: { processPlan: true } },
+              },
             },
             metaInfo: true,
           },
@@ -270,7 +286,9 @@ export class RequestsService {
       where.product = {
         beolOption: {
           id: beolOptionId || undefined,
-          processPlanId: processPlanId || undefined,
+          beolGroup: {
+            processPlanId: processPlanId || undefined,
+          },
         },
       };
     }
@@ -298,8 +316,11 @@ export class RequestsService {
           product: {
             include: {
               beolOption: {
-                include: { processPlan: true },
+                include: {
+                  beolGroup: { include: { processPlan: true } },
+                },
               },
+
               metaInfo: true,
             },
           },
@@ -322,7 +343,9 @@ export class RequestsService {
         product: {
           include: {
             beolOption: {
-              include: { processPlan: true },
+              include: {
+                beolGroup: { include: { processPlan: true } },
+              },
             },
             metaInfo: true,
           },
@@ -341,7 +364,9 @@ export class RequestsService {
         product: {
           include: {
             beolOption: {
-              include: { processPlan: true },
+              include: {
+                beolGroup: { include: { processPlan: true } },
+              },
             },
             metaInfo: true,
           },
@@ -402,18 +427,33 @@ export class RequestsService {
     return step;
   }
 
-  async findPhotoKeys(filters: { productId?: number; beolOptionId?: number; processPlanId?: number }) {
+  async findPhotoKeys(filters: { productId?: number; beolOptionId?: number; beolGroupId?: number; processPlanId?: number }) {
+    const { productId, beolOptionId, beolGroupId, processPlanId } = filters;
     const where: any = {};
-    if (filters.productId != null) where.productId = filters.productId;
-    if (filters.beolOptionId != null) where.beolOptionId = filters.beolOptionId;
-    if (filters.processPlanId != null) where.processPlanId = filters.processPlanId;
+    
+    if (productId) where.productId = productId;
+    if (processPlanId) where.processPlanId = processPlanId;
+    
+    if (beolGroupId) {
+      where.beolGroupId = beolGroupId;
+    } else if (beolOptionId) {
+      const option = await this.prisma.beolOption.findUnique({
+        where: { id: beolOptionId },
+        select: { beolGroupId: true }
+      });
+      if (option?.beolGroupId) {
+        where.beolGroupId = option.beolGroupId;
+      } else {
+        where.beolGroupId = -1;
+      }
+    }
 
     return this.prisma.photoKey.findMany({
       where,
       include: {
         product: true,
         processPlan: true,
-        beolOption: true,
+        beolGroup: true,
       },
       orderBy: { updateDate: 'desc' },
     });
@@ -451,7 +491,7 @@ export class RequestsService {
       include: {
         product: true,
         processPlan: true,
-        beolOption: true,
+        beolGroup: true,
       },
       orderBy: { updateDate: 'desc' },
     });
@@ -468,7 +508,7 @@ export class RequestsService {
       include: {
         product: true,
         processPlan: true,
-        beolOption: true,
+        beolGroup: true,
       },
       orderBy: { updateDate: 'desc' },
     });

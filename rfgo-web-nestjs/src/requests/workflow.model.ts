@@ -1,6 +1,6 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
 import GraphQLJSON from 'graphql-type-json';
-import { Product } from '../master-data/master-data.model';
+import { Product, BeolGroup } from '../master-data/master-data.model';
 
 @ObjectType()
 export class RequestAssignee {
@@ -65,7 +65,13 @@ export class PhotoKey {
   processPlanId?: number;
 
   @Field(() => Int, { nullable: true })
-  beolOptionId?: number;
+  beolGroupId?: number;
+
+  @Field(() => Int, { nullable: true })
+  beolOptionId?: number; // Maintained for backward compatibility
+
+  @Field(() => BeolGroup, { nullable: true })
+  beolGroup?: BeolGroup;
 
   @Field({ nullable: true })
   rfgCategory?: string;

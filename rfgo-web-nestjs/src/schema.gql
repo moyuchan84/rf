@@ -37,12 +37,23 @@ input AssignUserInput {
   userName: String!
 }
 
+type BeolGroup {
+  beolOptions: [BeolOption!]!
+  createdAt: DateTime!
+  groupName: String!
+  id: Int!
+  processPlan: ProcessPlan
+  processPlanId: Int!
+  updatedAt: DateTime!
+}
+
 type BeolOption {
+  beolGroup: BeolGroup
+  beolGroupId: Int!
   createdAt: DateTime!
   id: Int!
   optionName: String!
   processPlan: ProcessPlan
-  processPlanId: Int!
   products: [Product!]!
   updatedAt: DateTime!
 }
@@ -53,9 +64,15 @@ enum ContentType {
   TEXT
 }
 
-input CreateBeolOptionInput {
-  optionName: String!
+input CreateBeolGroupInput {
+  groupName: String!
   processPlanId: Int!
+}
+
+input CreateBeolOptionInput {
+  beolGroupId: Int
+  optionName: String!
+  processPlanId: Int
 }
 
 input CreateGdsPathInfoInput {
@@ -182,7 +199,8 @@ type EmployeeSearchResponseDto {
 }
 
 type GdsPathInfo {
-  beolOptionId: Int!
+  beolGroupId: Int
+  beolOptionId: Int
   createdAt: DateTime!
   gdsPathList: [String!]!
   id: Int!
@@ -229,6 +247,7 @@ input MailRequestDto {
 
 type Mutation {
   assignUser(input: AssignUserInput!): RequestAssignee!
+  createBeolGroup(input: CreateBeolGroupInput!): BeolGroup!
   createBeolOption(input: CreateBeolOptionInput!): BeolOption!
   createGdsPathInfo(input: CreateGdsPathInfoInput!): GdsPathInfo!
   createKeyDesign(input: CreateKeyDesignInput!): KeyDesign!
@@ -238,6 +257,7 @@ type Mutation {
   createRequestItem(input: CreateRequestItemInput!): RequestItem!
   createStreamInfo(input: CreateStreamInfoInput!): StreamInfo!
   deleteApprovalPath(id: Int!): Boolean!
+  deleteBeolGroup(id: Int!): BeolGroup!
   deleteBeolOption(id: Int!): BeolOption!
   deleteLayout(id: Int!): ReticleLayout!
   deleteMailGroup(id: Int!, userId: String!): Boolean!
@@ -283,6 +303,8 @@ type PaginatedUsers {
 }
 
 type PhotoKey {
+  beolGroup: BeolGroup
+  beolGroupId: Int
   beolOptionId: Int
   filename: String!
   id: Int!
@@ -302,6 +324,7 @@ type PhotoKey {
 }
 
 type ProcessPlan {
+  beolGroups: [BeolGroup!]
   beolOptions: [BeolOption!]!
   createdAt: DateTime!
   designRule: String!
@@ -359,7 +382,7 @@ type Query {
   me: UserType
   myMailGroups(userId: String!): [UserMailGroupDto!]!
   paginatedLayouts(productId: Int, search: String, skip: Int! = 0, take: Int! = 12): PaginatedLayouts!
-  photoKeys(beolOptionId: Int, processPlanId: Int, productId: Int): [PhotoKey!]!
+  photoKeys(beolGroupId: Int, beolOptionId: Int, processPlanId: Int, productId: Int): [PhotoKey!]!
   processPlans: [ProcessPlan!]!
   requestItem(id: Int!): RequestItem
   requestItems(beolOptionId: Int, processPlanId: Int, requestType: String, search: String, skip: Int! = 0, take: Int! = 10): PaginatedRequests!
@@ -424,6 +447,8 @@ type RequestStep {
 }
 
 type RequestTableMap {
+  beolGroup: BeolGroup
+  beolGroupId: Int
   beolOptionId: Int
   id: Int!
   photoKey: PhotoKey
@@ -482,8 +507,10 @@ type SheetDiff {
 }
 
 type StreamInfo {
+  beolGroup: BeolGroup
+  beolGroupId: Int
   beolOption: BeolOption
-  beolOptionId: Int!
+  beolOptionId: Int
   createdAt: DateTime!
   id: Int!
   processPlan: ProcessPlan
