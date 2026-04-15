@@ -51,13 +51,13 @@
                             <span class="text-xs font-bold text-slate-700">{{pp.design_rule}}</span>
                         </div>
                         <div v-if="pp.expanded" class="ml-4 space-y-1 border-l-2 border-slate-100 pl-2">
-                            <div v-for="bo in pp.beol_options" :key="bo.id" class="space-y-1">
-                                <div @click="bo.expanded = !bo.expanded" class="flex items-center gap-2 p-1.5 rounded-lg cursor-pointer hover:bg-slate-50">
-                                    <span class="material-symbols-outlined text-[10px] text-slate-400 transition-transform" :class="bo.expanded ? 'rotate-90' : ''">chevron_right</span>
-                                    <span class="text-xs font-medium text-slate-600">{{bo.option_name}}</span>
+                            <div v-for="bg in pp.beol_groups" :key="bg.id" class="space-y-1">
+                                <div @click="bg.expanded = !bg.expanded" class="flex items-center gap-2 p-1.5 rounded-lg cursor-pointer hover:bg-slate-50">
+                                    <span class="material-symbols-outlined text-[10px] text-slate-400 transition-transform" :class="bg.expanded ? 'rotate-90' : ''">chevron_right</span>
+                                    <span class="text-[11px] font-bold text-slate-500 uppercase tracking-tighter">{{bg.group_name}}</span>
                                 </div>
-                                <div v-if="bo.expanded" class="ml-4 space-y-1">
-                                    <div v-for="prod in bo.products" :key="prod.id" @click="selectProduct(prod, bo, pp)"
+                                <div v-if="bg.expanded" class="ml-4 space-y-1 border-l-2 border-slate-100 pl-2">
+                                    <div v-for="prod in bg.products" :key="prod.id" @click="selectProduct(prod, bg, pp)"
                                          class="flex items-center gap-2 p-1.5 rounded-lg cursor-pointer transition-all"
                                          :class="selectedProduct?.id === prod.id ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-blue-50 text-slate-500'">
                                         <div class="flex-1 min-w-0">

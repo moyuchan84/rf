@@ -4,11 +4,15 @@ createApp({
     setup() {
         const hierarchy = ref([]);
         const selectedNode = ref(null);
+        const processGroups = ref([]);
+        const beols = ref([]);
+        const isManualBeol = ref(false);
+        const loadingLookups = ref(false);
         
         const formState = reactive({
             active: false,
             mode: 'edit', // 'create' or 'edit'
-            type: 'plan', // 'plan', 'option', 'product'
+            type: 'plan', // 'plan', 'group', 'option', 'product'
             path: null,
             parentId: null
         });
@@ -16,6 +20,7 @@ createApp({
         const formModel = reactive({
             id: null,
             design_rule: '',
+            group_name: '',
             option_name: '',
             partid: '',
             product_name: '',
@@ -33,35 +38,64 @@ createApp({
         const fetchHierarchy = async () => {
             try {
                 const data = await masterDataApi.getHierarchy();
-                hierarchy.value = data.map(pp => ({
+                // data is ProcessPlan -> beol_groups -> beol_options
+                // Flatten to ProcessPlan -> beol_options for MasterData display
+                hierarchy.value = (data || []).map(pp => ({
                     ...pp,
                     expanded: pp.expanded || false,
-                    beol_options: pp.beol_options.map(bo => ({
-                        ...bo,
-                        expanded: bo.expanded || false
-                    }))
+                    beol_options: (pp.beol_groups || []).flatMap(bg => 
+                        (bg.beol_options || []).map(bo => ({
+                            ...bo,
+                            expanded: bo.expanded || false,
+                            group_name: bg.group_name // Keep group name for reference
+                        }))
+                    )
                 }));
             } catch (err) {
                 console.error('Failed to fetch hierarchy:', err);
             }
         };
 
-        const selectNode = (type, data, parent1, parent2) => {
+        const loadLookups = async () => {
+            loadingLookups.value = true;
+            try {
+                if (formState.type === 'plan' && formState.mode === 'create') {
+                    const groups = await masterDataApi.getProcessGroups();
+                    const existing = new Set(hierarchy.value.map(p => p.design_rule));
+                    processGroups.value = groups.filter(g => !existing.has(g));
+                }
+                if (formState.type === 'option' && formState.mode === 'create') {
+                    // Use the design rule of the parent plan
+                    const parentRule = formState.path[0];
+                    const items = await masterDataApi.getBeols(parentRule);
+                    
+                    // Filter out already existing options under this plan
+                    const parentPlan = hierarchy.value.find(p => p.id === formState.parentId);
+                    const existingOptions = new Set(parentPlan?.beol_options.map(o => o.option_name) || []);
+                    beols.value = items.filter(bo => !existingOptions.has(bo));
+                }
+            } catch (err) { console.error('Lookup failed', err); }
+            finally { loadingLookups.value = false; }
+        };
+
+        const selectNode = (type, data, p1, p2) => {
             selectedNode.value = { type, id: data.id, data };
             formState.active = true;
             formState.mode = 'edit';
             formState.type = type;
             formState.parentId = null;
+            isManualBeol.value = false;
 
-            // Set Breadcrumb Path
+            // Set Breadcrumb Path: Plan -> Option -> Product
             if (type === 'plan') formState.path = [data.design_rule];
-            if (type === 'option') formState.path = [parent1.design_rule, data.option_name];
-            if (type === 'product') formState.path = [parent1.design_rule, parent2.option_name, data.partid];
+            if (type === 'option') formState.path = [p1.design_rule, data.option_name];
+            if (type === 'product') formState.path = [p1.design_rule, p2.option_name, data.partid];
 
             // Reset Model
             Object.assign(formModel, {
                 id: data.id,
                 design_rule: data.design_rule || '',
+                group_name: data.group_name || '', // Note: group_name might be internal now
                 option_name: data.option_name || '',
                 partid: data.partid || '',
                 product_name: data.product_name || '',
@@ -77,13 +111,14 @@ createApp({
             });
         };
 
-        const startCreate = (type, parentNode) => {
+        const startCreate = async (type, parentNode) => {
             const pathBefore = formState.path ? [...formState.path] : [];
 
             formState.active = true;
             formState.mode = 'create';
             formState.type = type;
             formState.parentId = parentNode ? parentNode.id : null;
+            isManualBeol.value = false;
             
             // Set Path for new item
             if (type === 'plan') {
@@ -98,6 +133,7 @@ createApp({
             Object.assign(formModel, {
                 id: null,
                 design_rule: '',
+                group_name: '',
                 option_name: '',
                 partid: '',
                 product_name: '',
@@ -111,6 +147,8 @@ createApp({
                     sl_size_y: 0
                 }
             });
+
+            await loadLookups();
         };
 
         const addChild = () => {
@@ -183,6 +221,7 @@ createApp({
 
         return {
             hierarchy, selectedNode, formState, formModel,
+            processGroups, beols, isManualBeol, loadingLookups,
             fetchHierarchy, selectNode, startCreate, addChild, saveForm, deleteItem
         };
     }

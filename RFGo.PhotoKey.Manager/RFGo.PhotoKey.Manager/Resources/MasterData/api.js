@@ -1,13 +1,22 @@
 const getBaseUrl = async () => {
-    const root = await window.chrome.webview.hostObjects.bridge.GetBaseUrl();
-    return `${root}/products`;
+    const bridge = window.chrome?.webview?.hostObjects?.bridge;
+    if (!bridge) return "http://localhost:9999/api/v1/products"; // Fallback for dev
+    const root = await bridge.GetBaseUrl();
+    // If root is something like "http://localhost:9999/api/v1", append /products
+    return root.endsWith('/products') ? root : `${root}/products`;
 };
 
 const masterDataApi = {
     async getHierarchy() {
-        const baseUrl = await getBaseUrl();
-        const response = await fetch(`${baseUrl}/hierarchy`);
-        return await response.json();
+        try {
+            const baseUrl = await getBaseUrl();
+            const response = await fetch(`${baseUrl}/hierarchy`);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return await response.json();
+        } catch (e) {
+            console.error("getHierarchy failed", e);
+            return [];
+        }
     },
 
     // Process Plan
@@ -18,6 +27,7 @@ const masterDataApi = {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         });
+        if (!response.ok) throw new Error(await response.text());
         return await response.json();
     },
     async updateProcessPlan(id, data) {
@@ -27,11 +37,13 @@ const masterDataApi = {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         });
+        if (!response.ok) throw new Error(await response.text());
         return await response.json();
     },
     async deleteProcessPlan(id) {
         const baseUrl = await getBaseUrl();
-        await fetch(`${baseUrl}/process-plans/${id}`, { method: 'DELETE' });
+        const response = await fetch(`${baseUrl}/process-plans/${id}`, { method: 'DELETE' });
+        if (!response.ok) throw new Error(await response.text());
     },
 
     // BEOL Option
@@ -42,6 +54,7 @@ const masterDataApi = {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         });
+        if (!response.ok) throw new Error(await response.text());
         return await response.json();
     },
     async updateBEOLOption(id, data) {
@@ -51,11 +64,13 @@ const masterDataApi = {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         });
+        if (!response.ok) throw new Error(await response.text());
         return await response.json();
     },
     async deleteBEOLOption(id) {
         const baseUrl = await getBaseUrl();
-        await fetch(`${baseUrl}/beol-options/${id}`, { method: 'DELETE' });
+        const response = await fetch(`${baseUrl}/beol-options/${id}`, { method: 'DELETE' });
+        if (!response.ok) throw new Error(await response.text());
     },
 
     // Product
@@ -66,6 +81,7 @@ const masterDataApi = {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         });
+        if (!response.ok) throw new Error(await response.text());
         return await response.json();
     },
     async updateProduct(id, data) {
@@ -75,11 +91,27 @@ const masterDataApi = {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         });
+        if (!response.ok) throw new Error(await response.text());
         return await response.json();
     },
     async deleteProduct(id) {
         const baseUrl = await getBaseUrl();
-        await fetch(`${baseUrl}/products/${id}`, { method: 'DELETE' });
+        const response = await fetch(`${baseUrl}/products/${id}`, { method: 'DELETE' });
+        if (!response.ok) throw new Error(await response.text());
+    },
+
+    // Lookups (from FastAPI using N7MaskBeol)
+    async getProcessGroups() {
+        const baseUrl = await getBaseUrl();
+        const response = await fetch(`${baseUrl}/unique-process-groups`);
+        if (!response.ok) return [];
+        return await response.json();
+    },
+    async getBeols(processGrp) {
+        const baseUrl = await getBaseUrl();
+        const response = await fetch(`${baseUrl}/unique-beols?process_grp=${encodeURIComponent(processGrp)}`);
+        if (!response.ok) return [];
+        return await response.json();
     }
 };
 

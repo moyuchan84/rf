@@ -5,6 +5,7 @@ const app = createApp({
         const hierarchy = ref([]);
         const selectedProduct = ref(null);
         const selectedBO = ref(null);
+        const selectedBG = ref(null);
         const selectedPP = ref(null);
         const photoKeys = ref([]);
         const selectedKeys = ref([]);
@@ -107,10 +108,14 @@ const app = createApp({
             status.value = 'LOADING';
             try {
                 const data = await apiClient.getHierarchy();
+                // data is already flattened to ProcessPlan -> BeolGroup (containing products)
                 hierarchy.value = (data || []).map(pp => ({
                     ...pp,
                     expanded: false,
-                    beol_options: (pp.beol_options || []).map(bo => ({ ...bo, expanded: false }))
+                    beol_groups: (pp.beol_groups || []).map(bg => ({
+                        ...bg,
+                        expanded: false
+                    }))
                 }));
             } catch (error) {
                 console.error('Failed to load hierarchy:', error);
@@ -129,9 +134,10 @@ const app = createApp({
             } catch (err) { console.error('Folder selection failed:', err); }
         };
 
-        const selectProduct = async (product, bo, pp) => {
+        const selectProduct = async (product, bg, pp) => {
             selectedProduct.value = product;
-            selectedBO.value = bo;
+            selectedBO.value = { option_name: product.beol_option_name || "UnknownBO" };
+            selectedBG.value = bg;
             selectedPP.value = pp;
             selectedKeys.value = [];
             expandedTables.value = {};
@@ -231,17 +237,18 @@ const app = createApp({
             try {
                 const itemsToRestore = selectedKeys.value.map(key => {
                     const pp = selectedPP.value?.design_rule || "UnknownPP";
+                    const bg = selectedBG.value?.group_name || "UnknownBG";
                     const bo = selectedBO.value?.option_name || "UnknownBO";
                     const partId = selectedProduct.value?.partid || "UnknownPart";
                     const prodName = selectedProduct.value?.product_name || "";
                     const rev = key.rev_no;
                     const dateStr = new Date(key.update_date).toISOString().split('T')[0].replace(/-/g, '');
                     let targetDir = (folderStructure.value === 'nested') 
-                        ? `${targetFolderPath.value}\\RFGO\\${pp}\\${bo}\\${partId}`
-                        : `${targetFolderPath.value}\\RFGO\\${pp}_${bo}_${partId}_${prodName}`.replace(/[\\\/:*?"<>|]/g, '_');
+                        ? `${targetFolderPath.value}\\RFGO\\${pp}\\${bg}\\${bo}\\${partId}`
+                        : `${targetFolderPath.value}\\RFGO\\${pp}_${bg}_${bo}_${partId}_${prodName}`.replace(/[\\\/:*?"<>|]/g, '_');
                     return {
-                        workbookData: key.workbook_data,
-                        targetPath: `${targetDir}\\${pp}_${bo}_${partId}_Rev${rev}_${dateStr}.xlsx`
+                        WorkbookData: key.workbook_data,
+                        TargetPath: `${targetDir}\\${pp}_${bo}_${partId}_Rev${rev}_${dateStr}.xlsx`
                     };
                 });
                 const bridge = window.chrome?.webview?.hostObjects?.bridge?.inquiry;
@@ -253,7 +260,7 @@ const app = createApp({
         onMounted(loadHierarchy);
 
         return {
-            hierarchy, selectedProduct, selectedBO, selectedPP, photoKeys, selectedKeys,
+            hierarchy, selectedProduct, selectedBO, selectedBG, selectedPP, photoKeys, selectedKeys,
             viewMode, detailWorkbook, activeSheet, targetFolderPath, openAfterRestore, folderStructure,
             status, editingKey, editConfig, searchQuery, expandedTables, nestedHierarchy,
             loadHierarchy, selectProduct, showDetail, refreshPhotoKeys, pickFolder, showLog: (k) => activeLog.value = k, activeLog,
