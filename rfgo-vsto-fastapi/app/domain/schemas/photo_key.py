@@ -15,10 +15,10 @@ class PhotoKeyBase(BaseModel):
     log: Optional[str] = None
 
 class PhotoKeyCreate(PhotoKeyBase):
-    process_plan: str
-    beol_option: str
-    partid: str
-    product_name: str
+    process_plan: Optional[str] = None
+    beol_option: Optional[str] = None
+    partid: Optional[str] = None
+    product_name: Optional[str] = None
 
 class PhotoKeyUpdate(BaseModel):
     rfg_category: Optional[str] = None
@@ -30,6 +30,7 @@ class PhotoKeyUpdate(BaseModel):
 
 class HierarchyBase(BaseModel):
     processPlan: str
+    beolGroup: Optional[str] = None
     beolOption: str
     partId: str
     productName: str
@@ -42,7 +43,7 @@ class PhotoKey(PhotoKeyBase):
     id: int
     product_id: Optional[int] = None
     process_plan_id: Optional[int] = None
-    beol_option_id: Optional[int] = None
+    beol_group_id: Optional[int] = None
     update_date: Optional[datetime] = None
     
     model_config = ConfigDict(from_attributes=True)

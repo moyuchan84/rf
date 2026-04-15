@@ -23,7 +23,7 @@ class RequestTableMapBase(BaseModel):
     request_id: int
     product_id: Optional[int] = None
     process_plan_id: Optional[int] = None
-    beol_option_id: Optional[int] = None
+    beol_group_id: Optional[int] = None
     photo_key_id: int  # Prisma says this is mandatory
     type: str
 
@@ -78,10 +78,16 @@ class BeolOptionSchema(BaseModel):
     products: List[Product] = []
     model_config = ConfigDict(from_attributes=True)
 
+class BeolGroupSchema(BaseModel):
+    id: int
+    group_name: Optional[str] = None
+    beol_options: List[BeolOptionSchema] = []
+    model_config = ConfigDict(from_attributes=True)
+
 class ProcessPlanSchema(BaseModel):
     id: int
     design_rule: Optional[str] = None
-    beol_options: List[BeolOptionSchema] = []
+    beol_groups: List[BeolGroupSchema] = []
     model_config = ConfigDict(from_attributes=True)
 
 class ProductUpdate(BaseModel):
@@ -89,13 +95,23 @@ class ProductUpdate(BaseModel):
     product_name: Optional[str] = None
     meta_info: Optional[ProductMetaCreate] = None
 
+class BeolGroupBase(BaseModel):
+    group_name: Optional[str] = None
+
+class BeolGroupCreate(BaseModel):
+    group_name: str
+    process_plan_id: int
+
+class BeolGroupUpdate(BeolGroupBase):
+    group_name: Optional[str] = None
+
 class BeolOptionBase(BaseModel):
     option_name: Optional[str] = None
 
 class BeolOptionCreate(BeolOptionBase):
-    process_plan_id: Optional[int] = None
+    process_plan_id: int # Changed from beol_group_id to process_plan_id for auto-grouping
 
-class BeolOptionUpdate(BaseModel):
+class BeolOptionUpdate(BeolOptionBase):
     option_name: Optional[str] = None
 
 class ProcessPlanBase(BaseModel):

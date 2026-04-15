@@ -27,8 +27,11 @@ class PhotoKeyService:
         bo = self.product_repo.get_or_create_beol_option(data.beol_option, pp.id)
         prod = self.product_repo.get_or_create_product(data.partid, data.product_name, bo.id)
         
+        # Link to BeolGroup for sharing PhotoKey
+        bg_id = bo.beol_group_id
+        
         # Create PhotoKey with linked hierarchy
-        photo_key = self.photo_key_repo.create_photo_key(prod.id, pp.id, bo.id, data)
+        photo_key = self.photo_key_repo.create_photo_key(prod.id, pp.id, bg_id, data)
         
         # Publish event
         if photo_key:
@@ -37,11 +40,24 @@ class PhotoKeyService:
         return photo_key
 
     def upload_photo_keys(self, data: schemas.PhotoKeyBatchCreate):
-        """Batch upload multiple photo keys."""
+        """Batch upload multiple photo keys with a shared hierarchy."""
+        # 1. Resolve shared hierarchy once
+        h = data.hierarchy
+        pp = self.product_repo.get_or_create_process_plan(h.processPlan)
+        bo = self.product_repo.get_or_create_beol_option(h.beolOption, pp.id)
+        prod = self.product_repo.get_or_create_product(h.partId, h.productName, bo.id)
+        
+        bg_id = bo.beol_group_id
+        
         results = []
         for wb in data.workbooks:
-            res = self.upload_photo_key(wb)
-            results.append(res)
+            # Create PhotoKey with linked hierarchy IDs resolved above
+            photo_key = self.photo_key_repo.create_photo_key(prod.id, pp.id, bg_id, wb)
+            
+            if photo_key:
+                self._publish_event(photo_key.id)
+                results.append(photo_key)
+                
         return results
 
     def list_products(self):

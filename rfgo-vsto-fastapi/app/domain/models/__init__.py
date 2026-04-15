@@ -2,6 +2,7 @@ from app.domain.models.base import Base
 from app.domain.models.user import User, Role
 from app.domain.models.product import (
     ProcessPlan, 
+    BeolGroup,
     BeolOption, 
     Product, 
     ProductMeta, 
@@ -12,5 +13,6 @@ from app.domain.models.product import (
     KeyDesign, 
     ReticleLayout, 
     StreamInfo, 
-    RequestTableMap
+    RequestTableMap,
+    N7MaskBeol
 )

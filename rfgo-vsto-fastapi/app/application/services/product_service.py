@@ -23,7 +23,16 @@ class ProductService:
     def delete_process_plan(self, id: int):
         return self.repository.delete_process_plan(id)
 
-    # --- CRUD Methods for BEOLOption ---
+    # --- CRUD Methods for BEOLGroup ---
+    def create_beol_group(self, data: schemas.product.BeolGroupCreate):
+        return self.repository.create_beol_group(data.group_name, data.process_plan_id)
+
+    def update_beol_group(self, id: int, data: schemas.product.BeolGroupUpdate):
+        return self.repository.update_beol_group(id, data.group_name)
+
+    def delete_beol_group(self, id: int):
+        return self.repository.delete_beol_group(id)
+
     def create_beol_option(self, data: schemas.product.BeolOptionCreate):
         return self.repository.create_beol_option(data.option_name, data.process_plan_id)
 
@@ -32,6 +41,12 @@ class ProductService:
 
     def delete_beol_option(self, id: int):
         return self.repository.delete_beol_option(id)
+
+    def get_unique_process_groups(self):
+        return self.repository.get_unique_process_groups()
+
+    def get_unique_beols(self, process_grp: str):
+        return self.repository.get_unique_beols(process_grp)
 
     # --- CRUD Methods for Product ---
     def create_product(self, data: schemas.product.ProductCreate):

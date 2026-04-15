@@ -8,9 +8,22 @@ class ProcessPlan(Base):
     id = Column(Integer, primary_key=True, index=True)
     design_rule = Column(String, unique=True, index=True)
     
-    beol_options = relationship("BeolOption", back_populates="process_plan", cascade="all, delete-orphan")
+    beol_groups = relationship("BeolGroup", back_populates="process_plan", cascade="all, delete-orphan")
     photo_keys = relationship("PhotoKey", back_populates="process_plan", cascade="all, delete-orphan")
     key_designs = relationship("KeyDesign", secondary="key_design_to_process_plan", back_populates="process_plans")
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    update_time = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+class BeolGroup(Base):
+    __tablename__ = "beol_groups"
+    id = Column(Integer, primary_key=True, index=True)
+    group_name = Column(String, index=True)
+    process_plan_id = Column(Integer, ForeignKey("process_plans.id", ondelete="CASCADE"))
+    
+    process_plan = relationship("ProcessPlan", back_populates="beol_groups")
+    beol_options = relationship("BeolOption", back_populates="beol_group", cascade="all, delete-orphan")
+    photo_keys = relationship("PhotoKey", back_populates="beol_group", cascade="all, delete-orphan")
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     update_time = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
@@ -19,11 +32,10 @@ class BeolOption(Base):
     __tablename__ = "beol_options"
     id = Column(Integer, primary_key=True, index=True)
     option_name = Column(String, index=True)
-    process_plan_id = Column(Integer, ForeignKey("process_plans.id", ondelete="CASCADE"))
+    beol_group_id = Column(Integer, ForeignKey("beol_groups.id", ondelete="CASCADE"))
     
-    process_plan = relationship("ProcessPlan", back_populates="beol_options")
+    beol_group = relationship("BeolGroup", back_populates="beol_options")
     products = relationship("Product", back_populates="beol_option", cascade="all, delete-orphan")
-    photo_keys = relationship("PhotoKey", back_populates="beol_option", cascade="all, delete-orphan")
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     update_time = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
@@ -111,7 +123,7 @@ class PhotoKey(Base):
     id = Column(Integer, primary_key=True, index=True)
     product_id = Column(Integer, ForeignKey("products.id", ondelete="CASCADE"))
     process_plan_id = Column(Integer, ForeignKey("process_plans.id", ondelete="CASCADE"))
-    beol_option_id = Column(Integer, ForeignKey("beol_options.id", ondelete="CASCADE"))
+    beol_group_id = Column(Integer, ForeignKey("beol_groups.id", ondelete="CASCADE"))
     
     rfg_category = Column(String)
     photo_category = Column(String)
@@ -127,7 +139,7 @@ class PhotoKey(Base):
     
     product = relationship("Product", back_populates="photo_keys")
     process_plan = relationship("ProcessPlan", back_populates="photo_keys")
-    beol_option = relationship("BeolOption", back_populates="photo_keys")
+    beol_group = relationship("BeolGroup", back_populates="photo_keys")
     table_maps = relationship("RequestTableMap", back_populates="photo_key", cascade="all, delete-orphan")
 
 class KeyDesign(Base):
@@ -157,7 +169,7 @@ class ReticleLayout(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, nullable=False)
     product_id = Column(Integer, nullable=False)
-    beol_option_id = Column(Integer, nullable=True)
+    beol_group_id = Column(Integer, ForeignKey("beol_groups.id", ondelete="CASCADE"), nullable=True)
     process_plan_id = Column(Integer, nullable=True)
     shot_info = Column(JSON, nullable=True)
     image_url = Column(String, nullable=True)
@@ -176,7 +188,7 @@ class StreamInfo(Base):
     request_id = Column(Integer, ForeignKey("request_items.id", ondelete="CASCADE"))
     product_id = Column(Integer, nullable=False)
     process_plan_id = Column(Integer, nullable=False)
-    beol_option_id = Column(Integer, nullable=False)
+    beol_group_id = Column(Integer, ForeignKey("beol_groups.id", ondelete="CASCADE"))
     stream_path = Column(String, nullable=False)
     stream_input_output_file = Column(Text, nullable=True)
     
@@ -191,12 +203,33 @@ class RequestTableMap(Base):
     request_id = Column(Integer, ForeignKey("request_items.id", ondelete="CASCADE"))
     product_id = Column(Integer, nullable=True)
     process_plan_id = Column(Integer, nullable=True)
-    beol_option_id = Column(Integer, nullable=True)
+    beol_group_id = Column(Integer, ForeignKey("beol_groups.id", ondelete="CASCADE"), nullable=True)
     photo_key_id = Column(Integer, ForeignKey("photo_keys.id", ondelete="CASCADE"))
     type = Column(String, nullable=False) # REFERENCE, SETUP
     
     request = relationship("RequestItem", back_populates="table_maps")
     photo_key = relationship("PhotoKey", back_populates="table_maps")
+
+class N7MaskBeol(Base):
+    __tablename__ = "n7_maskbeol"
+    __table_args__ = {"schema": "smartdne"}
+    id = Column(Integer, primary_key=True, index=True)
+    obid = Column(String(24), nullable=True)
+    n7beol = Column(String(20), nullable=True)
+    n7process_grp = Column(String(20), nullable=True)
+    n7make_date = Column(String(20), nullable=True)
+    n7make_id = Column(String(20), nullable=True)
+    n7make_name = Column(String(60), nullable=True)
+    n7make_teamname = Column(String(60), nullable=True)
+    n7modify_date = Column(String(20), nullable=True)
+    n7modify_id = Column(String(20), nullable=True)
+    n7modify_name = Column(String(20), nullable=True)
+    n7modify_teamname = Column(String(60), nullable=True)
+    n7use_flag = Column(String(1), nullable=True)
+    n7make_id_jmody = Column(String(1), nullable=True)
+    n7modify_id_jmody = Column(String(1), nullable=True)
+    n7customer_flag = Column(String(3), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 # Association Table for Many-to-Many
 from sqlalchemy import Table

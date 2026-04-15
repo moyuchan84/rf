@@ -17,6 +17,16 @@ def get_hierarchy(db: Session = Depends(get_db)):
     service = ProductService(db)
     return service.get_product_hierarchy()
 
+@router.get("/unique-process-groups", response_model=List[str])
+def get_unique_process_groups(db: Session = Depends(get_db)):
+    service = ProductService(db)
+    return service.get_unique_process_groups()
+
+@router.get("/unique-beols", response_model=List[str])
+def get_unique_beols(process_grp: str, db: Session = Depends(get_db)):
+    service = ProductService(db)
+    return service.get_unique_beols(process_grp)
+
 # --- CRUD for ProcessPlan ---
 @router.post("/process-plans", response_model=schemas.product.ProcessPlanSchema)
 def create_process_plan(data: schemas.product.ProcessPlanCreate, db: Session = Depends(get_db)):
@@ -32,6 +42,23 @@ def update_process_plan(id: int, data: schemas.product.ProcessPlanUpdate, db: Se
 def delete_process_plan(id: int, db: Session = Depends(get_db)):
     service = ProductService(db)
     service.delete_process_plan(id)
+    return {"success": True}
+
+# --- CRUD for BEOLGroup ---
+@router.post("/beol-groups", response_model=schemas.product.BeolGroupSchema)
+def create_beol_group(data: schemas.product.BeolGroupCreate, db: Session = Depends(get_db)):
+    service = ProductService(db)
+    return service.create_beol_group(data)
+
+@router.put("/beol-groups/{id}", response_model=schemas.product.BeolGroupSchema)
+def update_beol_group(id: int, data: schemas.product.BeolGroupUpdate, db: Session = Depends(get_db)):
+    service = ProductService(db)
+    return service.update_beol_group(id, data)
+
+@router.delete("/beol-groups/{id}")
+def delete_beol_group(id: int, db: Session = Depends(get_db)):
+    service = ProductService(db)
+    service.delete_beol_group(id)
     return {"success": True}
 
 # --- CRUD for BEOLOption ---

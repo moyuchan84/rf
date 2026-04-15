@@ -16,13 +16,29 @@ class ProductRepository:
             self.db.refresh(obj)
         return obj
 
-    def get_or_create_beol_option(self, option_name: str, process_plan_id: int):
-        obj = self.db.query(models.BeolOption).filter(
-            models.BeolOption.option_name == option_name,
-            models.BeolOption.process_plan_id == process_plan_id
+    def get_or_create_beol_group(self, group_name: str, process_plan_id: int):
+        obj = self.db.query(models.BeolGroup).filter(
+            models.BeolGroup.group_name == group_name,
+            models.BeolGroup.process_plan_id == process_plan_id
         ).first()
         if not obj:
-            obj = models.BeolOption(option_name=option_name, process_plan_id=process_plan_id)
+            obj = models.BeolGroup(group_name=group_name, process_plan_id=process_plan_id)
+            self.db.add(obj)
+            self.db.commit()
+            self.db.refresh(obj)
+        return obj
+
+    def get_or_create_beol_option(self, option_name: str, process_plan_id: int):
+        # Extract prefix for BeolGroup
+        group_name = option_name.split('_')[0]
+        beol_group = self.get_or_create_beol_group(group_name, process_plan_id)
+
+        obj = self.db.query(models.BeolOption).filter(
+            models.BeolOption.option_name == option_name,
+            models.BeolOption.beol_group_id == beol_group.id
+        ).first()
+        if not obj:
+            obj = models.BeolOption(option_name=option_name, beol_group_id=beol_group.id)
             self.db.add(obj)
             self.db.commit()
             self.db.refresh(obj)
@@ -58,7 +74,20 @@ class ProductRepository:
         return self.db.query(models.Product).filter(models.Product.partid == partid).first()
 
     def get_hierarchy(self):
-        return self.db.query(models.ProcessPlan).all()
+        from sqlalchemy.orm import joinedload
+        return self.db.query(models.ProcessPlan).options(
+            joinedload(models.ProcessPlan.beol_groups)
+            .joinedload(models.BeolGroup.beol_options)
+            .joinedload(models.BeolOption.products)
+        ).all()
+
+    def get_unique_process_groups(self) -> List[str]:
+        groups = self.db.query(models.N7MaskBeol.n7process_grp).distinct().all()
+        return [g[0] for g in groups if g[0]]
+
+    def get_unique_beols(self, process_grp: str) -> List[str]:
+        beols = self.db.query(models.N7MaskBeol.n7beol).filter(models.N7MaskBeol.n7process_grp == process_grp).distinct().all()
+        return [b[0] for b in beols if b[0]]
 
     # --- CRUD Methods for ProcessPlan ---
     def create_process_plan(self, design_rule: str):
@@ -82,9 +111,35 @@ class ProductRepository:
             self.db.delete(obj)
             self.db.commit()
 
+    # --- CRUD Methods for BEOLGroup ---
+    def create_beol_group(self, group_name: str, process_plan_id: int):
+        obj = models.BeolGroup(group_name=group_name, process_plan_id=process_plan_id)
+        self.db.add(obj)
+        self.db.commit()
+        self.db.refresh(obj)
+        return obj
+
+    def update_beol_group(self, id: int, group_name: str):
+        obj = self.db.query(models.BeolGroup).filter(models.BeolGroup.id == id).first()
+        if obj:
+            obj.group_name = group_name
+            self.db.commit()
+            self.db.refresh(obj)
+        return obj
+
+    def delete_beol_group(self, id: int):
+        obj = self.db.query(models.BeolGroup).filter(models.BeolGroup.id == id).first()
+        if obj:
+            self.db.delete(obj)
+            self.db.commit()
+
     # --- CRUD Methods for BEOLOption ---
     def create_beol_option(self, option_name: str, process_plan_id: int):
-        obj = models.BeolOption(option_name=option_name, process_plan_id=process_plan_id)
+        # Automatically parse group name from option name (e.g. "10M_..." -> "10M")
+        group_name = option_name.split('_')[0]
+        beol_group = self.get_or_create_beol_group(group_name, process_plan_id)
+        
+        obj = models.BeolOption(option_name=option_name, beol_group_id=beol_group.id)
         self.db.add(obj)
         self.db.commit()
         self.db.refresh(obj)
@@ -94,6 +149,8 @@ class ProductRepository:
         obj = self.db.query(models.BeolOption).filter(models.BeolOption.id == id).first()
         if obj:
             obj.option_name = option_name
+            # If name changed, prefix might change too - but usually we don't re-group on rename
+            # Unless explicitly requested. For now, keep it simple.
             self.db.commit()
             self.db.refresh(obj)
         return obj
