@@ -145,6 +145,10 @@ export const GET_ALL_REQUESTS = gql`
           beolOption {
             id
             optionName
+            beolGroup {
+              id
+              groupName
+            }
             processPlan {
               id
               designRule
@@ -206,6 +210,10 @@ export const GET_REQUEST_ITEM = gql`
         beolOption {
           id
           optionName
+          beolGroup {
+            id
+            groupName
+          }
           processPlan {
             id
             designRule
@@ -249,8 +257,8 @@ export const UPDATE_REQUEST_STEP = gql`
 `;
 
 export const GET_PHOTO_KEYS_FOR_REQUEST = gql`
-  query GetPhotoKeysForRequest($productId: Int, $beolOptionId: Int, $processPlanId: Int) {
-    photoKeys(productId: $productId, beolOptionId: $beolOptionId, processPlanId: $processPlanId) {
+  query GetPhotoKeysForRequest($productId: Int, $beolOptionId: Int, $beolGroupId: Int, $processPlanId: Int) {
+    photoKeys(productId: $productId, beolOptionId: $beolOptionId, beolGroupId: $beolGroupId, processPlanId: $processPlanId) {
       id
       tableName
       revNo
@@ -266,6 +274,7 @@ export const GET_PHOTO_KEYS_FOR_REQUEST = gql`
         productName
       }
       processPlanId
+      beolGroupId
       beolOptionId
       workbookData
     }
@@ -345,7 +354,13 @@ export const SAVE_REQUEST_TABLES = gql`
           partId
           productName
         }
-        processPlanId        beolOptionId
+        processPlanId
+        beolGroupId
+        beolOptionId
+        beolGroup {
+          id
+          groupName
+        }
         workbookData
       }
     }
@@ -370,7 +385,12 @@ export const SEARCH_PHOTO_KEYS_BY_STREAM = gql`
         productName
       }
       processPlanId
+      beolGroupId
       beolOptionId
+      beolGroup {
+        id
+        groupName
+      }
       workbookData
     }
   }
@@ -397,7 +417,13 @@ export const GET_REQUEST_TABLES = gql`
           partId
           productName
         }
-        processPlanId        beolOptionId
+        processPlanId
+        beolGroupId
+        beolOptionId
+        beolGroup {
+          id
+          groupName
+        }
         workbookData
       }
     }

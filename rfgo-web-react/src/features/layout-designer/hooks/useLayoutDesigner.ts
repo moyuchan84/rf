@@ -59,102 +59,96 @@ export const useLayoutDesigner = () => {
     const targetCount = config.n;
     const elemSize = Math.max(15, Math.min(boundary.width, boundary.height) * 0.03);
     
-    // 1. Grid Extraction (All edges)
-    const xCoords = Array.from(new Set([
-      boundary.x, boundary.x + boundary.width, 
-      ...activeChips.flatMap(c => [c.x, c.x + c.width])
-    ])).sort((a, b) => a - b);
-    
-    const yCoords = Array.from(new Set([
-      boundary.y, boundary.y + boundary.height, 
-      ...activeChips.flatMap(c => [c.y, c.y + c.height])
-    ])).sort((a, b) => a - b);
+    // 1. Precise Scribelane Point Extraction
+    const xEdges = Array.from(new Set([boundary.x, boundary.x + boundary.width, ...activeChips.flatMap(c => [c.x, c.x + c.width])])).sort((a, b) => a - b);
+    const yEdges = Array.from(new Set([boundary.y, boundary.y + boundary.height, ...activeChips.flatMap(c => [c.y, c.y + c.height])])).sort((a, b) => a - b);
 
-    // 2. Identify Free Slots (Grid Cells)
-    const freeCells: { x: number, y: number, w: number, h: number, cx: number, cy: number }[] = [];
-    for (let i = 0; i < xCoords.length - 1; i++) {
-      for (let j = 0; j < yCoords.length - 1; j++) {
-        const w = xCoords[i+1] - xCoords[i];
-        const h = yCoords[j+1] - yCoords[j];
-        if (w < elemSize * 0.8 || h < elemSize * 0.8) continue; // Too small for a key
+    const candidates: { x: number, y: number, area: number }[] = [];
+    for (let i = 0; i < xEdges.length - 1; i++) {
+      for (let j = 0; j < yEdges.length - 1; j++) {
+        const w = xEdges[i+1] - xEdges[i];
+        const h = yEdges[j+1] - yEdges[j];
+        if (w < elemSize * 0.4 || h < elemSize * 0.4) continue;
         
-        const cx = xCoords[i] + w / 2;
-        const cy = yCoords[j] + h / 2;
+        const cx = xEdges[i] + w / 2;
+        const cy = yEdges[j] + h / 2;
         
-        // Check if inside boundary and outside all chips
-        const isInsideBoundary = cx >= boundary.x && cx <= boundary.x + boundary.width && 
-                                 cy >= boundary.y && cy <= boundary.y + boundary.height;
-        const isInsideAnyChip = activeChips.some(c => 
-          cx >= c.x - 1 && cx <= c.x + c.width + 1 && 
-          cy >= c.y - 1 && cy <= c.y + c.height + 1
+        const isInsideChip = activeChips.some(c => 
+          cx >= c.x - 0.5 && cx <= c.x + c.width + 0.5 && 
+          cy >= c.y - 0.5 && cy <= c.y + c.height + 0.5
         );
 
-        if (isInsideBoundary && !isInsideAnyChip) {
-          freeCells.push({ x: xCoords[i], y: yCoords[j], w, h, cx, cy });
+        if (!isInsideChip) {
+          candidates.push({ x: cx, y: cy, area: w * h });
         }
       }
     }
 
-    if (freeCells.length === 0) {
-      toast.error("No free space found for placement");
+    if (candidates.length === 0) {
+      toast.error("No valid scribelane space found");
       return;
     }
 
-    let selectedPoints: { x: number, y: number }[] = [];
+    const getDist = (p1: {x:number, y:number}, p2: {x:number, y:number}) => Math.sqrt((p1.x-p2.x)**2 + (p1.y-p2.y)**2);
+    const selected: typeof candidates = [];
+    let pool = [...candidates];
 
-    // 3. Apply Strategy
-    if (config.strategy === 'UNIFORM_LINEAR') {
-      // Find long streets (horizontal or vertical)
-      // For simplicity, pick the largest contiguous set of cells in a row/column
-      selectedPoints = freeCells
-        .sort((a, b) => (b.w * b.h) - (a.w * a.h)) // Prefer larger areas
-        .slice(0, targetCount)
-        .map(c => ({ x: c.cx, y: c.cy }));
-    } 
-    else if (config.strategy === 'GREEDY_GRID') {
-      const bx = boundary.x + boundary.width / 2;
-      const by = boundary.y + boundary.height / 2;
-      const getDist = (p1: {x:number, y:number}, p2: {x:number, y:number}) => Math.sqrt((p1.x-p2.x)**2 + (p1.y-p2.y)**2);
+    const pickNearest = (target: {x:number, y:number}) => {
+      if (pool.length === 0 || selected.length >= targetCount) return;
+      pool.sort((a, b) => getDist(a, target) - getDist(b, target));
+      selected.push(pool[0]);
+      pool.splice(0, 1);
+    };
 
-      // Prioritize points near center and corners
-      const interestPoints = [
-        { x: bx, y: by },
-        { x: boundary.x, y: boundary.y },
-        { x: boundary.x + boundary.width, y: boundary.y },
-        { x: boundary.x, y: boundary.y + boundary.height },
-        { x: boundary.x + boundary.width, y: boundary.y + boundary.height }
-      ];
+    // 2. Mandatory Priority Placement (Top 5)
+    
+    // 2.1 Absolute Center of Shot Boundary
+    pickNearest({ x: boundary.x + boundary.width / 2, y: boundary.y + boundary.height / 2 });
 
-      const scoredCells = freeCells.map(cell => {
-        const minDist = Math.min(...interestPoints.map(p => getDist({ x: cell.cx, y: cell.cy }, p)));
-        return { cell, score: minDist };
-      }).sort((a, b) => a.score - b.score);
+    // 2.2 4 Outermost Corners
+    const cornerTargets = [
+      { x: boundary.x, y: boundary.y },
+      { x: boundary.x + boundary.width, y: boundary.y },
+      { x: boundary.x, y: boundary.y + boundary.height },
+      { x: boundary.x + boundary.width, y: boundary.y + boundary.height }
+    ];
+    cornerTargets.forEach(pickNearest);
 
-      selectedPoints = scoredCells.slice(0, targetCount).map(s => ({ x: s.cell.cx, y: s.cell.cy }));
-    }
-    else { // BEST_FIT_BIN_PACKING or Fallback
-      // Just distribute as evenly as possible
-      selectedPoints = [];
-      const step = Math.max(1, Math.floor(freeCells.length / targetCount));
-      for (let i = 0; i < targetCount && i * step < freeCells.length; i++) {
-        const c = freeCells[i * step];
-        selectedPoints.push({ x: c.cx, y: c.cy });
+    // 3. Strategy-based Placement for 6th point onwards
+    while (selected.length < targetCount && pool.length > 0) {
+      if (config.strategy === 'UNIFORM_LINEAR') {
+        // Prefer points aligned with existing X or Y to form lines
+        pool.sort((a, b) => {
+          const aAlign = Math.min(...selected.map(s => Math.min(Math.abs(s.x - a.x), Math.abs(s.y - a.y))));
+          const bAlign = Math.min(...selected.map(s => Math.min(Math.abs(s.x - b.x), Math.abs(s.y - b.y))));
+          return aAlign - bAlign;
+        });
+      } 
+      else if (config.strategy === 'BEST_FIT_BIN_PACKING') {
+        // Prefer points in largest available gaps
+        pool.sort((a, b) => b.area - a.area);
       }
+      else { // GREEDY_GRID: Max-Min distance
+        pool.sort((a, b) => {
+          const aMinD = Math.min(...selected.map(s => getDist(a, s)));
+          const bMinD = Math.min(...selected.map(s => getDist(b, s)));
+          return bMinD - aMinD; // Descending order of min distance
+        });
+      }
+      
+      selected.push(pool[0]);
+      pool.splice(0, 1);
     }
 
-    // 4. Map to GeometricObjects with tag: 'KEY'
-    setPlacements(selectedPoints.map(p => ({
+    // 4. Update Store
+    setPlacements(selected.map(p => ({
       id: uuidv4(),
       x: p.x - elemSize / 2,
       y: p.y - elemSize / 2,
-      width: elemSize, 
-      height: elemSize, 
-      tag: 'KEY', 
-      visible: true, 
-      isManual: false
+      width: elemSize, height: elemSize, tag: 'KEY', visible: true, isManual: false
     })));
 
-    toast.success(`Automatically placed ${selectedPoints.length} elements`);
+    toast.success(`Arranged ${selected.length} elements using ${config.strategy}`);
   }, [setPlacements]);
 
   const saveLayout = async () => {

@@ -81,8 +81,8 @@ export interface PhotoKey {
 export interface BeolOption {
   id: number;
   optionName: string;
-  processPlanId: number;
-  processPlan?: ProcessPlan;
+  beolGroupId: number;
+  beolGroup?: { id: number; groupName: string };
   products: Product[];
 }
 

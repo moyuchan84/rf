@@ -8,6 +8,10 @@ export const GET_PROCESS_PLANS = gql`
       beolOptions {
         id
         optionName
+        beolGroup {
+          id
+          groupName
+        }
         products {
           id
           partId
@@ -33,6 +37,15 @@ export const CREATE_PROCESS_PLAN = gql`
     createProcessPlan(input: $input) {
       id
       designRule
+    }
+  }
+`;
+
+export const CREATE_BEOL_GROUP = gql`
+  mutation CreateBeolGroup($input: CreateBeolGroupInput!) {
+    createBeolGroup(input: $input) {
+      id
+      groupName
     }
   }
 `;
@@ -86,6 +99,14 @@ export const DELETE_PRODUCT = gql`
 export const DELETE_PROCESS_PLAN = gql`
   mutation DeleteProcessPlan($id: Int!) {
     deleteProcessPlan(id: $id) {
+      id
+    }
+  }
+`;
+
+export const DELETE_BEOL_GROUP = gql`
+  mutation DeleteBeolGroup($id: Int!) {
+    deleteBeolGroup(id: $id) {
       id
     }
   }

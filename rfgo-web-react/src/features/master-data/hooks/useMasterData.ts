@@ -2,11 +2,13 @@ import { useQuery, useMutation, useLazyQuery } from '@apollo/client/react';
 import { 
   GET_PROCESS_PLANS, 
   CREATE_PROCESS_PLAN, 
+  CREATE_BEOL_GROUP,
   CREATE_BEOL_OPTION, 
   CREATE_PRODUCT, 
   UPDATE_PRODUCT, 
   DELETE_PRODUCT,
   DELETE_PROCESS_PLAN,
+  DELETE_BEOL_GROUP,
   DELETE_BEOL_OPTION,
   GET_UNIQUE_PROCESS_GROUPS,
   GET_UNIQUE_BEOLS
@@ -19,11 +21,13 @@ export const useMasterData = () => {
   const { selectedNode, setSelectedNode, isFormOpen, setIsFormOpen } = useMasterDataStore();
 
   const [createProcessPlanMutation] = useMutation(CREATE_PROCESS_PLAN);
+  const [createBeolGroupMutation] = useMutation(CREATE_BEOL_GROUP);
   const [createBeolOptionMutation] = useMutation(CREATE_BEOL_OPTION);
   const [createProductMutation] = useMutation(CREATE_PRODUCT);
   const [updateProductMutation] = useMutation(UPDATE_PRODUCT);
   const [deleteProductMutation] = useMutation(DELETE_PRODUCT);
   const [deleteProcessPlanMutation] = useMutation(DELETE_PROCESS_PLAN);
+  const [deleteBeolGroupMutation] = useMutation(DELETE_BEOL_GROUP);
   const [deleteBeolOptionMutation] = useMutation(DELETE_BEOL_OPTION);
 
   const [fetchProcessGroups, { data: processGroupsData, loading: loadingProcessGroups }] = useLazyQuery<{ uniqueProcessGroups: string[] }>(GET_UNIQUE_PROCESS_GROUPS);
@@ -31,6 +35,11 @@ export const useMasterData = () => {
 
   const createProcessPlan = async (designRule: string) => {
     await createProcessPlanMutation({ variables: { input: { designRule } } });
+    await refetch();
+  };
+
+  const createBeolGroup = async (processPlanId: number, groupName: string) => {
+    await createBeolGroupMutation({ variables: { input: { processPlanId, groupName } } });
     await refetch();
   };
 
@@ -68,6 +77,11 @@ export const useMasterData = () => {
     await refetch();
   };
 
+  const deleteBeolGroup = async (id: number) => {
+    await deleteBeolGroupMutation({ variables: { id } });
+    await refetch();
+  };
+
   const deleteBeolOption = async (id: number) => {
     await deleteBeolOptionMutation({ variables: { id } });
     await refetch();
@@ -82,11 +96,13 @@ export const useMasterData = () => {
     isFormOpen,
     setIsFormOpen,
     createProcessPlan,
+    createBeolGroup,
     createBeolOption,
     createProduct,
     updateProduct,
     deleteProduct,
     deleteProcessPlan,
+    deleteBeolGroup,
     deleteBeolOption,
     refetch,
     // Lookups

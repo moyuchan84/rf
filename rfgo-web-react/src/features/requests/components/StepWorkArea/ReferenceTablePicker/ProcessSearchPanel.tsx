@@ -7,10 +7,10 @@ export const ProcessSearchPanel: React.FC = () => {
     hierarchy,
     loadingHierarchy,
     loadingKeys,
-    selectedPlan,
-    selectedOption,
+    availableGroups,
+    availableProducts,
     processPlanId,
-    beolOptionId,
+    beolGroupId,
     productId,
     setProcessContext
   } = useProcessHierarchySearch();
@@ -32,7 +32,7 @@ export const ProcessSearchPanel: React.FC = () => {
         </div>
         <div>
           <h4 className="text-[10px] font-black text-slate-800 dark:text-slate-200 uppercase tracking-widest">Process Hierarchy Filtering</h4>
-          <p className="text-[8px] font-bold text-slate-400 uppercase">Select ProcessPlan -&gt; Option -&gt; Product</p>
+          <p className="text-[8px] font-bold text-slate-400 uppercase">Select ProcessPlan -&gt; Group -&gt; Product</p>
         </div>
       </div>
 
@@ -52,18 +52,18 @@ export const ProcessSearchPanel: React.FC = () => {
           </select>
         </div>
 
-        {/* BEOL Option Select */}
+        {/* BEOL Group Select */}
         <div className="space-y-1">
-          <label className="text-[8px] font-black text-slate-500 uppercase tracking-widest ml-1">BEOL Option</label>
+          <label className="text-[8px] font-black text-slate-500 uppercase tracking-widest ml-1">BEOL Group</label>
           <select
             disabled={!processPlanId}
-            value={beolOptionId || ''}
+            value={beolGroupId || ''}
             onChange={(e) => setProcessContext(processPlanId, Number(e.target.value), null)}
             className="w-full bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-md px-3 py-1.5 text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-indigo-500 disabled:bg-slate-50 dark:disabled:bg-slate-900 transition-all shadow-sm"
           >
-            <option value="">Select Option...</option>
-            {selectedPlan?.beolOptions?.map((o) => (
-              <option key={o.id} value={o.id}>{o.optionName}</option>
+            <option value="">Select Group...</option>
+            {availableGroups?.map((g) => (
+              <option key={g.id} value={g.id}>{g.groupName}</option>
             ))}
           </select>
         </div>
@@ -72,13 +72,13 @@ export const ProcessSearchPanel: React.FC = () => {
         <div className="space-y-1">
           <label className="text-[8px] font-black text-slate-500 uppercase tracking-widest ml-1">Product</label>
           <select
-            disabled={!beolOptionId}
+            disabled={!beolGroupId}
             value={productId || ''}
-            onChange={(e) => setProcessContext(processPlanId, beolOptionId, Number(e.target.value))}
+            onChange={(e) => setProcessContext(processPlanId, beolGroupId, Number(e.target.value))}
             className="w-full bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-md px-3 py-1.5 text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-indigo-500 disabled:bg-slate-50 dark:disabled:bg-slate-900 transition-all shadow-sm"
           >
             <option value="">Select Product...</option>
-            {selectedOption?.products?.map((p) => (
+            {availableProducts?.map((p) => (
               <option key={p.id} value={p.id}>{p.productName} ({p.partId})</option>
             ))}
           </select>

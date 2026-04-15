@@ -40,11 +40,11 @@ export const StepWorkArea: React.FC<StepWorkAreaProps> = ({ step, onUpdate }) =>
 
   // Permission Mapping
   const stepPermissions: Record<string, RoleName[]> = {
-    'ReferenceTable': ['ADMIN', 'RFG'],
-    'KeyTableSetup': ['ADMIN', 'INNO'],
-    'GDSPath': ['ADMIN', 'INNO', 'RFG'],
-    'StreamInfo': ['ADMIN', 'INNO', 'RFG'],
-    'RequestSubmission': ['ADMIN', 'INNO'],
+    'ReferenceTable': ['ADMIN', 'RFG', 'USER'],
+    'KeyTableSetup': ['ADMIN', 'INNO', 'USER'],
+    'GDSPath': ['ADMIN', 'INNO', 'RFG', 'USER'],
+    'StreamInfo': ['ADMIN', 'INNO', 'RFG', 'USER'],
+    'RequestSubmission': ['ADMIN', 'INNO', 'USER'],
   };
 
   const allowedRoles = useMemo(() => stepPermissions[step.stepName] || [], [step.stepName]);

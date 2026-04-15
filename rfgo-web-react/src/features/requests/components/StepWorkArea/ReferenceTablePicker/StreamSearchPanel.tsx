@@ -9,11 +9,11 @@ export const StreamSearchPanel: React.FC = () => {
     loadingStreams,
     loadingKeys,
     processPlanId,
-    beolOptionId,
+    beolGroupId,
     selectedStreamFile,
     setSelectedStreamFile,
     setProcessContext,
-    selectedPlan,    
+    availableGroups,    
     streamFiles
   } = useStreamSearch();
 
@@ -34,7 +34,7 @@ export const StreamSearchPanel: React.FC = () => {
         </div>
         <div>
           <h4 className="text-[10px] font-black text-slate-800 dark:text-slate-200 uppercase tracking-widest">Search by Stream File</h4>
-          <p className="text-[8px] font-bold text-slate-400 uppercase">Select Plan -&gt; Option -&gt; Stream File</p>
+          <p className="text-[8px] font-bold text-slate-400 uppercase">Select Plan -&gt; Group -&gt; Stream File</p>
         </div>
       </div>
 
@@ -54,18 +54,18 @@ export const StreamSearchPanel: React.FC = () => {
           </select>
         </div>
 
-        {/* BEOL Option Select */}
+        {/* BEOL Group Select */}
         <div className="space-y-1">
-          <label className="text-[8px] font-black text-slate-500 uppercase tracking-widest ml-1">BEOL Option</label>
+          <label className="text-[8px] font-black text-slate-500 uppercase tracking-widest ml-1">BEOL Group</label>
           <select
             disabled={!processPlanId}
-            value={beolOptionId || ''}
+            value={beolGroupId || ''}
             onChange={(e) => setProcessContext(processPlanId, Number(e.target.value), null)}
             className="w-full bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-md px-3 py-1.5 text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-indigo-500 disabled:bg-slate-50 dark:disabled:bg-slate-900 transition-all shadow-sm"
           >
-            <option value="">Select Option...</option>
-            {selectedPlan?.beolOptions?.map((o) => (
-              <option key={o.id} value={o.id}>{o.optionName}</option>
+            <option value="">Select Group...</option>
+            {availableGroups?.map((g) => (
+              <option key={g.id} value={g.id}>{g.groupName}</option>
             ))}
           </select>
         </div>
@@ -75,7 +75,7 @@ export const StreamSearchPanel: React.FC = () => {
           <label className="text-[8px] font-black text-slate-500 uppercase tracking-widest ml-1">Stream File</label>
           <div className="relative">
             <select
-              disabled={!beolOptionId || loadingStreams}
+              disabled={!beolGroupId || loadingStreams}
               value={selectedStreamFile}
               onChange={(e) => setSelectedStreamFile(e.target.value)}
               className="w-full bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-md px-3 py-1.5 text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-indigo-500 disabled:bg-slate-50 dark:disabled:bg-slate-900 transition-all shadow-sm"

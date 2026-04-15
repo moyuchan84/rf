@@ -176,13 +176,13 @@ const MasterDataForm: React.FC = () => {
   });
   const mode = selectedNode?.id === -1 ? 'create' : 'edit';
 
-  // 1. Filter Process Groups: Exclude ones that already exist in processPlans
+  // Filter Process Groups
   const availableProcessGroups = React.useMemo(() => {
     const existingRules = new Set(processPlans.map(p => p.designRule));
     return processGroups.filter(grp => !existingRules.has(grp));
   }, [processGroups, processPlans]);
 
-  // 2. Filter BEOL Options: Exclude ones that already exist under the selected ProcessPlan
+  // Filter BEOL Options under the selected ProcessPlan
   const availableBeols = React.useMemo(() => {
     if (selectedNode?.type !== 'option' || !selectedNode.data?.parentId) return beols;
     const parentPlan = processPlans.find(p => p.id === Number(selectedNode.data.parentId));
@@ -197,7 +197,7 @@ const MasterDataForm: React.FC = () => {
     }
   }, [selectedNode?.type, selectedNode?.id, fetchProcessGroups]);
 
-  // Load beols when design rule is available (for option creation)
+  // Load beols when design rule is available
   useEffect(() => {
     if (selectedNode?.type === 'option' && selectedNode.id === -1 && selectedNode.data?.designRule) {
       fetchBeols({ variables: { processGrp: selectedNode.data.designRule } });
@@ -208,7 +208,6 @@ const MasterDataForm: React.FC = () => {
 
   const handleSave = async () => {
     try {
-      // Convert numeric strings to numbers for float fields
       const processedMeta: Partial<ProductMeta> = {
         processId: formData.metaInfo.processId,
         customer: formData.metaInfo.customer,

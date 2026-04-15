@@ -25,6 +25,7 @@ const HierarchyExplorer: React.FC = () => {
     <div className="space-y-2">
       {processPlans.map((pp) => (
         <div key={pp.id} className="space-y-1">
+          {/* Plan Level */}
           <div
             className={cn(
               'group flex items-center gap-2 p-2.5 rounded-md cursor-pointer transition-all border border-transparent shadow-sm',
@@ -66,8 +67,9 @@ const HierarchyExplorer: React.FC = () => {
 
           {expandedNodes[`plan-${pp.id}`] && (
             <div className="ml-5 pl-4 border-l border-slate-200 dark:border-slate-800 space-y-1.5 py-1.5 transition-colors">
-              {pp.beolOptions.map((bo) => (
+              {(pp.beolOptions || []).map((bo) => (
                 <div key={bo.id} className="space-y-1">
+                  {/* Option Level */}
                   <div
                     className={cn(
                       'group flex items-center gap-2 p-2.5 rounded-md cursor-pointer transition-all border border-transparent shadow-sm',
@@ -109,7 +111,7 @@ const HierarchyExplorer: React.FC = () => {
 
                   {expandedNodes[`option-${bo.id}`] && (
                     <div className="ml-4 pl-4 border-l border-slate-200 dark:border-blue-900/30 space-y-1 py-1 transition-colors">
-                      {bo.products.map((prod) => (
+                      {(bo.products || []).map((prod) => (
                         <div
                           key={prod.id}
                           className={cn(

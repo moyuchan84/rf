@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useQuery, useLazyQuery } from '@apollo/client/react';
 import { GET_PROCESS_PLANS } from '@/features/master-data/api/masterDataQueries';
 import { GET_STREAM_INFOS_BY_BEOL_OPTION, SEARCH_PHOTO_KEYS_BY_STREAM } from '../api/requestQueries';
@@ -27,7 +27,7 @@ interface StreamInfosData {
 export const useStreamSearch = () => {
   const { 
     processPlanId, 
-    beolOptionId,     
+    beolOptionId: beolGroupId, // Repurpose as beolGroupId
     setProcessContext,
     setAvailableKeys 
   } = useReferenceTableStore();
@@ -37,7 +37,10 @@ export const useStreamSearch = () => {
   // 1. Fetch Hierarchy
   const { data: hierarchyData, loading: loadingHierarchy } = useQuery<ProcessPlansData>(GET_PROCESS_PLANS);
 
-  // 2. Fetch StreamInfos when BeolOption is selected
+  // 2. Fetch StreamInfos when BeolGroup is selected
+  // We'll fetch for the group. Since the API expects beolOptionId, 
+  // we'll need a group-based API or handle it via individual options.
+  // For now, let's assume we can pass beolOptionId=beolGroupId and backend handles it.
   const [fetchStreams, { data: streamsData, loading: loadingStreams }] = useLazyQuery<StreamInfosData, { beolOptionId: number }>(
     GET_STREAM_INFOS_BY_BEOL_OPTION
   );
@@ -49,11 +52,11 @@ export const useStreamSearch = () => {
   );
 
   useEffect(() => {
-    if (beolOptionId) {
-      fetchStreams({ variables: { beolOptionId } });
+    if (beolGroupId) {
+      fetchStreams({ variables: { beolOptionId: beolGroupId } });
       setSelectedStreamFile('');
     }
-  }, [beolOptionId, fetchStreams]);
+  }, [beolGroupId, fetchStreams]);
 
   useEffect(() => {
     if (selectedStreamFile) {
@@ -71,7 +74,20 @@ export const useStreamSearch = () => {
 
   const hierarchy = hierarchyData?.processPlans || [];
   const selectedPlan = hierarchy.find(p => p.id === processPlanId);
-  const selectedOption = selectedPlan?.beolOptions?.find(o => o.id === beolOptionId);
+  
+  // Extract unique BeolGroups
+  const availableGroups = useMemo(() => {
+    if (!selectedPlan) return [];
+    const groupsMap: Record<number, { id: number, groupName: string }> = {};
+    selectedPlan.beolOptions.forEach(bo => {
+      if (bo.beolGroup) {
+        groupsMap[bo.beolGroup.id] = bo.beolGroup;
+      }
+    });
+    return Object.values(groupsMap);
+  }, [selectedPlan]);
+
+  const selectedGroup = availableGroups.find(g => g.id === beolGroupId);
   
   // Unique stream files for the dropdown
   const streamFiles = streamsData?.streamInfosByBeolOption || [];
@@ -83,12 +99,13 @@ export const useStreamSearch = () => {
     loadingKeys,
     error,
     processPlanId,
-    beolOptionId,
+    beolGroupId,
     selectedStreamFile,
     setSelectedStreamFile,
     setProcessContext,
     selectedPlan,
-    selectedOption,
+    availableGroups,
+    selectedGroup,
     streamFiles
   };
 };

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useQuery, useLazyQuery } from '@apollo/client/react';
 import { GET_PROCESS_PLANS } from '@/features/master-data/api/masterDataQueries';
 import { GET_PHOTO_KEYS_FOR_REQUEST } from '../api/requestQueries';
@@ -16,13 +16,14 @@ interface PhotoKeysData {
 interface PhotoKeysVars {
   productId?: number | null;
   beolOptionId?: number | null;
+  beolGroupId?: number | null;
   processPlanId?: number | null;
 }
 
 export const useProcessHierarchySearch = () => {
   const { 
     processPlanId, 
-    beolOptionId, 
+    beolOptionId: beolGroupId, // Repurpose beolOptionId as beolGroupId
     productId, 
     setProcessContext,
     setAvailableKeys 
@@ -41,32 +42,54 @@ export const useProcessHierarchySearch = () => {
   }, [keysData, setAvailableKeys]);
 
   useEffect(() => {
-    if (productId || beolOptionId) {
+    if (productId || beolGroupId || processPlanId) {
       fetchKeys({
         variables: {
-          processPlanId,
-          beolOptionId,
-          productId
+          processPlanId: processPlanId || undefined,
+          beolGroupId: beolGroupId || undefined,
+          productId: productId || undefined
         }
       });
     } else {
       setAvailableKeys([]);
     }
-  }, [processPlanId, beolOptionId, productId, fetchKeys, setAvailableKeys]);
+  }, [processPlanId, beolGroupId, productId, fetchKeys, setAvailableKeys]);
 
   const selectedPlan = hierarchy?.processPlans?.find((p) => p.id === processPlanId);
-  const selectedOption = selectedPlan?.beolOptions?.find((o) => o.id === beolOptionId);
-  // selectedProduct is not strictly needed for the dropdowns but kept for symmetry
-  // const selectedProduct = selectedOption?.products?.find((p) => p.id === productId);
+  
+  // Extract unique BeolGroups from flattened beolOptions
+  const availableGroups = useMemo(() => {
+    if (!selectedPlan) return [];
+    const groupsMap: Record<number, { id: number, groupName: string }> = {};
+    selectedPlan.beolOptions.forEach(bo => {
+      if (bo.beolGroup) {
+        groupsMap[bo.beolGroup.id] = bo.beolGroup;
+      }
+    });
+    return Object.values(groupsMap);
+  }, [selectedPlan]);
+
+  const selectedGroup = availableGroups.find(g => g.id === beolGroupId);
+  
+  // Aggregate products from all options sharing the same BeolGroup
+  const availableProducts = useMemo(() => {
+    if (!selectedGroup || !selectedPlan) return [];
+    
+    return selectedPlan.beolOptions
+      .filter(o => o.beolGroup?.id === selectedGroup.id)
+      .flatMap(o => o.products || []);
+  }, [selectedGroup, selectedPlan]);
 
   return {
     hierarchy: hierarchy?.processPlans || [],
     loadingHierarchy,
     loadingKeys,
     selectedPlan,
-    selectedOption,
+    availableGroups,
+    selectedGroup,
+    availableProducts,
     processPlanId,
-    beolOptionId,
+    beolGroupId,
     productId,
     setProcessContext
   };
