@@ -12,6 +12,10 @@ export const GET_PROCESS_PLANS = gql`
           id
           groupName
         }
+        processPlan {
+          id
+          designRule
+        }
         products {
           id
           partId

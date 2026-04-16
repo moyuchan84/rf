@@ -78,17 +78,27 @@ export interface PhotoKey {
   updateDate: string;
 }
 
+export interface BeolGroup {
+  id: number;
+  groupName: string;
+  processPlanId: number;
+  processPlan?: ProcessPlan;
+  beolOptions: BeolOption[];
+}
+
 export interface BeolOption {
   id: number;
   optionName: string;
   beolGroupId: number;
-  beolGroup?: { id: number; groupName: string };
+  beolGroup?: BeolGroup;
+  processPlan?: ProcessPlan;
   products: Product[];
 }
 
 export interface ProcessPlan {
   id: number;
   designRule: string;
+  beolGroups?: BeolGroup[];
   beolOptions: BeolOption[];
 }
 
