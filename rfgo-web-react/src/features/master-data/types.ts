@@ -63,6 +63,7 @@ export interface PhotoKey {
   id: number;
   productId: number;
   processPlanId?: number | null;
+  beolGroupId?: number | null;
   beolOptionId?: number | null;
   rfgCategory?: string | null;
   photoCategory?: string | null;
