@@ -5,7 +5,7 @@ import { CreateRequestItemInput, UpdateRequestItemInput } from './requests.dto';
 import { RequestAssignee, RequestStep, PhotoKey, SheetDiff, PaginatedTableNames } from './workflow.model';
 import { AssignUserInput, UpdateStepInput } from './workflow.dto';
 import { StreamInfo, RequestTableMap, GdsPathInfo } from './step-data.model';
-import { CreateStreamInfoInput, SaveRequestTablesInput, CreateGdsPathInfoInput } from './step-data.dto';
+import { CreateStreamInfoInput, SaveRequestTablesInput, CreateGdsPathInfoInput, UpdateStreamInfoInput } from './step-data.dto';
 import { UseGuards } from '@nestjs/common';
 import { GqlAuthGuard } from '../auth/interface/guards/gql-auth.guard';
 import { CurrentUser } from '../auth/interface/decorators/current-user.decorator';
@@ -112,14 +112,24 @@ export class RequestsResolver {
     return this.service.createStreamInfo(input);
   }
 
+  @Mutation(() => StreamInfo)
+  async updateStreamInfo(@Args('input') input: UpdateStreamInfoInput) {
+    return this.service.updateStreamInfo(input);
+  }
+
+  @Mutation(() => StreamInfo)
+  async deleteStreamInfo(@Args('id', { type: () => Int }) id: number) {
+    return this.service.deleteStreamInfo(id);
+  }
+
   @Query(() => [StreamInfo])
   async streamInfosByProduct(@Args('productId', { type: () => Int }) productId: number) {
     return this.service.findStreamInfosByProduct(productId);
   }
 
   @Query(() => [StreamInfo])
-  async streamInfosByBeolOption(@Args('beolOptionId', { type: () => Int }) beolOptionId: number) {
-    return this.service.findStreamInfosByBeolOption(beolOptionId);
+  async streamInfosByBeolOption(@Args('beolGroupId', { type: () => Int }) beolGroupId: number) {
+    return this.service.findStreamInfosByBeolOption(beolGroupId);
   }
 
   @Query(() => [StreamInfo])

@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { CreateRequestItemInput, UpdateRequestItemInput } from './requests.dto';
 import { AssignUserInput, UpdateStepInput } from './workflow.dto';
-import { CreateGdsPathInfoInput, CreateStreamInfoInput, SaveRequestTablesInput } from './step-data.dto';
+import { CreateGdsPathInfoInput, CreateStreamInfoInput, SaveRequestTablesInput, UpdateStreamInfoInput } from './step-data.dto';
 import { MailerProvider } from '../mail/domain/mailer.interface';
 import { DocSecuType, ContentType } from '../mail/interface/dto/mail.dto';
 import { MailTemplateService } from '../mail/application/template.service';
@@ -23,15 +23,26 @@ export class RequestsService {
 
   // Step Data Management
   async createStreamInfo(input: CreateStreamInfoInput) {
-    const { beolOptionId, ...rest } = input;
     return this.prisma.$transaction(async (tx) => {
+      // Clear previous info for this request if any (Overwrite pattern)
       await tx.streamInfo.deleteMany({ where: { requestId: input.requestId } });
       return tx.streamInfo.create({
-        data: {
-          ...rest,
-          beolGroupId: beolOptionId,
-        },
+        data: input,
       });
+    });
+  }
+
+  async updateStreamInfo(input: UpdateStreamInfoInput) {
+    const { id, ...data } = input;
+    return this.prisma.streamInfo.update({
+      where: { id },
+      data,
+    });
+  }
+
+  async deleteStreamInfo(id: number) {
+    return this.prisma.streamInfo.delete({
+      where: { id },
     });
   }
 
@@ -58,14 +69,10 @@ export class RequestsService {
   }
 
   async createGdsPathInfo(input: CreateGdsPathInfoInput) {
-    const { beolOptionId, ...rest } = input;
     return this.prisma.$transaction(async (tx) => {
       await tx.gdsPathInfo.deleteMany({ where: { requestId: input.requestId } });
       return tx.gdsPathInfo.create({
-        data: {
-          ...rest,
-          beolGroupId: beolOptionId,
-        },
+        data: input,
       });
     });
   }
@@ -85,7 +92,7 @@ export class RequestsService {
   }
 
   async saveRequestTables(input: SaveRequestTablesInput) {
-    const { requestId, photoKeyIds, type, productId, processPlanId, beolOptionId } = input;
+    const { requestId, photoKeyIds, type, productId, processPlanId, beolGroupId } = input;
     
     return this.prisma.$transaction(async (tx) => {
       // Delete existing mappings of this type for this request
@@ -102,7 +109,7 @@ export class RequestsService {
             type,
             productId,
             processPlanId,
-            beolGroupId: beolOptionId,
+            beolGroupId,
           })),
         });
       }

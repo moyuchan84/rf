@@ -307,8 +307,8 @@ export const GET_STREAM_INFOS_BY_PRODUCT = gql`
 `;
 
 export const GET_STREAM_INFOS_BY_BEOL_OPTION = gql`
-  query GetStreamInfosByBeolOption($beolOptionId: Int!) {
-    streamInfosByBeolOption(beolOptionId: $beolOptionId) {
+  query GetStreamInfosByBeolOption($beolGroupId: Int!) {
+    streamInfosByBeolOption(beolGroupId: $beolGroupId) {
       id
       requestId
       streamPath

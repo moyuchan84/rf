@@ -74,7 +74,7 @@ export const useReferenceTableSelection = (request: any, onSave: () => void) => 
             requestId: request.id,
             productId: request.productId,
             processPlanId: selectedTables[0]?.processPlanId || 0,
-            beolOptionId: selectedTables[0]?.beolOptionId || 0,
+            beolGroupId: selectedTables[0]?.beolGroupId || 0,
             photoKeyIds: selectedTables.map(t => t.id),
             type: 'REFERENCE'
           }

@@ -55,7 +55,7 @@ export const useStreamInfoSelection = (request: any, onSave: () => void) => {
             requestId: request.id,
             productId: request.productId,
             processPlanId: request.product?.beolOption?.processPlan?.id || 0,
-            beolOptionId: request.product?.beolOption?.id || 0,
+            beolGroupId: request.product?.beolOption?.beolGroup?.id || 0,
             streamPath,
             streamInputOutputFile
           }

@@ -11,11 +11,23 @@ export class CreateStreamInfoInput {
   @Field(() => Int)
   processPlanId: number;
 
-  @Field(() => Int)
-  beolOptionId: number;
+  @Field(() => Int, { nullable: true })
+  beolGroupId?: number;
 
   @Field()
   streamPath: string;
+
+  @Field({ nullable: true })
+  streamInputOutputFile?: string;
+}
+
+@InputType()
+export class UpdateStreamInfoInput {
+  @Field(() => Int)
+  id: number;
+
+  @Field({ nullable: true })
+  streamPath?: string;
 
   @Field({ nullable: true })
   streamInputOutputFile?: string;
@@ -32,8 +44,8 @@ export class SaveRequestTablesInput {
   @Field(() => Int)
   processPlanId: number;
 
-  @Field(() => Int)
-  beolOptionId: number;
+  @Field(() => Int, { nullable: true })
+  beolGroupId?: number;
 
   @Field(() => [Int])
   photoKeyIds: number[];
@@ -53,8 +65,8 @@ export class CreateGdsPathInfoInput {
   @Field(() => Int)
   processPlanId: number;
 
-  @Field(() => Int)
-  beolOptionId: number;
+  @Field(() => Int, { nullable: true })
+  beolGroupId?: number;
 
   @Field(() => [String])
   gdsPathList: string[];
