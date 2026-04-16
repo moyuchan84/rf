@@ -22,15 +22,15 @@ createApp({
             hierarchy.productName = '';
             // DB 선택 상태도 초기화
             dbSelection.selectedPP = null;
-            dbSelection.selectedBO = null;
+            dbSelection.selectedBG = null;
         };
 
-        // DB 선택 전용 상태
+        // DB 선택 전용 상태 (3단계: PP -> BG -> Prod)
         const dbHierarchy = ref([]);
         const selectionMode = ref('new'); // 'new' or 'db'
         const dbSelection = reactive({
-            selectedPP: null, // 선택된 ProcessPlan 객체
-            selectedBO: null  // 선택된 BeolOption 객체
+            selectedPP: null, // ProcessPlan
+            selectedBG: null  // BeolGroup
         });
 
         const loadDbHierarchy = async () => {
@@ -48,16 +48,16 @@ createApp({
 
         const selectPP = (pp) => {
             dbSelection.selectedPP = pp;
-            dbSelection.selectedBO = null;
+            dbSelection.selectedBG = null;
         };
 
-        const selectBO = (bo) => {
-            dbSelection.selectedBO = bo;
+        const selectBG = (bg) => {
+            dbSelection.selectedBG = bg;
         };
 
-        const selectFromDb = (prod, bo, pp) => {
+        const selectFromDb = (prod, bg, pp) => {
             hierarchy.processPlan = pp.design_rule;
-            hierarchy.beolOption = bo.option_name;
+            hierarchy.beolOption = prod.beol_option_name || ""; // Flattened data includes beol_option_name
             hierarchy.partId = prod.partid;
             hierarchy.productName = prod.product_name;
             selectionMode.value = 'new';
@@ -139,7 +139,7 @@ createApp({
             contextMenu, dbHierarchy, selectionMode, dbSelection,
             openFolderDialog, scanFiles, parseAndPreview, showContextMenu,
             closeContextMenu, selectAll, deselectAll, selectFromDb, loadDbHierarchy, 
-            clearHierarchy, selectPP, selectBO
+            clearHierarchy, selectPP, selectBG
         };
     }
 }).mount('#app');

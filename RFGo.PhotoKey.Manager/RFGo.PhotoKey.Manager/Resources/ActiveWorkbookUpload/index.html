@@ -64,19 +64,21 @@
 
                 <div v-if="selectionMode === 'db'" class="mb-4">
                     <div class="flex items-center gap-2 mb-2 overflow-x-auto pb-1 no-scrollbar text-[10px] font-bold">
-                        <button @click="dbSelection.selectedPP = null" :class="!dbSelection.selectedPP ? 'text-blue-600' : 'text-slate-400'">1. Plan</button>
+                        <button @click="dbSelection.selectedPP = null; dbSelection.selectedBG = null" :class="!dbSelection.selectedPP ? 'text-blue-600' : 'text-slate-400'">1. Plan</button>
                         <span class="text-slate-300">/</span>
-                        <button @click="dbSelection.selectedBO = null" :class="dbSelection.selectedPP && !dbSelection.selectedBO ? 'text-blue-600' : 'text-slate-400'">2. Option</button>
+                        <button @click="dbSelection.selectedBG = null" :class="dbSelection.selectedPP && !dbSelection.selectedBG ? 'text-blue-600' : 'text-slate-400'">2. Group</button>
+                        <span class="text-slate-300">/</span>
+                        <button v-if="dbSelection.selectedBG" class="text-slate-400">3. Product</button>
                     </div>
                     <div class="max-h-40 overflow-y-auto border border-slate-100 rounded-xl bg-slate-50/50 p-2 custom-scrollbar">
                         <div v-if="!dbSelection.selectedPP" class="grid grid-cols-2 gap-2">
                             <button v-for="pp in dbHierarchy" :key="pp.id" @click="selectPP(pp)" class="text-left px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-[10px] font-bold">{{pp.design_rule}}</button>
                         </div>
-                        <div v-else-if="!dbSelection.selectedBO" class="grid grid-cols-2 gap-2">
-                            <button v-for="bo in dbSelection.selectedPP.beol_options" :key="bo.id" @click="selectBO(bo)" class="text-left px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-[10px] font-bold">{{bo.option_name}}</button>
+                        <div v-else-if="!dbSelection.selectedBG" class="grid grid-cols-2 gap-2">
+                            <button v-for="bg in dbSelection.selectedPP.beol_groups" :key="bg.id" @click="selectBG(bg)" class="text-left px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-[10px] font-bold">{{bg.group_name}}</button>
                         </div>
                         <div v-else class="grid grid-cols-2 gap-2">
-                            <button v-for="prod in dbSelection.selectedBO.products" :key="prod.id" @click="selectFromDb(prod, dbSelection.selectedBO, dbSelection.selectedPP)" class="text-left px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-[10px] font-bold">{{prod.partid}}</button>
+                            <button v-for="prod in dbSelection.selectedBG.products" :key="prod.id" @click="selectFromDb(prod, dbSelection.selectedBG, dbSelection.selectedPP)" class="text-left px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-[10px] font-bold">{{prod.partid}}</button>
                         </div>
                     </div>
                 </div>

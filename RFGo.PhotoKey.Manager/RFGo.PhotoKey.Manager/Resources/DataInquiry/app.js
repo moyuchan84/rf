@@ -125,11 +125,18 @@ const app = createApp({
             }
         };
 
+        const getBridge = () => {
+            return window.chrome?.webview?.hostObjects?.bridge;
+        };
+
         const pickFolder = async () => {
             try {
-                const bridge = window.chrome?.webview?.hostObjects?.bridge?.inquiry;
-                if (!bridge) return;
-                const path = await bridge.SelectFolder();
+                const bridge = getBridge();
+                if (!bridge?.inquiry) {
+                    console.warn("Bridge module 'inquiry' not found.");
+                    return;
+                }
+                const path = await bridge.inquiry.SelectFolder();
                 if (path) targetFolderPath.value = path;
             } catch (err) { console.error('Folder selection failed:', err); }
         };
@@ -251,10 +258,18 @@ const app = createApp({
                         TargetPath: `${targetDir}\\${pp}_${bo}_${partId}_Rev${rev}_${dateStr}.xlsx`
                     };
                 });
-                const bridge = window.chrome?.webview?.hostObjects?.bridge?.inquiry;
-                if (bridge) await bridge.RestoreToExcel(JSON.stringify(itemsToRestore), targetFolderPath.value, openAfterRestore.value);
-            } catch (error) { alert('Restore failed: ' + error.message); }
-            finally { status.value = 'READY'; }
+                const bridge = getBridge();
+                if (bridge?.inquiry) {
+                    await bridge.inquiry.RestoreToExcel(JSON.stringify(itemsToRestore), targetFolderPath.value, openAfterRestore.value);
+                } else {
+                    throw new Error("Bridge 'inquiry' not available.");
+                }
+            } catch (error) { 
+                console.error('Restore failed:', error);
+                alert('Restore failed: ' + error.message); 
+            } finally { 
+                status.value = 'READY'; 
+            }
         };
 
         onMounted(loadHierarchy);

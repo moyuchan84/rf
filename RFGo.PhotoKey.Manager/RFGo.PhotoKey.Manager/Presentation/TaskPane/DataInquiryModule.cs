@@ -27,7 +27,7 @@ namespace RFGo.PhotoKey.Manager.Presentation.TaskPane
             RunOnUI(() =>
             {
                 var form = new WebViewPopupForm(jsonWorkbookData, jsonHierarchy, true, "PhotoKey Detail View");
-                form.Show();
+                form.Show(GetOwner());
             });
         }
 
@@ -36,7 +36,7 @@ namespace RFGo.PhotoKey.Manager.Presentation.TaskPane
             RunOnUI(() =>
             {
                 var form = new WebViewPopupForm(jsonPhotoKey, jsonHierarchy, false, "Edit PhotoKey Attributes", "DataInquiry/edit.html");
-                form.Show();
+                form.Show(GetOwner());
             });
         }
 
@@ -62,18 +62,22 @@ namespace RFGo.PhotoKey.Manager.Presentation.TaskPane
             {
                 try
                 {
+                    if (string.IsNullOrEmpty(jsonItems)) return "Error: No data";
                     var items = JsonConvert.DeserializeObject<List<RestoreItem>>(jsonItems);
-                    if (items == null) return "Error: Invalid data";
+                    if (items == null || items.Count == 0) return "Error: Invalid data format";
 
                     foreach (var item in items)
                     {
+                        if (item.WorkbookData == null || string.IsNullOrEmpty(item.TargetPath)) continue;
+
                         string directory = Path.GetDirectoryName(item.TargetPath);
-                        if (!Directory.Exists(directory)) Directory.CreateDirectory(directory);
+                        if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory)) 
+                            Directory.CreateDirectory(directory);
 
                         _workbookService.RestoreToExcel(item.WorkbookData, item.TargetPath, openAfterRestore);
                     }
 
-                    MessageBox.Show(GetOwner(), "Successfully restored all files to:\n" + baseFolder,
+                    MessageBox.Show(GetOwner(), "Successfully restored files to:\n" + baseFolder,
                                     "Restore Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                     return "Success";

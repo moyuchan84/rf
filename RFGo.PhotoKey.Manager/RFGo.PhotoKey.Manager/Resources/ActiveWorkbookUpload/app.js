@@ -13,11 +13,12 @@ createApp({
             productName: ''
         });
 
+        // DB 선택 전용 상태 (3단계: PP -> BG -> Prod)
         const dbHierarchy = ref([]);
         const selectionMode = ref('new');
         const dbSelection = reactive({
-            selectedPP: null,
-            selectedBO: null
+            selectedPP: null, // ProcessPlan
+            selectedBG: null  // BeolGroup
         });
 
         const checkPermission = async () => {
@@ -42,6 +43,7 @@ createApp({
         const loadDbHierarchy = async () => {
             if (!isAuthorized.value) return;
             try {
+                // Use the same API as WorkSheetsLoader
                 const data = await window.apiClient.getHierarchy();
                 dbHierarchy.value = data;
             } catch (err) {
@@ -51,16 +53,16 @@ createApp({
 
         const selectPP = (pp) => {
             dbSelection.selectedPP = pp;
-            dbSelection.selectedBO = null;
+            dbSelection.selectedBG = null;
         };
 
-        const selectBO = (bo) => {
-            dbSelection.selectedBO = bo;
+        const selectBG = (bg) => {
+            dbSelection.selectedBG = bg;
         };
 
-        const selectFromDb = (prod, bo, pp) => {
+        const selectFromDb = (prod, bg, pp) => {
             hierarchy.processPlan = pp.design_rule;
-            hierarchy.beolOption = bo.option_name;
+            hierarchy.beolOption = prod.beol_option_name || ""; 
             hierarchy.partId = prod.partid;
             hierarchy.productName = prod.product_name;
             selectionMode.value = 'new';
@@ -103,7 +105,7 @@ createApp({
 
         return { 
             status, hierarchy, selectionMode, dbHierarchy, dbSelection, isAuthorized, userInfo,
-            loadDbHierarchy, selectPP, selectBO, selectFromDb, parseAndPreview
+            loadDbHierarchy, selectPP, selectBG, selectFromDb, parseAndPreview
         };
     }
 }).mount('#app');
