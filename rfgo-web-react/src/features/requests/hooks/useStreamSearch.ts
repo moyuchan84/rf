@@ -38,10 +38,7 @@ export const useStreamSearch = () => {
   const { data: hierarchyData, loading: loadingHierarchy } = useQuery<ProcessPlansData>(GET_PROCESS_PLANS);
 
   // 2. Fetch StreamInfos when BeolGroup is selected
-  // We'll fetch for the group. Since the API expects beolOptionId, 
-  // we'll need a group-based API or handle it via individual options.
-  // For now, let's assume we can pass beolOptionId=beolGroupId and backend handles it.
-  const [fetchStreams, { data: streamsData, loading: loadingStreams }] = useLazyQuery<StreamInfosData, { beolOptionId: number }>(
+  const [fetchStreams, { data: streamsData, loading: loadingStreams }] = useLazyQuery<StreamInfosData, { beolGroupId: number }>(
     GET_STREAM_INFOS_BY_BEOL_OPTION
   );
 
@@ -53,7 +50,7 @@ export const useStreamSearch = () => {
 
   useEffect(() => {
     if (beolGroupId) {
-      fetchStreams({ variables: { beolOptionId: beolGroupId } });
+      fetchStreams({ variables: { beolGroupId } });
       setSelectedStreamFile('');
     }
   }, [beolGroupId, fetchStreams]);
