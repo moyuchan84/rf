@@ -481,27 +481,39 @@ export class RequestsService {
           { streamInputOutputFile: { contains: query, mode: 'insensitive' } },
         ],
       },
-      select: { productId: true },
+      select: { requestId: true },
     });
 
-    const productIds = [...new Set(streamInfos.map((si) => si.productId))];
+    const requestIds = [...new Set(streamInfos.map((si) => si.requestId).filter(Boolean))];
 
-    if (productIds.length === 0) {
+    if (requestIds.length === 0) {
       return [];
     }
 
-    // 2. Find photo keys for those products (limit to SETUP tables as usually these are for SETUP)
-    return this.prisma.photoKey.findMany({
+    // 2. Find photo keys from request_table_maps for those requests where type is 'SETUP'
+    const tableMaps = await this.prisma.requestTableMap.findMany({
       where: {
-        productId: { in: productIds },
+        requestId: { in: requestIds as number[] },
+        type: 'SETUP',
       },
       include: {
-        product: true,
-        processPlan: true,
-        beolGroup: true,
+        photoKey: {
+          include: {
+            product: true,
+            processPlan: true,
+            beolGroup: true,
+          },
+        },
       },
-      orderBy: { updateDate: 'desc' },
     });
+
+    // Extract photo keys and ensure uniqueness
+    const photoKeys = tableMaps.map((tm) => tm.photoKey);
+    const uniquePhotoKeys = Array.from(
+      new Map(photoKeys.map((pk) => [pk.id, pk])).values(),
+    );
+
+    return uniquePhotoKeys;
   }
 
   async searchPhotoKeys(query: string) {

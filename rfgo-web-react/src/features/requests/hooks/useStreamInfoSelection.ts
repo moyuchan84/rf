@@ -3,7 +3,9 @@ import { useMutation, useQuery } from '@apollo/client/react';
 import toast from 'react-hot-toast';
 import { 
   GET_STREAM_INFO_BY_REQUEST,
-  CREATE_STREAM_INFO
+  CREATE_STREAM_INFO,
+  GET_STREAM_INFOS_BY_BEOL_OPTION,
+  GET_STREAM_INFOS_BY_PRODUCT
 } from '../api/requestQueries';
 import { useStreamInfoStore } from '../store/useStreamInfoStore';
 
@@ -40,7 +42,18 @@ export const useStreamInfoSelection = (request: any, onSave: () => void) => {
   }, [savedData, setStreamPath, setStreamInputOutputFile]);
 
   // 3. Save mutation
-  const [saveStreamInfo, { loading: saving }] = useMutation(CREATE_STREAM_INFO);
+  const [saveStreamInfo, { loading: saving }] = useMutation(CREATE_STREAM_INFO, {
+    refetchQueries: [
+      {
+        query: GET_STREAM_INFOS_BY_BEOL_OPTION,
+        variables: { beolGroupId: request.product?.beolOption?.beolGroup?.id || 0 }
+      },
+      {
+        query: GET_STREAM_INFOS_BY_PRODUCT,
+        variables: { productId: request.productId || 0 }
+      }
+    ]
+  });
 
   const handleSave = useCallback(async () => {
     if (!streamPath.trim()) {
