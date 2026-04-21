@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rfgo-redis
+  labels:
+    app: rfgo-redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rfgo-redis
+  template:
+    metadata:
+      labels:
+        app: rfgo-redis
+    spec:
+      containers:
+      - name: redis
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        ports:
+        - containerPort: 6379
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }}

@@ -1,0 +1,20 @@
+{{- if and .Values.externalDatabase.enabled .Values.externalDatabase.createResources -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.externalDatabase.host }}
+spec:
+  ports:
+  - port: {{ .Values.externalDatabase.port | default 5432 }}
+    targetPort: {{ .Values.externalDatabase.port | default 5432 }}
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: {{ .Values.externalDatabase.host }}
+subsets:
+  - addresses:
+      - ip: {{ .Values.externalDatabase.ip }}
+    ports:
+      - port: {{ .Values.externalDatabase.port | default 5432 }}
+{{- end }}

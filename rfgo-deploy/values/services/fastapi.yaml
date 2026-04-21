@@ -1,0 +1,16 @@
+image:
+  repository: harbor.foundrymtc.samsungds.net/refgo/rfgo-vsto-fastapi
+  tag: stable
+
+service:
+  port: 8000
+
+ingress:
+  host: vsto.swsol.samsungds.net
+
+env:
+  PORT: "8000"
+  DB_HOST: "rfgo-db-prod"
+  DB_PORT: "5432"
+  DB_NAME: "photokey_db"
+  REDIS_URL: "redis://rfgo-redis:6379"

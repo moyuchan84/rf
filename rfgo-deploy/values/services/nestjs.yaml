@@ -1,0 +1,17 @@
+image:
+  repository: harbor.foundrymtc.samsungds.net/refgo/rfgo-web-nestjs
+  tag: stable
+
+service:
+  port: 3000
+
+ingress:
+  host: api.swsol.samsungds.net
+
+env:
+  PORT: "3000"
+  NODE_ENV: "production"
+  DATABASE_URL: "postgresql://$(DB_USER):$(DB_PASSWORD)@rfgo-db-prod:5432/photokey_db"
+  REDIS_URL: "redis://rfgo-redis:6379"
+  SSO_REDIRECT_URI: "https://api.swsol.samsungds.net/auth/sso/callback"
+  FRONTEND_URL: "https://web.swsol.samsungds.net"

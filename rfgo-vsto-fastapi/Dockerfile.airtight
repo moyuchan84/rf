@@ -1,0 +1,29 @@
+# [Conductor] Airtight Dockerfile for rfgo-vsto-fastapi
+FROM harbor.foundrymtc.samsungds.net/library/python:3.13
+
+ARG HTTP_PROXY
+ARG HTTPS_PROXY
+ENV http_proxy=$HTTP_PROXY
+ENV https_proxy=$HTTPS_PROXY
+
+# 사내 루트 CA 설치 및 SSL 무시
+ENV PIP_TRUSTED_HOST=pypi.org pypi.python.org files.pythonhosted.org nexus.internal.com
+ENV PYTHONHTTPSVERIFY=0
+
+WORKDIR /app
+
+# 사내 PIP Mirror 설정
+RUN pip config set global.index-url https://nexus.internal.com/repository/pypi-all/simple
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+# 런타임 프록시 제거
+ENV http_proxy=""
+ENV https_proxy=""
+
+EXPOSE 8000
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

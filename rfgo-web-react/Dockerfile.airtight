@@ -1,0 +1,30 @@
+# [Conductor] Airtight Dockerfile for rfgo-web-react (Multi-stage)
+
+# 1. Build Stage
+FROM harbor.foundrymtc.samsungds.net/library/node:24 AS builder
+
+ARG HTTP_PROXY
+ARG HTTPS_PROXY
+ENV http_proxy=$HTTP_PROXY
+ENV https_proxy=$HTTPS_PROXY
+ENV NODE_TLS_REJECT_UNAUTHORIZED=0
+
+WORKDIR /app
+
+RUN npm config set registry https://nexus.internal.com/repository/npm-all/
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+RUN npm run build
+
+# 2. Runtime Stage
+FROM harbor.foundrymtc.samsungds.net/library/nginx:1.24.0 AS runner
+
+# Nginx 설정 복사 (필요시 커스텀 nginx.conf 추가)
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]

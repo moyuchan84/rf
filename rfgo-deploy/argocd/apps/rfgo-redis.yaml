@@ -1,0 +1,27 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: rfgo-redis
+  namespace: argocd
+spec:
+  project: default
+  sources:
+    - repoURL: 'https://github.com/refgo/rfgo-deploy.git' # TODO: 실제 레포 주소로 수정
+      targetRevision: main
+      path: charts/rfgo-redis
+    - repoURL: 'https://github.com/refgo/rfgo-deploy.git' # TODO: 실제 레포 주소로 수정
+      targetRevision: main
+      ref: values-repo
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: refgo-prod
+  template:
+    helm:
+      valueFiles:
+        - '$values-repo/values/services/redis.yaml'
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

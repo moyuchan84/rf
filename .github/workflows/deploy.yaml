@@ -1,0 +1,67 @@
+name: RFGo GitOps CI/CD (Helm Multi-Source)
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'rfgo-web-nestjs/**'
+      - 'rfgo-vsto-fastapi/**'
+      - 'rfgo-embedding-worker/**'
+      - 'rfgo-rag-backend/**'
+      - 'rfgo-web-react/**'
+
+jobs:
+  build-and-push:
+    runs-on: arc-runner-set # 사내 ARC Runner Set 사용
+    strategy:
+      matrix:
+        include:
+          - service: nestjs
+            dir: rfgo-web-nestjs
+            image: rfgo-web-nestjs
+          - service: fastapi
+            dir: rfgo-vsto-fastapi
+            image: rfgo-vsto-fastapi
+          - service: embedding
+            dir: rfgo-embedding-worker
+            image: rfgo-embedding-worker
+          - service: rag
+            dir: rfgo-rag-backend
+            image: rfgo-rag-backend
+          - service: react
+            dir: rfgo-web-react
+            image: rfgo-web-react
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login to Private Harbor
+        uses: docker/login-action@v3
+        with:
+          registry: harbor.foundrymtc.samsungds.net
+          username: ${{ secrets.HARBOR_USERNAME }}
+          password: ${{ secrets.HARBOR_PASSWORD }}
+
+      - name: Build and Push Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./${{ matrix.dir }}
+          file: ./${{ matrix.dir }}/Dockerfile.airtight
+          push: true
+          tags: harbor.foundrymtc.samsungds.net/refgo/${{ matrix.image }}:${{ github.sha }}
+          build-args: |
+            HTTP_PROXY=http://proxy.internal.com:8080
+            HTTPS_PROXY=http://proxy.internal.com:8080
+
+      - name: Update Helm Values Tag
+        run: |
+          # D:\code\samsung\rfgo\rfgo-deploy\values\services 폴더의 tag 값을 SHA로 업데이트
+          sed -i 's/tag: .*/tag: "${{ github.sha }}"/' rfgo-deploy/values/services/${{ matrix.service }}.yaml
+
+      - name: Commit and Push Manifest Changes
+        run: |
+          git config --global user.email "arc-runner@refgo.internal.com"
+          git config --global user.name "ARC Runner (refgo)"
+          git add rfgo-deploy/values/services/${{ matrix.service }}.yaml
+          git commit -m "deploy: update ${{ matrix.service }} image tag to ${{ github.sha }} [skip ci]" || echo "No changes to commit"
+          git push origin main

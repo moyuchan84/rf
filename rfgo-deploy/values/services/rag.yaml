@@ -1,0 +1,14 @@
+image:
+  repository: harbor.foundrymtc.samsungds.net/refgo/rfgo-rag-backend
+  tag: stable
+
+service:
+  port: 8001
+
+ingress:
+  enabled: false # RAG 백엔드는 내부 서비스용일 경우 false
+
+env:
+  PORT: "8001"
+  DATABASE_URL: "postgresql://$(DB_USER):$(DB_PASSWORD)@rfgo-db-prod:5432/photokey_db"
+  LOG_LEVEL: "info"

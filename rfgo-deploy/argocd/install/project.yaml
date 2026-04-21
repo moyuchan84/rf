@@ -1,0 +1,19 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: rfgo-project
+  namespace: argocd
+spec:
+  description: Project for RFGo Semiconductor Photo-Key Management System
+  sourceRepos:
+  - '*' # 실제 운영 시에는 본인의 git 레포 주소로 제한 권장
+  destinations:
+  - namespace: rfgo-local
+    server: https://kubernetes.default.svc
+  - namespace: rfgo-dev
+    server: https://kubernetes.default.svc
+  - namespace: rfgo-prod
+    server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+  - group: '*'
+    kind: '*'

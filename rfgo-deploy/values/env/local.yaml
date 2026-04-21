@@ -1,0 +1,25 @@
+# Local Development Defaults
+global:
+  domain: localhost
+
+externalDatabase:
+  enabled: true
+  createResources: false # 로컬은 postgres 차트가 따로 있거나 docker-compose 사용
+  host: rfgo-db
+  secretName: rfgo-db-credentials
+
+service:
+  type: LoadBalancer
+
+replicaCount: 1
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+
+ingress:
+  enabled: false # 로컬은 보통 LoadBalancer나 NodePort 사용

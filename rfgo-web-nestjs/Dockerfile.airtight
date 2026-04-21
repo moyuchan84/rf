@@ -1,0 +1,50 @@
+# [Conductor] Airtight Dockerfile for rfgo-web-nestjs
+# Environment: 사내 폐쇄망 (Proxy + Private Harbor + Private Nexus)
+
+# 1. Build Stage
+FROM harbor.foundrymtc.samsungds.net/library/node:24 AS builder
+
+# 빌드 시 프록시 설정 (Build Args)
+ARG HTTP_PROXY
+ARG HTTPS_PROXY
+ENV http_proxy=$HTTP_PROXY
+ENV https_proxy=$HTTPS_PROXY
+
+# SSL 유효성 검사 무시 (폐쇄망 필수)
+ENV NODE_TLS_REJECT_UNAUTHORIZED=0
+
+WORKDIR /app
+
+# 사내 Nexus 레지스트리 설정 (기존 설정 유지)
+RUN npm config set registry https://nexus.internal.com/repository/npm-all/
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+# Prisma WASM 및 linux-musl 대응 설정 유지
+RUN npx prisma generate
+RUN npm run build
+
+# 2. Runtime Stage
+FROM harbor.foundrymtc.samsungds.net/library/node:24 AS runner
+
+# 런타임 프록시 제거 (내부망 통신용)
+ENV http_proxy=""
+ENV https_proxy=""
+ENV no_proxy="localhost,127.0.0.1,.internal.com"
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV NODE_TLS_REJECT_UNAUTHORIZED=0
+
+# 빌드 결과물 복사
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/prisma ./prisma
+
+EXPOSE 3000
+
+CMD ["node", "dist/main"]

@@ -1,0 +1,33 @@
+# Production / Internal Defaults
+global:
+  domain: swsol.samsungds.net
+
+externalDatabase:
+  enabled: true
+  createResources: true
+  host: rfgo-db-prod
+  ip: 10.172.122.53 # TODO: 사내 DB 인스턴스 IP
+  secretName: rfgo-db-credentials
+
+service:
+  type: ClusterIP
+
+replicaCount: 3
+
+resources:
+  limits:
+    cpu: "1"
+    memory: "1Gi"
+  requests:
+    cpu: "500m"
+    memory: "512Mi"
+
+ingress:
+  enabled: true
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  tls:
+    - hosts:
+        - "*.swsol.samsungds.net"
+      secretName: rfgo-wildcard-tls

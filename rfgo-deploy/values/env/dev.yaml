@@ -1,0 +1,32 @@
+# Development / QA Tenant Defaults
+global:
+  domain: dev.swsol.samsungds.net
+
+externalDatabase:
+  enabled: true
+  createResources: true
+  host: rfgo-db-dev
+  ip: 10.172.122.100 # TODO: 사내 개발용 DB 인스턴스 IP
+  secretName: rfgo-db-credentials
+
+service:
+  type: ClusterIP
+
+replicaCount: 1 # 개발 환경은 비용 절감을 위해 1개만 유지
+
+resources:
+  limits:
+    cpu: "500m"
+    memory: "512Mi"
+  requests:
+    cpu: "200m"
+    memory: "256Mi"
+
+ingress:
+  enabled: true
+  annotations:
+    kubernetes.io/ingress.class: nginx
+  tls:
+    - hosts:
+        - "*.swsol.samsungds.net"
+      secretName: rfgo-wildcard-tls

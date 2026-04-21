@@ -1,0 +1,17 @@
+image:
+  repository: harbor.foundrymtc.samsungds.net/refgo/rfgo-embedding-worker
+  tag: stable
+
+service:
+  port: 8080 # 가상의 포트 (worker라 외부 노출은 안되지만 템플릿 호환용)
+
+# Worker는 Ingress가 필요 없으므로 비활성화
+ingress:
+  enabled: false
+
+env:
+  DB_HOST: "rfgo-db-prod"
+  DB_PORT: "5432"
+  DB_NAME: "photokey_db"
+  REDIS_URL: "redis://rfgo-redis:6379"
+  LOG_LEVEL: "info"

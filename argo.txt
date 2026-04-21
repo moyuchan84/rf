@@ -1,0 +1,5 @@
+ 🔐 접속 정보:
+   - ArgoCD URL: https://localhost
+     (https://localhost)
+   - 사용자명: admin
+   - 비밀번호: PYxUSwXYYz-3KyqY
