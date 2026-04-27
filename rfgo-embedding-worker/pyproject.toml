@@ -3,7 +3,7 @@ name = "rfgo-embedding-worker"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.12"
 dependencies = [
     "faststream[redis]>=0.6.7",
     "openai>=2.30.0",

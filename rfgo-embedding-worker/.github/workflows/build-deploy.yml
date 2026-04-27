@@ -1,10 +1,10 @@
-name: Build and Deploy (NestJS)
+name: Build and Deploy (Embedding Worker)
 
 on:
   push:
     branches: [ main ]
     paths:
-      - 'rfgo-web-nestjs/**'
+      - 'rfgo-embedding-worker/**'
 
 jobs:
   build:
@@ -21,25 +21,29 @@ jobs:
     - name: Login to Harbor
       uses: docker/login-action@v3
       with:
-        registry: harbor.internal
+        registry: harbor.foundrymtc.samsungds.net
         username: ${{ secrets.HARBOR_USERNAME }}
         password: ${{ secrets.HARBOR_PASSWORD }}
 
     - name: Build and push
       uses: docker/build-push-action@v5
       with:
-        context: ./rfgo-web-nestjs
+        context: ./rfgo-embedding-worker
+        file: ./rfgo-embedding-worker/Dockerfile.airtight
         push: true
-        tags: harbor.foundrymtc.samsungds.net/refgo/rfgo-web-nestjs:${{ github.sha }}
+        tags: harbor.foundrymtc.samsungds.net/refgo/rfgo-embedding-worker:${{ github.sha }}
+        build-args: |
+          HTTP_PROXY=${{ secrets.HTTP_PROXY }}
+          HTTPS_PROXY=${{ secrets.HTTPS_PROXY }}
 
     - name: Update Image Tag
       run: |
-        sed -i 's/tag: .*/tag: "${{ github.sha }}"/' rfgo-deploy/values/services/nestjs.yaml
+        sed -i 's/tag: .*/tag: "${{ github.sha }}"/' rfgo-deploy/values/services/embedding.yaml
         
     - name: Commit and Push Manifest Change
       run: |
         git config --global user.name "GHA Runner"
         git config --global user.email "gha@internal"
-        git add rfgo-deploy/values/services/nestjs.yaml
-        git commit -m "chore(deploy): update nestjs image to ${{ github.sha }}"
+        git add rfgo-deploy/values/services/embedding.yaml
+        git commit -m "chore(deploy): update embedding-worker image to ${{ github.sha }}"
         git push origin main

@@ -30,20 +30,19 @@ jobs:
       with:
         context: ./rfgo-vsto-fastapi
         push: true
-        tags: harbor.internal/rfgo/rfgo-vsto-fastapi:${{ github.sha }}
+        tags: harbor.foundrymtc.samsungds.net/refgo/rfgo-vsto-fastapi:${{ github.sha }}
         build-args: |
           PIP_INDEX_URL=${{ secrets.INTERNAL_PYPI_MIRROR }}
           PIP_TRUSTED_HOST=${{ secrets.INTERNAL_PYPI_TRUSTED_HOST }}
 
-    - name: Update Kustomize Image
+    - name: Update Image Tag
       run: |
-        cd rfgo-deploy/k8s/overlays/dev
-        sed -i "/name: harbor.internal\/rfgo\/rfgo-vsto-fastapi/{n;s/newTag: .*/newTag: ${{ github.sha }}/}" kustomization.yaml
+        sed -i 's/tag: .*/tag: "${{ github.sha }}"/' rfgo-deploy/values/services/fastapi.yaml
         
     - name: Commit and Push Manifest Change
       run: |
         git config --global user.name "GHA Runner"
         git config --global user.email "gha@internal"
-        git add rfgo-deploy/k8s/overlays/dev/kustomization.yaml
+        git add rfgo-deploy/values/services/fastapi.yaml
         git commit -m "chore(deploy): update fastapi image to ${{ github.sha }}"
         git push origin main

@@ -33,20 +33,18 @@ jobs:
       with:
         context: ./rfgo-web-react
         push: true
-        tags: harbor.internal/rfgo/rfgo-web-react:${{ github.sha }}
+        tags: harbor.foundrymtc.samsungds.net/refgo/rfgo-web-react:${{ github.sha }}
         build-args: |
           NPM_REGISTRY=${{ secrets.INTERNAL_NPM_REGISTRY }}
 
-    - name: Update Kustomize Image
+    - name: Update Image Tag
       run: |
-        # Update the image tag in the deploy repo (assuming mono-repo for now)
-        cd rfgo-deploy/k8s/overlays/dev
-        sed -i "s|newTag: .*|newTag: ${{ github.sha }}|g" kustomization.yaml
+        sed -i 's/tag: .*/tag: "${{ github.sha }}"/' rfgo-deploy/values/services/react.yaml
         
     - name: Commit and Push Manifest Change
       run: |
         git config --global user.name "GHA Runner"
         git config --global user.email "gha@internal"
-        git add rfgo-deploy/k8s/overlays/dev/kustomization.yaml
+        git add rfgo-deploy/values/services/react.yaml
         git commit -m "chore(deploy): update react image to ${{ github.sha }}"
         git push origin main

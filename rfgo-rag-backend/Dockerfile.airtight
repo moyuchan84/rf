@@ -1,23 +1,27 @@
 # [Conductor] Airtight Dockerfile for rfgo-rag-backend
-FROM harbor.foundrymtc.samsungds.net/library/python:3.13
+FROM harbor.foundrymtc.samsungds.net/library/python:3.12
 
 ARG HTTP_PROXY
 ARG HTTPS_PROXY
 ENV http_proxy=$HTTP_PROXY
 ENV https_proxy=$HTTPS_PROXY
 
-ENV PIP_TRUSTED_HOST=pypi.org pypi.python.org files.pythonhosted.org nexus.internal.com
+# Internal Registry Settings
+ENV PIP_TRUSTED_HOST=pypi.org pypi.python.org files.pythonhosted.org nexus.internal.com harbor.foundrymtc.samsungds.net
 ENV PYTHONHTTPSVERIFY=0
 
 WORKDIR /app
 
+# Configure internal pip index
 RUN pip config set global.index-url https://nexus.internal.com/repository/pypi-all/simple
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy dependency files
+COPY pyproject.toml ./
+RUN pip install --no-cache-dir . || pip install --no-cache-dir fastapi langchain-openai langgraph openai pgvector psycopg2-binary pydantic-settings python-dotenv sqlalchemy uvicorn
 
 COPY . .
 
+# Clean up proxy env for runtime
 ENV http_proxy=""
 ENV https_proxy=""
 
