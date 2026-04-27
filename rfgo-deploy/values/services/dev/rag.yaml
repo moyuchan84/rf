@@ -2,7 +2,8 @@ image:
   tag: latest
 
 ingress:
-  enabled: false
+  enabled: true
+  host: rfgo-rag-backend-dev.swsol.samsungds.net
 
 env:
   PORT: "8001"

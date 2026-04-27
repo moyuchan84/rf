@@ -2,7 +2,7 @@ image:
   tag: latest
 
 ingress:
-  host: dev-vsto.swsol.samsungds.net
+  host: rfgo-vsto-fastapi-dev.swsol.samsungds.net
 
 env:
   PORT: "8000"

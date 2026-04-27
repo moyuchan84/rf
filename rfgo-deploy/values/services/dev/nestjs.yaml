@@ -2,12 +2,12 @@ image:
   tag: latest
 
 ingress:
-  host: dev-api.swsol.samsungds.net
+  host: rfgo-web-nestjs-dev.swsol.samsungds.net
 
 env:
   PORT: "3000"
   NODE_ENV: "development"
   DATABASE_URL: "postgresql://$(DB_USER):$(DB_PASSWORD)@rfgo-db-dev:5432/photokey_db"
   REDIS_URL: "redis://rfgo-redis:6379"
-  SSO_REDIRECT_URI: "https://dev-api.swsol.samsungds.net/auth/sso/callback"
-  FRONTEND_URL: "https://dev-web.swsol.samsungds.net"
+  SSO_REDIRECT_URI: "https://rfgo-web-nestjs-dev.swsol.samsungds.net/auth/sso/callback"
+  FRONTEND_URL: "https://rfgo-web-react-dev.swsol.samsungds.net"

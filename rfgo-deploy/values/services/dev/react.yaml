@@ -2,8 +2,8 @@ image:
   tag: latest
 
 ingress:
-  host: dev-web.swsol.samsungds.net
+  host: rfgo-web-react-dev.swsol.samsungds.net
 
 env:
-  VITE_API_URL: "https://dev-api.swsol.samsungds.net"
-  VITE_VSTO_API_URL: "https://dev-vsto.swsol.samsungds.net"
+  VITE_API_URL: "https://rfgo-web-nestjs-dev.swsol.samsungds.net"
+  VITE_VSTO_API_URL: "https://rfgo-vsto-fastapi-dev.swsol.samsungds.net"
