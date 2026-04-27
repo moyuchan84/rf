@@ -1,0 +1,12 @@
+image:
+  tag: latest
+
+ingress:
+  enabled: false
+
+env:
+  DB_HOST: "rfgo-db-dev"
+  DB_PORT: "5432"
+  DB_NAME: "photokey_db"
+  REDIS_URL: "redis://rfgo-redis:6379"
+  LOG_LEVEL: "debug"

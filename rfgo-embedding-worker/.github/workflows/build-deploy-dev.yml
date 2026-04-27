@@ -1,0 +1,53 @@
+name: Build and Deploy (Embedding Worker) - DEV
+
+on:
+  push:
+    branches: [ develop ]
+    paths:
+      - 'rfgo-embedding-worker/**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: k8s-arc-runner
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Login to Harbor
+      uses: docker/login-action@v3
+      with:
+        registry: harbor.foundrymtc.samsungds.net
+        username: ${{ secrets.HARBOR_USERNAME }}
+        password: ${{ secrets.HARBOR_PASSWORD }}
+
+    - name: Build and push
+      uses: docker/build-push-action@v5
+      with:
+        context: ./rfgo-embedding-worker
+        file: ./rfgo-embedding-worker/Dockerfile.airtight
+        push: true
+        tags: harbor.foundrymtc.samsungds.net/refgo/rfgo-embedding-worker:dev-${{ github.sha }}
+        build-args: |
+          HTTP_PROXY=${{ secrets.HTTP_PROXY }}
+          HTTPS_PROXY=${{ secrets.HTTPS_PROXY }}
+
+    - name: Checkout Deploy Repository
+      uses: actions/checkout@v4
+      with:
+        repository: refgo/rfgo-deploy
+        token: ${{ secrets.GHA_TOKEN }}
+        path: deploy-repo
+        ref: main
+
+    - name: Update Image Tag
+      run: |
+        sed -i 's/tag: .*/tag: "dev-${{ github.sha }}"/' deploy-repo/values/services/dev/embedding.yaml
+        
+    - name: Commit and Push Manifest Change
+      run: |
+        cd deploy-repo
+        git config --global user.name "GHA Runner (Dev)"
+        git config --global user.email "gha-dev@internal"
+        git add values/services/dev/embedding.yaml
+        git commit -m "chore(deploy): update embedding dev image to dev-${{ github.sha }}"
+        git push origin main

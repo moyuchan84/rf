@@ -1,0 +1,52 @@
+name: Build and Deploy (FastAPI) - PROD
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'rfgo-vsto-fastapi/**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: k8s-arc-runner
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Login to Harbor
+      uses: docker/login-action@v3
+      with:
+        registry: harbor.internal
+        username: ${{ secrets.HARBOR_USERNAME }}
+        password: ${{ secrets.HARBOR_PASSWORD }}
+
+    - name: Build and push
+      uses: docker/build-push-action@v5
+      with:
+        context: ./rfgo-vsto-fastapi
+        push: true
+        tags: harbor.foundrymtc.samsungds.net/refgo/rfgo-vsto-fastapi:prod-${{ github.sha }}
+        build-args: |
+          PIP_INDEX_URL=${{ secrets.INTERNAL_PYPI_MIRROR }}
+          PIP_TRUSTED_HOST=${{ secrets.INTERNAL_PYPI_TRUSTED_HOST }}
+
+    - name: Checkout Deploy Repository
+      uses: actions/checkout@v4
+      with:
+        repository: refgo/rfgo-deploy
+        token: ${{ secrets.GHA_TOKEN }}
+        path: deploy-repo
+        ref: main
+
+    - name: Update Image Tag
+      run: |
+        sed -i 's/tag: .*/tag: "prod-${{ github.sha }}"/' deploy-repo/values/services/prod/fastapi.yaml
+        
+    - name: Commit and Push Manifest Change
+      run: |
+        cd deploy-repo
+        git config --global user.name "GHA Runner (Prod)"
+        git config --global user.email "gha-prod@internal"
+        git add values/services/prod/fastapi.yaml
+        git commit -m "chore(deploy): update fastapi prod image to prod-${{ github.sha }}"
+        git push origin main

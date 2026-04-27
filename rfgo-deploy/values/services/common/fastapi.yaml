@@ -1,0 +1,4 @@
+image:
+  repository: harbor.foundrymtc.samsungds.net/refgo/rfgo-vsto-fastapi
+service:
+  port: 8000

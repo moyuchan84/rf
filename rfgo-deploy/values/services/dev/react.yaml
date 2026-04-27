@@ -1,0 +1,9 @@
+image:
+  tag: latest
+
+ingress:
+  host: dev-web.swsol.samsungds.net
+
+env:
+  VITE_API_URL: "https://dev-api.swsol.samsungds.net"
+  VITE_VSTO_API_URL: "https://dev-vsto.swsol.samsungds.net"

@@ -1,0 +1,10 @@
+image:
+  tag: latest
+
+ingress:
+  enabled: false
+
+env:
+  PORT: "8001"
+  DATABASE_URL: "postgresql://$(DB_USER):$(DB_PASSWORD)@rfgo-db-dev:5432/photokey_db"
+  LOG_LEVEL: "debug"

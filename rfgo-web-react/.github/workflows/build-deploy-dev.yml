@@ -1,25 +1,17 @@
-name: Build and Deploy (React)
+name: Build and Deploy (React) - DEV
 
 on:
   push:
-    branches: [ main ]
-    
+    branches: [ develop ]
     paths:
       - 'rfgo-web-react/**'
+  workflow_dispatch:
 
 jobs:
   build:
-    # Use your internal ARC runner label
-    runs-on: k8s-arc-runner 
-
+    runs-on: k8s-arc-runner
     steps:
     - uses: actions/checkout@v4
-
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-      with:
-        # In closed network, you might need to point to internal builder or config
-        driver: kubernetes
 
     - name: Login to Harbor
       uses: docker/login-action@v3
@@ -33,7 +25,7 @@ jobs:
       with:
         context: ./rfgo-web-react
         push: true
-        tags: harbor.foundrymtc.samsungds.net/refgo/rfgo-web-react:${{ github.sha }}
+        tags: harbor.foundrymtc.samsungds.net/refgo/rfgo-web-react:dev-${{ github.sha }}
         build-args: |
           NPM_REGISTRY=${{ secrets.INTERNAL_NPM_REGISTRY }}
 
@@ -47,13 +39,13 @@ jobs:
 
     - name: Update Image Tag
       run: |
-        sed -i 's/tag: .*/tag: "${{ github.sha }}"/' deploy-repo/values/services/react.yaml
+        sed -i 's/tag: .*/tag: "dev-${{ github.sha }}"/' deploy-repo/values/services/dev/react.yaml
         
     - name: Commit and Push Manifest Change
       run: |
         cd deploy-repo
-        git config --global user.name "GHA Runner"
-        git config --global user.email "gha@internal"
-        git add values/services/react.yaml
-        git commit -m "chore(deploy): update react image to ${{ github.sha }}"
+        git config --global user.name "GHA Runner (Dev)"
+        git config --global user.email "gha-dev@internal"
+        git add values/services/dev/react.yaml
+        git commit -m "chore(deploy): update react dev image to dev-${{ github.sha }}"
         git push origin main

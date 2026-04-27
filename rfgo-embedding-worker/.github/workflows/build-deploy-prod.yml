@@ -1,22 +1,17 @@
-name: Build and Deploy (RAG Backend)
+name: Build and Deploy (Embedding Worker) - PROD
 
 on:
   push:
     branches: [ main ]
     paths:
-      - 'rfgo-rag-backend/**'
+      - 'rfgo-embedding-worker/**'
+  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: k8s-arc-runner 
-
+    runs-on: k8s-arc-runner
     steps:
     - uses: actions/checkout@v4
-
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-      with:
-        driver: kubernetes
 
     - name: Login to Harbor
       uses: docker/login-action@v3
@@ -28,10 +23,10 @@ jobs:
     - name: Build and push
       uses: docker/build-push-action@v5
       with:
-        context: ./rfgo-rag-backend
-        file: ./rfgo-rag-backend/Dockerfile.airtight
+        context: ./rfgo-embedding-worker
+        file: ./rfgo-embedding-worker/Dockerfile.airtight
         push: true
-        tags: harbor.foundrymtc.samsungds.net/refgo/rfgo-rag-backend:${{ github.sha }}
+        tags: harbor.foundrymtc.samsungds.net/refgo/rfgo-embedding-worker:prod-${{ github.sha }}
         build-args: |
           HTTP_PROXY=${{ secrets.HTTP_PROXY }}
           HTTPS_PROXY=${{ secrets.HTTPS_PROXY }}
@@ -46,13 +41,13 @@ jobs:
 
     - name: Update Image Tag
       run: |
-        sed -i 's/tag: .*/tag: "${{ github.sha }}"/' deploy-repo/values/services/rag.yaml
+        sed -i 's/tag: .*/tag: "prod-${{ github.sha }}"/' deploy-repo/values/services/prod/embedding.yaml
         
     - name: Commit and Push Manifest Change
       run: |
         cd deploy-repo
-        git config --global user.name "GHA Runner"
-        git config --global user.email "gha@internal"
-        git add values/services/rag.yaml
-        git commit -m "chore(deploy): update rag-backend image to ${{ github.sha }}"
+        git config --global user.name "GHA Runner (Prod)"
+        git config --global user.email "gha-prod@internal"
+        git add values/services/prod/embedding.yaml
+        git commit -m "chore(deploy): update embedding prod image to prod-${{ github.sha }}"
         git push origin main

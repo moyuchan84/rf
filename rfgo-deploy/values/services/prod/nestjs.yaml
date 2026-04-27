@@ -1,9 +1,5 @@
 image:
-  repository: harbor.foundrymtc.samsungds.net/refgo/rfgo-web-nestjs
   tag: stable
-
-service:
-  port: 3000
 
 ingress:
   host: api.swsol.samsungds.net

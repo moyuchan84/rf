@@ -1,0 +1,4 @@
+image:
+  repository: harbor.foundrymtc.samsungds.net/refgo/rfgo-web-react
+service:
+  port: 80

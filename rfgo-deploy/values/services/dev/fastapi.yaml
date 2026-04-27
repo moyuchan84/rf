@@ -1,0 +1,12 @@
+image:
+  tag: latest
+
+ingress:
+  host: dev-vsto.swsol.samsungds.net
+
+env:
+  PORT: "8000"
+  DB_HOST: "rfgo-db-dev"
+  DB_PORT: "5432"
+  DB_NAME: "photokey_db"
+  REDIS_URL: "redis://rfgo-redis:6379"

@@ -1,9 +1,5 @@
 image:
-  repository: harbor.foundrymtc.samsungds.net/refgo/rfgo-vsto-fastapi
   tag: stable
-
-service:
-  port: 8000
 
 ingress:
   host: vsto.swsol.samsungds.net

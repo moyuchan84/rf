@@ -1,9 +1,5 @@
 image:
-  repository: harbor.foundrymtc.samsungds.net/refgo/rfgo-web-react
   tag: stable
-
-service:
-  port: 80
 
 ingress:
   host: web.swsol.samsungds.net

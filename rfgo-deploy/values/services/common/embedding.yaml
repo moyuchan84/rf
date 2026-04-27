@@ -1,0 +1,4 @@
+image:
+  repository: harbor.foundrymtc.samsungds.net/refgo/rfgo-embedding-worker
+service:
+  port: 8080

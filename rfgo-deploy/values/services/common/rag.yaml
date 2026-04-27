@@ -1,0 +1,4 @@
+image:
+  repository: harbor.foundrymtc.samsungds.net/refgo/rfgo-rag-backend
+service:
+  port: 8001
