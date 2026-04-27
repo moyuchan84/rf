@@ -198,7 +198,9 @@ export const TableBucketSelector: React.FC = () => {
               <p className="text-[10px] font-black uppercase tracking-widest italic opacity-40">No searchable data</p>
             </div>
           ) : (
-            Object.entries(nestedAvailable).map(([category, tables]) => (
+            Object.entries(nestedAvailable)
+              .sort(([a], [b]) => a.localeCompare(b))
+              .map(([category, tables]) => (
               <div key={category} className="space-y-3">
                 <div className="flex items-center justify-between sticky top-0 bg-white dark:bg-slate-950 py-1 z-10">
                   <div className="flex items-center gap-2">
@@ -214,7 +216,9 @@ export const TableBucketSelector: React.FC = () => {
                 </div>
 
                 <div className="space-y-2 pl-2">
-                  {Object.entries(tables).map(([tableName, keys]) => {
+                  {Object.entries(tables)
+                    .sort(([a], [b]) => a.localeCompare(b))
+                    .map(([tableName, keys]) => {
                     const isExpanded = expandedTables[tableName];
                     const selectedCount = keys.filter(k => selectedTables.some(st => st.id === k.id)).length;
                     
@@ -290,7 +294,9 @@ export const TableBucketSelector: React.FC = () => {
               </div>
             </div>
           ) : (
-            Object.entries(groupedSelected).map(([category, keys]) => (
+            Object.entries(groupedSelected)
+              .sort(([a], [b]) => a.localeCompare(b))
+              .map(([category, keys]) => (
               <div key={category} className="space-y-2">
                 <div className="flex items-center gap-2">
                   <LayoutGrid className="w-3 h-3 text-indigo-400" />
