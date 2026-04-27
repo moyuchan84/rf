@@ -35,14 +35,23 @@ jobs:
           PIP_INDEX_URL=${{ secrets.INTERNAL_PYPI_MIRROR }}
           PIP_TRUSTED_HOST=${{ secrets.INTERNAL_PYPI_TRUSTED_HOST }}
 
+    - name: Checkout Deploy Repository
+      uses: actions/checkout@v4
+      with:
+        repository: refgo/rfgo-deploy
+        token: ${{ secrets.GHA_TOKEN }}
+        path: deploy-repo
+        ref: main
+
     - name: Update Image Tag
       run: |
-        sed -i 's/tag: .*/tag: "${{ github.sha }}"/' rfgo-deploy/values/services/fastapi.yaml
+        sed -i 's/tag: .*/tag: "${{ github.sha }}"/' deploy-repo/values/services/fastapi.yaml
         
     - name: Commit and Push Manifest Change
       run: |
+        cd deploy-repo
         git config --global user.name "GHA Runner"
         git config --global user.email "gha@internal"
-        git add rfgo-deploy/values/services/fastapi.yaml
+        git add values/services/fastapi.yaml
         git commit -m "chore(deploy): update fastapi image to ${{ github.sha }}"
         git push origin main

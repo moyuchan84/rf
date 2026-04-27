@@ -36,14 +36,23 @@ jobs:
           HTTP_PROXY=${{ secrets.HTTP_PROXY }}
           HTTPS_PROXY=${{ secrets.HTTPS_PROXY }}
 
+    - name: Checkout Deploy Repository
+      uses: actions/checkout@v4
+      with:
+        repository: refgo/rfgo-deploy
+        token: ${{ secrets.GHA_TOKEN }}
+        path: deploy-repo
+        ref: main
+
     - name: Update Image Tag
       run: |
-        sed -i 's/tag: .*/tag: "${{ github.sha }}"/' rfgo-deploy/values/services/rag.yaml
+        sed -i 's/tag: .*/tag: "${{ github.sha }}"/' deploy-repo/values/services/rag.yaml
         
     - name: Commit and Push Manifest Change
       run: |
+        cd deploy-repo
         git config --global user.name "GHA Runner"
         git config --global user.email "gha@internal"
-        git add rfgo-deploy/values/services/rag.yaml
+        git add values/services/rag.yaml
         git commit -m "chore(deploy): update rag-backend image to ${{ github.sha }}"
         git push origin main

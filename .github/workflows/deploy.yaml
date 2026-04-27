@@ -53,15 +53,23 @@ jobs:
             HTTP_PROXY=http://proxy.internal.com:8080
             HTTPS_PROXY=http://proxy.internal.com:8080
 
+      - name: Checkout Deploy Repository
+        uses: actions/checkout@v4
+        with:
+          repository: refgo/rfgo-deploy
+          token: ${{ secrets.GHA_TOKEN }}
+          path: deploy-repo
+          ref: main
+
       - name: Update Helm Values Tag
         run: |
-          # D:\code\samsung\rfgo\rfgo-deploy\values\services 폴더의 tag 값을 SHA로 업데이트
-          sed -i 's/tag: .*/tag: "${{ github.sha }}"/' rfgo-deploy/values/services/${{ matrix.service }}.yaml
+          sed -i 's/tag: .*/tag: "${{ github.sha }}"/' deploy-repo/values/services/${{ matrix.service }}.yaml
 
       - name: Commit and Push Manifest Changes
         run: |
+          cd deploy-repo
           git config --global user.email "arc-runner@refgo.internal.com"
           git config --global user.name "ARC Runner (refgo)"
-          git add rfgo-deploy/values/services/${{ matrix.service }}.yaml
+          git add values/services/${{ matrix.service }}.yaml
           git commit -m "deploy: update ${{ matrix.service }} image tag to ${{ github.sha }} [skip ci]" || echo "No changes to commit"
           git push origin main
