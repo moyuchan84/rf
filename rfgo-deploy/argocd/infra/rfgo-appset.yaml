@@ -1,0 +1,54 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: rfgo-services
+  namespace: argocd
+spec:
+  generators:
+    - matrix:
+        generators:
+          # 1. 환경 축 (Environments)
+          - list:
+              elements:
+                - env: dev
+                  namespace: refgo-dev
+                - env: prod
+                  namespace: refgo-prod
+          # 2. 서비스 축 (Services)
+          - list:
+              elements:
+                - service: react
+                  chart: rfgo-service
+                - service: nestjs
+                  chart: rfgo-service
+                - service: fastapi
+                  chart: rfgo-service
+                - service: rag
+                  chart: rfgo-service
+                - service: embedding
+                  chart: rfgo-service
+                - service: redis
+                  chart: rfgo-redis
+  template:
+    metadata:
+      name: 'rfgo-{{service}}-{{env}}'
+    spec:
+      project: default
+      source:
+        repoURL: 'https://github.com/refgo/rfgo-deploy.git' # TODO: 실제 레포 주소로 수정
+        targetRevision: main
+        path: 'charts/{{chart}}'
+        helm:
+          valueFiles:
+            - '../../values/env/{{env}}.yaml'
+            - '../../values/services/common/{{service}}.yaml'
+            - '../../values/services/{{env}}/{{service}}.yaml'
+      destination:
+        server: 'https://kubernetes.default.svc'
+        namespace: '{{namespace}}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
