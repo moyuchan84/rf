@@ -33,7 +33,7 @@ spec:
     metadata:
       name: 'rfgo-{{service}}-{{env}}'
     spec:
-      project: default
+      project: rfgo-project
       source:
         repoURL: 'https://github.com/refgo/rfgo-deploy.git' # TODO: 실제 레포 주소로 수정
         targetRevision: main
