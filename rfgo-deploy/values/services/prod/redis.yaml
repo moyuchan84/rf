@@ -1,0 +1,14 @@
+# Redis Prod Environment Overrides
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 200m
+    memory: 256Mi
+
+# 운영 환경은 데이터 보존을 위해 PVC 활성화 권장
+# persistence:
+#   enabled: true
+#   storageClass: "nfs-client" # 사내 표준 StorageClass 이름으로 수정 필요
+#   size: 10Gi

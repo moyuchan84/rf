@@ -35,7 +35,7 @@ spec:
     spec:
       project: rfgo-project
       source:
-        repoURL: 'https://github.com/refgo/rfgo-deploy.git' # TODO: 실제 레포 주소로 수정
+        repoURL: 'https://github.com/moyuchan84/rf.git'
         targetRevision: main
         path: 'charts/{{chart}}'
         helm:

@@ -1,0 +1,12 @@
+# Redis Dev Environment Overrides
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 50m
+    memory: 64Mi
+
+# 개발 환경은 별도 스토리지 없이 가볍게 운영 (필요시 추가)
+persistence:
+  enabled: false
