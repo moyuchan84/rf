@@ -1,4 +1,5 @@
 image:
   repository: harbor.foundrymtc.samsungds.net/refgo/rfgo-web-nestjs
+  tag: "latest"
 service:
   port: 3000

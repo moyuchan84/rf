@@ -1,6 +1,3 @@
-image:
-  tag: latest
-
 ingress:
   enabled: true
   host: rfgo-rag-backend-dev.swsol.samsungds.net

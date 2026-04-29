@@ -1,6 +1,3 @@
-image:
-  tag: latest
-
 ingress:
   host: rfgo-web-react-dev.swsol.samsungds.net
 

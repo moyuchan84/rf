@@ -63,13 +63,13 @@ jobs:
 
       - name: Update Helm Values Tag
         run: |
-          sed -i 's/tag: .*/tag: "${{ github.sha }}"/' deploy-repo/values/services/${{ matrix.service }}.yaml
+          sed -i 's/tag: .*/tag: "${{ github.sha }}"/' deploy-repo/values/services/common/${{ matrix.service }}.yaml
 
       - name: Commit and Push Manifest Changes
         run: |
           cd deploy-repo
           git config --global user.email "arc-runner@refgo.internal.com"
           git config --global user.name "ARC Runner (refgo)"
-          git add values/services/${{ matrix.service }}.yaml
+          git add values/services/common/${{ matrix.service }}.yaml
           git commit -m "deploy: update ${{ matrix.service }} image tag to ${{ github.sha }} [skip ci]" || echo "No changes to commit"
           git push origin main

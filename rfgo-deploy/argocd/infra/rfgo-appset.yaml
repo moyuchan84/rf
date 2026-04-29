@@ -5,44 +5,76 @@ metadata:
   namespace: argocd
 spec:
   generators:
-    - matrix:
-        generators:
-          # 1. 환경 축 (Environments)
-          - list:
-              elements:
-                - env: dev
-                  namespace: refgo-dev
-                - env: prod
-                  namespace: refgo-prod
-          # 2. 서비스 축 (Services)
-          - list:
-              elements:
-                - service: react
-                  chart: rfgo-service
-                - service: nestjs
-                  chart: rfgo-service
-                - service: fastapi
-                  chart: rfgo-service
-                - service: rag
-                  chart: rfgo-service
-                - service: embedding
-                  chart: rfgo-service
-                - service: redis
-                  chart: rfgo-redis
+    - list:
+        elements:
+          - env: dev
+            namespace: rfgo-dev
+          - env: prod
+            namespace: rfgo-prod
   template:
     metadata:
-      name: 'rfgo-{{service}}-{{env}}'
+      name: 'rfgo-{{env}}'
     spec:
       project: rfgo-project
-      source:
-        repoURL: 'https://github.com/moyuchan84/rf.git'
-        targetRevision: main
-        path: 'charts/{{chart}}'
-        helm:
-          valueFiles:
-            - '../../values/env/{{env}}.yaml'
-            - '../../values/services/common/{{service}}.yaml'
-            - '../../values/services/{{env}}/{{service}}.yaml'
+      sources:
+        - repoURL: 'https://github.com/moyuchan84/rf.git'
+          targetRevision: main
+          path: 'charts/rfgo-service'
+          helm:
+            valueFiles:
+              - '../../values/env/{{env}}.yaml'
+              - '../../values/services/common/react.yaml'
+              - '../../values/services/{{env}}/react.yaml'
+            values: |
+              nameOverride: react
+        - repoURL: 'https://github.com/moyuchan84/rf.git'
+          targetRevision: main
+          path: 'charts/rfgo-service'
+          helm:
+            valueFiles:
+              - '../../values/env/{{env}}.yaml'
+              - '../../values/services/common/nestjs.yaml'
+              - '../../values/services/{{env}}/nestjs.yaml'
+            values: |
+              nameOverride: nestjs
+        - repoURL: 'https://github.com/moyuchan84/rf.git'
+          targetRevision: main
+          path: 'charts/rfgo-service'
+          helm:
+            valueFiles:
+              - '../../values/env/{{env}}.yaml'
+              - '../../values/services/common/fastapi.yaml'
+              - '../../values/services/{{env}}/fastapi.yaml'
+            values: |
+              nameOverride: fastapi
+        - repoURL: 'https://github.com/moyuchan84/rf.git'
+          targetRevision: main
+          path: 'charts/rfgo-service'
+          helm:
+            valueFiles:
+              - '../../values/env/{{env}}.yaml'
+              - '../../values/services/common/rag.yaml'
+              - '../../values/services/{{env}}/rag.yaml'
+            values: |
+              nameOverride: rag
+        - repoURL: 'https://github.com/moyuchan84/rf.git'
+          targetRevision: main
+          path: 'charts/rfgo-service'
+          helm:
+            valueFiles:
+              - '../../values/env/{{env}}.yaml'
+              - '../../values/services/common/embedding.yaml'
+              - '../../values/services/{{env}}/embedding.yaml'
+            values: |
+              nameOverride: embedding
+        - repoURL: 'https://github.com/moyuchan84/rf.git'
+          targetRevision: main
+          path: 'charts/rfgo-redis'
+          helm:
+            valueFiles:
+              - '../../values/env/{{env}}.yaml'
+              - '../../values/services/common/redis.yaml'
+              - '../../values/services/{{env}}/redis.yaml'
       destination:
         server: 'https://kubernetes.default.svc'
         namespace: '{{namespace}}'
