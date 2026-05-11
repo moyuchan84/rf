@@ -29,17 +29,21 @@ spec:
               value: {{ $val | quote }}
             {{- end }}
             {{- end }}
-            {{- if .Values.externalDatabase.enabled }}
+            {{- if and .Values.externalDatabase.enabled .Values.externalDatabase.secretName }}
+            {{- if not (hasKey .Values.env "DB_USER") }}
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.externalDatabase.secretName }}
                   key: DB_USER
+            {{- end }}
+            {{- if not (hasKey .Values.env "DB_PASSWORD") }}
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.externalDatabase.secretName }}
                   key: DB_PASSWORD
+            {{- end }}
             {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}

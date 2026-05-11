@@ -8,6 +8,14 @@ externalDatabase:
   host: rfgo-db-prod
   ip: 10.172.122.53 # TODO: 사내 DB 인스턴스 IP
   secretName: rfgo-db-credentials
+  # secretData: # 필요 시 주석 해제하여 사용 (또는 외부에서 생성)
+  #   dbUser: "admin"
+  #   dbPassword: "password"
+
+gateway:
+  enabled: true
+  name: "envoy-gateway" # 사내 Envoy Gateway 이름
+  namespace: "envoy-gateway-system"
 
 service:
   type: ClusterIP
