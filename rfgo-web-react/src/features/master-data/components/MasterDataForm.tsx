@@ -2,7 +2,9 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { ChevronRight, Trash2, Loader2, Search, Check, ChevronDown } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
 import { useMasterData } from '../hooks/useMasterData';
-import {type ProductMeta } from '../types';
+import { type ProductMeta } from '../types';
+import { PermissionGate } from '../../auth/components/PermissionGate';
+import { useUserStore } from '../../auth/store/useUserStore';
 
 interface FormData {
   designRule: string;
@@ -139,7 +141,27 @@ const MasterDataForm: React.FC = () => {
     loadingBeols
   } = useMasterData();
 
+  const { user, hasRole } = useUserStore();
   const [isManualBeol, setIsManualBeol] = useState(false);
+  
+  const mode = selectedNode?.id === -1 ? 'create' : 'edit';
+
+  const isAuthor = useMemo(() => {
+    if (!user) return false;
+    const data = selectedNode?.data;
+    if (!data) return false;
+    return (
+      data.creatorId === user.userId ||
+      data.creator === user.userId ||
+      data.updater === user.userId
+    );
+  }, [selectedNode, user]);
+
+  const canEdit = useMemo(() => {
+    if (mode === 'create') return true;
+    return hasRole(['ADMIN', 'INNO']) || isAuthor;
+  }, [mode, hasRole, isAuthor]);
+
   const [formData, setFormData] = useState<FormData>(() => {
     if (selectedNode?.id !== -1 && selectedNode?.data) {
       return {
@@ -174,7 +196,6 @@ const MasterDataForm: React.FC = () => {
       }
     };
   });
-  const mode = selectedNode?.id === -1 ? 'create' : 'edit';
 
   // Filter Process Groups
   const availableProcessGroups = React.useMemo(() => {
@@ -237,6 +258,7 @@ const MasterDataForm: React.FC = () => {
         } else {
           await updateProduct(
             Number(selectedNode.id), 
+            formData.partId,
             formData.productName, 
             processedMeta
           );
@@ -278,13 +300,26 @@ const MasterDataForm: React.FC = () => {
           </span>
         </div>
         {mode === 'edit' && (
-          <button
-            onClick={handleDelete}
-            className="flex items-center gap-2 px-4 py-2 text-[8px] font-black text-red-500 hover:bg-red-500/10 rounded-md transition-all uppercase tracking-[0.2em] active:scale-95"
+          <PermissionGate
+            allowedRoles={['ADMIN', 'INNO']}
+            fallback={isAuthor ? (
+              <button
+                onClick={handleDelete}
+                className="flex items-center gap-2 px-4 py-2 text-[8px] font-black text-red-500 hover:bg-red-500/10 rounded-md transition-all uppercase tracking-[0.2em] active:scale-95"
+              >
+                <Trash2 className="w-3 h-3" />
+                Delete
+              </button>
+            ) : null}
           >
-            <Trash2 className="w-3 h-3" />
-            Delete
-          </button>
+            <button
+              onClick={handleDelete}
+              className="flex items-center gap-2 px-4 py-2 text-[8px] font-black text-red-500 hover:bg-red-500/10 rounded-md transition-all uppercase tracking-[0.2em] active:scale-95"
+            >
+              <Trash2 className="w-3 h-3" />
+              Delete
+            </button>
+          </PermissionGate>
         )}
       </header>
 
@@ -377,9 +412,9 @@ const MasterDataForm: React.FC = () => {
                   <label className="text-[8px] font-black text-slate-500 uppercase tracking-[0.3em] ml-1">Part ID</label>
                   <input
                     value={formData.partId}
-                    disabled={mode === 'edit'}
                     onChange={(e) => setFormData({ ...formData, partId: e.target.value })}
-                    className="w-full bg-slate-50 dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 rounded-md px-6 py-4 text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-600/50 transition-all font-bold disabled:opacity-30 placeholder:text-slate-300 dark:placeholder:text-slate-800 shadow-sm"
+                    disabled={!canEdit}
+                    className="w-full bg-slate-50 dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 rounded-md px-6 py-4 text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-600/50 transition-all font-bold placeholder:text-slate-300 dark:placeholder:text-slate-800 shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
                     placeholder="e.g. S5E9925"
                   />
                 </div>
@@ -388,7 +423,8 @@ const MasterDataForm: React.FC = () => {
                   <input
                     value={formData.productName}
                     onChange={(e) => setFormData({ ...formData, productName: e.target.value })}
-                    className="w-full bg-slate-50 dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 rounded-md px-6 py-4 text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-600/50 transition-all font-bold placeholder:text-slate-300 dark:placeholder:text-slate-800 shadow-sm"
+                    disabled={!canEdit}
+                    className="w-full bg-slate-50 dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 rounded-md px-6 py-4 text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-600/50 transition-all font-bold placeholder:text-slate-300 dark:placeholder:text-slate-800 shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
                     placeholder="e.g. Exynos 2200"
                   />
                 </div>
@@ -413,7 +449,8 @@ const MasterDataForm: React.FC = () => {
                             metaInfo: { ...formData.metaInfo, [field.key as keyof ProductMeta]: e.target.value },
                           })
                         }
-                        className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-md px-5 py-3 text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-600/50 transition-all font-bold placeholder:text-slate-200 dark:placeholder:text-slate-800 shadow-sm"
+                        disabled={!canEdit}
+                        className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-md px-5 py-3 text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-600/50 transition-all font-bold placeholder:text-slate-200 dark:placeholder:text-slate-800 shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
                       />
                     </div>
                   ))}
@@ -438,7 +475,8 @@ const MasterDataForm: React.FC = () => {
                             metaInfo: { ...formData.metaInfo, [field.key as keyof ProductMeta]: e.target.value },
                           })
                         }
-                        className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-md px-5 py-3 text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-600/50 transition-all font-bold placeholder:text-slate-200 dark:placeholder:text-slate-800 shadow-sm"
+                        disabled={!canEdit}
+                        className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-md px-5 py-3 text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-600/50 transition-all font-bold placeholder:text-slate-200 dark:placeholder:text-slate-800 shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
                       />
                     </div>
                   ))}
@@ -460,12 +498,33 @@ const MasterDataForm: React.FC = () => {
           {mode === 'edit' && (selectedNode.type === 'plan' || selectedNode.type === 'option') ? 'Close' : 'Cancel'}
         </button>
         {!(mode === 'edit' && (selectedNode.type === 'plan' || selectedNode.type === 'option')) && (
-          <button
-            onClick={handleSave}
-            className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white py-4 rounded-md text-[8px] font-black tracking-[0.4em] shadow-md shadow-indigo-600/20 transition-all active:scale-[0.98] uppercase"
-          >
-            {mode === 'create' ? 'Create' : 'Save Changes'}
-          </button>
+          mode === 'create' ? (
+            <button
+              onClick={handleSave}
+              className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white py-4 rounded-md text-[8px] font-black tracking-[0.4em] shadow-md shadow-indigo-600/20 transition-all active:scale-[0.98] uppercase"
+            >
+              Create
+            </button>
+          ) : (
+            <PermissionGate
+              allowedRoles={['ADMIN', 'INNO']}
+              fallback={isAuthor ? (
+                <button
+                  onClick={handleSave}
+                  className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white py-4 rounded-md text-[8px] font-black tracking-[0.4em] shadow-md shadow-indigo-600/20 transition-all active:scale-[0.98] uppercase"
+                >
+                  Save Changes
+                </button>
+              ) : null}
+            >
+              <button
+                onClick={handleSave}
+                className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white py-4 rounded-md text-[8px] font-black tracking-[0.4em] shadow-md shadow-indigo-600/20 transition-all active:scale-[0.98] uppercase"
+              >
+                Save Changes
+              </button>
+            </PermissionGate>
+          )
         )}
       </footer>
     </div>

@@ -77,6 +77,7 @@ export const UPDATE_PRODUCT = gql`
   mutation UpdateProduct($id: Int!, $input: UpdateProductInput!) {
     updateProduct(id: $id, input: $input) {
       id
+      partId
       productName
       metaInfo {
         id

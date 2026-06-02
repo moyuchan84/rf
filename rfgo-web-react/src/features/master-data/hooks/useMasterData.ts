@@ -57,11 +57,11 @@ export const useMasterData = () => {
     await refetch();
   };
 
-  const updateProduct = async (id: number, productName: string, meta?: Partial<ProductMeta>) => {
+  const updateProduct = async (id: number, partId: string, productName: string, meta?: Partial<ProductMeta>) => {
     await updateProductMutation({ 
       variables: { 
         id, 
-        input: { productName, metaInfo: meta } 
+        input: { partId, productName, metaInfo: meta } 
       } 
     });
     await refetch();
