@@ -72,6 +72,9 @@ export class CreateProductInput {
 @InputType()
 export class UpdateProductInput {
   @Field({ nullable: true })
+  partId?: string;
+
+  @Field({ nullable: true })
   productName?: string;
 
   @Field(() => ProductMetaInput, { nullable: true })

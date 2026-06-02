@@ -566,6 +566,7 @@ input UpdateLayoutInput {
 
 input UpdateProductInput {
   metaInfo: ProductMetaInput
+  partId: String
   productName: String
 }
 
