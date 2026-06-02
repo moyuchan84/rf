@@ -274,6 +274,7 @@ export const RequestDetail: React.FC<RequestDetailProps> = ({
           <AssigneeManager 
             requestId={request.id} 
             assignees={request.assignees || []} 
+            steps={steps}
             onUpdate={onUpdate}
           />
           

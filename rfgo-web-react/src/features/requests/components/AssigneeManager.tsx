@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { UserPlus, X, User, CheckCircle2 } from 'lucide-react';
-import { type RequestAssignee } from '../../master-data/types';
+import { type RequestAssignee, type RequestStep } from '../../master-data/types';
 import { useMutation } from '@apollo/client/react';
-import { ASSIGN_USER, REMOVE_ASSIGNEE } from '../api/requestQueries';
+import { ASSIGN_USER, REMOVE_ASSIGNEE, UPDATE_REQUEST_STEP } from '../api/requestQueries';
 import toast from 'react-hot-toast';
 import { EmployeeSearch } from '../../employee/components/EmployeeSearch';
 import { Employee } from '../../employee/store/useEmployeeStore';
@@ -10,12 +10,14 @@ import { Employee } from '../../employee/store/useEmployeeStore';
 interface AssigneeManagerProps {
   requestId: number;
   assignees: RequestAssignee[];
+  steps?: RequestStep[];
   onUpdate: () => void;
 }
 
 export const AssigneeManager: React.FC<AssigneeManagerProps> = ({ 
   requestId, 
   assignees,
+  steps = [],
   onUpdate 
 }) => {
   const [isAdding, setIsAdding] = useState(false);
@@ -38,6 +40,8 @@ export const AssigneeManager: React.FC<AssigneeManagerProps> = ({
     }
   });
 
+  const [updateStepMutation] = useMutation(UPDATE_REQUEST_STEP);
+
   const handleAdd = async () => {
     if (!selectedEmployee) return;
 
@@ -55,6 +59,26 @@ export const AssigneeManager: React.FC<AssigneeManagerProps> = ({
         }
       }
     });
+
+    // Auto-transition ReferenceTable step status if category is RFG_TASK
+    if (category === 'RFG_TASK') {
+      const referenceTableStep = steps?.find(s => s.stepName === 'ReferenceTable');
+      if (referenceTableStep && referenceTableStep.status === 'TODO') {
+        try {
+          await updateStepMutation({
+            variables: {
+              input: {
+                stepId: referenceTableStep.id,
+                status: 'IN_PROGRESS',
+                workerId: 'SYSTEM'
+              }
+            }
+          });
+        } catch (err) {
+          console.error('Failed to auto-update step status:', err);
+        }
+      }
+    }
   };
 
   const handleRemove = async (id: number) => {
