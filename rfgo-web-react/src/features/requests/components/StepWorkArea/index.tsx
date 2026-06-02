@@ -70,7 +70,18 @@ export const StepWorkArea: React.FC<StepWorkAreaProps> = ({ step, onUpdate }) =>
       return;
     }
 
-    const updatedStatus = newStatus || status;
+    let updatedStatus = newStatus || status;
+
+    // If saving draft and the current status is IN_PROGRESS, ask if they want to mark it as DONE
+    if (!newStatus && status === 'IN_PROGRESS') {
+      const markAsDone = window.confirm(
+        "이 단계를 완료(DONE) 상태로 변경하시겠습니까?\n'취소'를 누르면 진행 중(IN_PROGRESS) 임시 저장 상태가 유지됩니다."
+      );
+      if (markAsDone) {
+        updatedStatus = 'DONE';
+      }
+    }
+
     await updateStepMutation({
       variables: {
         input: {
@@ -81,7 +92,8 @@ export const StepWorkArea: React.FC<StepWorkAreaProps> = ({ step, onUpdate }) =>
         }
       }
     });
-    if (newStatus) setStatus(newStatus);
+    
+    setStatus(updatedStatus);
   };
 
   const renderStepSpecificUI = () => {
