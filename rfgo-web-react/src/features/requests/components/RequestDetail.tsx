@@ -294,22 +294,32 @@ export const RequestDetail: React.FC<RequestDetailProps> = ({
         </div>
       </div>
 
-       {/* 2. Workflow Stepper (Full Width) */}
-      <WorkflowStepper 
-        steps={steps} 
-        currentStepIndex={activeStepIndex}
-        onStepClick={setActiveStepIndex}
-      />
-
-      {/* 5. Active Step Work Area (Full Width) */}
-      <div className="w-full">
-        {steps[activeStepIndex] && (
-          <StepWorkArea 
-            step={steps[activeStepIndex]} 
-            onUpdate={onUpdate}
+      {/* 2. Workflow Stepper & Active Step Work Area (Conditional on having assignees) */}
+      {request.assignees && request.assignees.length > 0 ? (
+        <>
+          <WorkflowStepper 
+            steps={steps} 
+            currentStepIndex={activeStepIndex}
+            onStepClick={setActiveStepIndex}
           />
-        )}
-      </div>
+
+          {/* 5. Active Step Work Area (Full Width) */}
+          <div className="w-full">
+            {steps[activeStepIndex] && (
+              <StepWorkArea 
+                step={steps[activeStepIndex]} 
+                onUpdate={onUpdate}
+              />
+            )}
+          </div>
+        </>
+      ) : (
+        <div className="bg-amber-500/[0.03] dark:bg-amber-500/[0.02] border border-amber-500/20 dark:border-amber-500/10 rounded-md p-10 text-center shadow-inner transition-all animate-in fade-in slide-in-from-top-2 duration-300">
+          <p className="text-[10px] text-amber-600 dark:text-amber-400 font-black uppercase tracking-[0.25em] flex items-center justify-center gap-2">
+            <User className="w-4 h-4 animate-bounce" /> Please designate a task assignee in the sidebar to activate the workflow steps
+          </p>
+        </div>
+      )}
 
       {/* 6. Key Table Setup Results (Visible if step is DONE) */}
       {steps.find(s => s.stepName === 'KeyTableSetup')?.status === 'DONE' && (
