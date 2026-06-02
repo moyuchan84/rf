@@ -40,6 +40,19 @@ const Chip: React.FC<{ label: string; onRemove: () => void }> = ({ label, onRemo
   </div>
 );
 
+const quillModules = {
+  toolbar: [
+    [{ 'header': [1, 2, 3, false] }],
+    ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+    [{ 'align': [] }],
+    [{ 'color': [] }, { 'background': [] }],
+    ['table'],
+    ['clean']
+  ],
+  table: true
+};
+
 interface RequestStepFormProps {
   initialData?: RequestItem | null;
   onSuccess?: () => void;
@@ -93,6 +106,33 @@ const RequestStepForm: React.FC<RequestStepFormProps> = ({ initialData, onSucces
       setRequesterId(user.userId);
     }
   }, [user, initialData, setRequesterId]);
+
+  // Synchronize table cell background colors in the DOM (Quill 2.0 rendering post-process)
+  useEffect(() => {
+    const editors = document.querySelectorAll('.ql-editor');
+    editors.forEach((editor) => {
+      if (editor instanceof HTMLElement) {
+        // First reset background colors on all cells to handle deletion/clearing correctly
+        const cells = editor.querySelectorAll('td, th');
+        cells.forEach((cell) => {
+          if (cell instanceof HTMLElement) {
+            cell.style.backgroundColor = '';
+          }
+        });
+        
+        // Apply background colors to cells from inner spans
+        const spans = editor.querySelectorAll('td span[style*="background-color"], th span[style*="background-color"]');
+        spans.forEach((span) => {
+          if (span instanceof HTMLElement) {
+            const cell = span.closest('td, th');
+            if (cell instanceof HTMLElement) {
+              cell.style.backgroundColor = span.style.backgroundColor;
+            }
+          }
+        });
+      }
+    });
+  }, [description, layoutRequestDescription]);
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -396,6 +436,7 @@ const RequestStepForm: React.FC<RequestStepFormProps> = ({ initialData, onSucces
                   theme="snow" 
                   value={description} 
                   onChange={setDescription}
+                  modules={quillModules}
                   placeholder="Detail the request specifications, constraints, and any other relevant info..."
                   className="text-slate-900 dark:text-white font-medium"
                 />
@@ -411,6 +452,7 @@ const RequestStepForm: React.FC<RequestStepFormProps> = ({ initialData, onSucces
                   theme="snow" 
                   value={layoutRequestDescription} 
                   onChange={setLayoutRequestDescription}
+                  modules={quillModules}
                   placeholder="Additional layout requirements, special constraints..."
                   className="text-slate-900 dark:text-white font-medium"
                 />

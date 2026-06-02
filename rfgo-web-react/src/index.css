@@ -19,3 +19,31 @@ html, body, #root {
 body {
   background-color: #020617; /* slate-950 */
 }
+
+/* Quill and Rich Text Table Styles */
+.ql-editor table,
+.prose table {
+  border-collapse: collapse;
+  margin: 12px 0;
+  width: 100%;
+}
+
+.ql-editor td, 
+.ql-editor th,
+.prose td,
+.prose th {
+  border: 1px solid #e2e8f0;
+  padding: 8px 12px;
+  min-width: 40px;
+}
+
+.dark .ql-editor td, 
+.dark .ql-editor th,
+.dark .prose td,
+.dark .prose th {
+  border: 1px solid #1e293b;
+}
+
+
+
+
