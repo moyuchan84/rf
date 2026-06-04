@@ -53,7 +53,7 @@ export interface Product {
   id: number;
   partId: string;
   productName: string;
-  beolOptionId: number;
+  beolOptionId?: number;
   beolOption?: BeolOption;
   metaInfo?: ProductMeta;
   requests?: RequestItem[];
