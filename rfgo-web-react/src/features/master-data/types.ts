@@ -43,10 +43,10 @@ export interface RequestItem {
   requesterId: string;
   createdAt: string;
   updatedAt: string;
-  assignees?: RequestAssignee[];
-  steps?: RequestStep[];
-  product?: Product;
-  comments?: any[];
+  assignees?: RequestAssignee[] | null;
+  steps?: RequestStep[] | null;
+  product?: Product | null;
+  comments?: any[] | null;
 }
 
 export interface Product {
