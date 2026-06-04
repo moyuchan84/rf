@@ -25,8 +25,8 @@ export interface RequestStep {
   stepOrder: number;
   stepName: string;
   status: string;
-  workContent?: string;
-  workerId?: string;
+  workContent?: string | null;
+  workerId?: string | null;
   completedAt?: string;
 }
 

@@ -52,7 +52,7 @@ export const StepWorkArea: React.FC<StepWorkAreaProps> = ({ step, onUpdate }) =>
 
   // Fetch full request details to get productId, etc.
   const { data: requestData, loading } = useQuery<GetRequestItemQuery, GetRequestItemQueryVariables>(GET_REQUEST_ITEM, {
-    variables: { id: step.requestId },
+    variables: { id: step.requestId || 0 },
     skip: !step.requestId
   });
   const request = requestData?.requestItem;
