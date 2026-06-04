@@ -33,7 +33,7 @@ const Requests: React.FC = () => {
     }
   }, [searchParams]);
 
-  const selectedRequest = detailData?.requestItem || requests.find((r: RequestItem) => r.id === selectedRequestId);
+  const selectedRequest = (detailData?.requestItem || requests.find((r: RequestItem) => r.id === selectedRequestId)) as RequestItem | undefined;
 
   const handleRequestClick = (req: RequestItem) => {
     setSelectedRequestId(req.id);
