@@ -92,6 +92,14 @@ export const LayoutCanvas: React.FC = () => {
           onClick={() => selectElement(null)}
         >
           <Layer>
+            {/* White background to prevent black transparency on JPEG export */}
+            {img && (
+              <Rect
+                x={0} y={0}
+                width={img.width} height={img.height}
+                fill="#ffffff"
+              />
+            )}
             <KonvaImage image={img} opacity={1} />
           </Layer>
 
