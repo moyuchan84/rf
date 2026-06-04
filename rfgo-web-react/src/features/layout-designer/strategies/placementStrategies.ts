@@ -40,7 +40,7 @@ export class UniformLinearStrategy implements IPlacementStrategy {
   sortPool(
     pool: Candidate[],
     selected: { candidate: Candidate; element: ElementInput }[],
-    getDist: (p1: { x: number; y: number }, p2: { x: number; y: number }) => number
+    _getDist: (p1: { x: number; y: number }, p2: { x: number; y: number }) => number
   ): Candidate[] {
     if (selected.length === 0) return pool;
     return [...pool].sort((a, b) => {
@@ -71,8 +71,8 @@ export class GreedyGridStrategy implements IPlacementStrategy {
 export class BestFitBinPackingStrategy implements IPlacementStrategy {
   sortPool(
     pool: Candidate[],
-    selected: { candidate: Candidate; element: ElementInput }[],
-    getDist: (p1: { x: number; y: number }, p2: { x: number; y: number }) => number
+    _selected: { candidate: Candidate; element: ElementInput }[],
+    _getDist: (p1: { x: number; y: number }, p2: { x: number; y: number }) => number
   ): Candidate[] {
     return [...pool].sort((a, b) => b.area - a.area);
   }

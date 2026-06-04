@@ -46,6 +46,7 @@ export interface RequestItem {
   assignees?: RequestAssignee[];
   steps?: RequestStep[];
   product?: Product;
+  comments?: any[];
 }
 
 export interface Product {

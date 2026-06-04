@@ -143,11 +143,11 @@ const CellColorStyle = new Parchment.StyleAttributor('cell-color', 'color', {
 });
 
 // Import standard inline style attributors to preserve inline styles (rather than default class-based ones)
-const InlineBackgroundStyle = Quill.import('attributors/style/background');
-const InlineColorStyle = Quill.import('attributors/style/color');
-const InlineAlignStyle = Quill.import('attributors/style/align');
-const InlineSizeStyle = Quill.import('attributors/style/size');
-const InlineFontStyle = Quill.import('attributors/style/font');
+const InlineBackgroundStyle = Quill.import('attributors/style/background') as any;
+const InlineColorStyle = Quill.import('attributors/style/color') as any;
+const InlineAlignStyle = Quill.import('attributors/style/align') as any;
+const InlineSizeStyle = Quill.import('attributors/style/size') as any;
+const InlineFontStyle = Quill.import('attributors/style/font') as any;
 
 Quill.register(BorderStyle, true);
 Quill.register(BorderColorStyle, true);
@@ -162,7 +162,7 @@ Quill.register(InlineSizeStyle, true);
 Quill.register(InlineFontStyle, true);
 
 // Create and register a custom Clipboard module to preprocess HTML before Quill parses it
-const Clipboard = Quill.import('modules/clipboard');
+const Clipboard = Quill.import('modules/clipboard') as any;
 class CustomClipboard extends Clipboard {
   convert(content: any, formats?: any) {
     if (content && typeof content === 'object' && typeof content.html === 'string') {

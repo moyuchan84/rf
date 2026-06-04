@@ -11,6 +11,7 @@ import { useRequestsList } from './hooks/useRequestsList';
 import { type RequestItem } from '../master-data/types';
 import { useQuery } from '@apollo/client/react';
 import { GET_REQUEST_ITEM } from './api/requestQueries';
+import { GetRequestItemQuery, GetRequestItemQueryVariables } from '@/shared/api/generated/graphql';
 
 const Requests: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -19,7 +20,7 @@ const Requests: React.FC = () => {
   const requestsList = useRequestsList();
   const { requests, refetch, deleteRequest } = requestsList;
 
-  const { data: detailData, refetch: refetchDetail } = useQuery(GET_REQUEST_ITEM, {
+  const { data: detailData, refetch: refetchDetail } = useQuery<GetRequestItemQuery, GetRequestItemQueryVariables>(GET_REQUEST_ITEM, {
     variables: { id: selectedRequestId || 0 },
     skip: selectedRequestId === null,
   });
