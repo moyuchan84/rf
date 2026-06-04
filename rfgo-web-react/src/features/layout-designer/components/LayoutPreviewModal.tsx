@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { X, Maximize2, Download, Edit3 } from 'lucide-react';
 import { LayoutCanvas } from './LayoutCanvas';
 import { useLayoutStore } from '../store/useLayoutStore';
+import toast from 'react-hot-toast';
 
 interface LayoutPreviewModalProps {
   layout: any;
@@ -11,6 +12,76 @@ interface LayoutPreviewModalProps {
 
 export const LayoutPreviewModal: React.FC<LayoutPreviewModalProps> = ({ layout, onClose, onEdit }) => {
   const { loadLayout } = useLayoutStore();
+  const stageRef = useLayoutStore(state => state.stageRef);
+  const boundary = useLayoutStore(state => state.boundary);
+
+  const handleExportJPG = () => {
+    if (!stageRef || !stageRef.current) {
+      toast.error('Canvas is not ready yet.');
+      return;
+    }
+
+    try {
+      const stage = stageRef.current;
+
+      // Save current transform state
+      const oldScaleX = stage.scaleX();
+      const oldScaleY = stage.scaleY();
+      const oldX = stage.x();
+      const oldY = stage.y();
+
+      // Reset transform temporarily to perform 1:1 export
+      stage.scaleX(1);
+      stage.scaleY(1);
+      stage.x(0);
+      stage.y(0);
+      stage.draw();
+
+      const imageNode = stage.findOne('Image');
+
+      // Configure export parameters to target the exact background image area
+      const exportParams: any = {
+        mimeType: 'image/jpeg',
+        quality: 0.95,
+      };
+
+      if (imageNode) {
+        exportParams.x = imageNode.x();
+        exportParams.y = imageNode.y();
+        exportParams.width = imageNode.width();
+        exportParams.height = imageNode.height();
+      } else if (boundary) {
+        exportParams.x = boundary.x;
+        exportParams.y = boundary.y;
+        exportParams.width = boundary.width;
+        exportParams.height = boundary.height;
+      }
+
+      // Generate Data URL
+      const dataUrl = stage.toDataURL(exportParams);
+
+      // Restore original transform
+      stage.scaleX(oldScaleX);
+      stage.scaleY(oldScaleY);
+      stage.x(oldX);
+      stage.y(oldY);
+      stage.draw();
+
+      // Trigger file download
+      const link = document.createElement('a');
+      const safeTitle = layout.title.replace(/[^a-zA-Z0-9가-힣-_]/g, '_');
+      link.download = `${safeTitle}_layout.jpg`;
+      link.href = dataUrl;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast.success('Layout successfully exported as JPG!');
+    } catch (error) {
+      console.error('Failed to export layout to JPG:', error);
+      toast.error('Failed to export image. Please try again.');
+    }
+  };
 
   useEffect(() => {
     // Load layout into store for the canvas to render
@@ -97,10 +168,10 @@ export const LayoutPreviewModal: React.FC<LayoutPreviewModalProps> = ({ layout, 
 
             <div className="mt-auto">
                <button 
-                 disabled
-                 className="w-full flex items-center justify-center gap-2 py-3 bg-slate-100 dark:bg-slate-800 text-slate-400 rounded-xl text-[10px] font-black uppercase tracking-widest cursor-not-allowed"
+                 onClick={handleExportJPG}
+                 className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-md shadow-orange-500/10 active:scale-95 duration-200"
                >
-                 <Download className="w-3.5 h-3.5" /> Export Data (Coming Soon)
+                 <Download className="w-3.5 h-3.5" /> Export JPG
                </button>
             </div>
           </aside>
