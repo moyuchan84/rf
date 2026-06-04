@@ -80,3 +80,7 @@ MockupFiles/
 # === System ===
 Thumbs.db
 desktop.ini
+
+# === Antigravity CLI ===
+.antigravitycli/
+

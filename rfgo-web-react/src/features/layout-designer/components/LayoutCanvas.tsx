@@ -131,10 +131,10 @@ export const LayoutCanvas: React.FC = () => {
                     fill="#3b82f6" stroke="#ffffff" strokeWidth={2 / stageScale}
                     shadowBlur={5 / stageScale} shadowColor="rgba(0,0,0,0.3)"
                  />
-                 <Text 
-                    text="KEY" fontSize={6 / stageScale} fill="white" align="center"
-                    offsetX={6 / stageScale} offsetY={3 / stageScale} fontStyle="bold"
-                 />
+                  <Text 
+                     text={p.name || "KEY"} fontSize={6 / stageScale} fill="white" align="center"
+                     offsetX={((p.name || "KEY").length * 1.8) / stageScale} offsetY={3 / stageScale} fontStyle="bold"
+                  />
                </Group>
             ))}
 

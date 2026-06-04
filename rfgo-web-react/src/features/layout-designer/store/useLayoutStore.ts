@@ -15,6 +15,7 @@ export interface GeometricObject {
   isManual?: boolean;
   visible: boolean; // 필수 속성으로 변경
   tag: 'BOUNDARY' | 'CHIP' | 'KEY';
+  name?: string; // element 이름
 }
 
 export interface LaneElement {
@@ -31,6 +32,14 @@ export interface ShotInfo {
   pixelH: number;
 }
 
+export interface CustomElementInput {
+  id: string;
+  name: string;
+  width: number;
+  height: number;
+  anchor: 'NONE' | 'CENTER' | 'EDGE';
+}
+
 export interface LayoutConfig {
   n: number;
   strategy: 'GREEDY_GRID' | 'UNIFORM_LINEAR' | 'BEST_FIT_BIN_PACKING';
@@ -38,6 +47,8 @@ export interface LayoutConfig {
     center: boolean;
     corners: boolean;
   };
+  elementMode: 'COUNT' | 'CUSTOM';
+  elements: CustomElementInput[];
 }
 
 interface LayoutState {
@@ -89,6 +100,8 @@ const initialConfig: LayoutConfig = {
     center: true,
     corners: true,
   },
+  elementMode: 'COUNT',
+  elements: [],
 };
 
 export const useLayoutStore = create<LayoutState>((set) => ({
@@ -162,7 +175,7 @@ export const useLayoutStore = create<LayoutState>((set) => ({
     laneElements: layout.scribelanes || [],
     placements: layout.placements || [],
     shotInfo: layout.shotInfo,
-    config: layout.config || initialConfig,
+    config: layout.config ? { ...initialConfig, ...layout.config } : initialConfig,
     imageUrl: layout.imageUrl,
     currentStep: 3, // Go to final step when loading
   }),

@@ -5,6 +5,7 @@ import { SAVE_LAYOUT, UPDATE_LAYOUT, PAGINATED_LAYOUTS } from '../api/layoutQuer
 import { OpencvDetector } from '../utils/OpencvDetector';
 import { v4 as uuidv4 } from 'uuid';
 import { LayoutService } from '../services/LayoutService';
+import { PlacementEngine } from '../strategies/placementStrategies';
 import toast from 'react-hot-toast';
 
 export const useLayoutDesigner = () => {
@@ -56,9 +57,32 @@ export const useLayoutDesigner = () => {
     if (!boundary) return;
 
     const activeChips = chips.filter(c => c.visible);
-    const targetCount = config.n;
-    const elemSize = Math.max(15, Math.min(boundary.width, boundary.height) * 0.03);
-    
+
+    // Determine elements to place
+    const defaultElemSize = Math.max(15, Math.min(boundary.width, boundary.height) * 0.03);
+    const elements = (config.elementMode === 'CUSTOM' && config.elements && config.elements.length > 0)
+      ? config.elements.map(el => ({
+          id: el.id || uuidv4(),
+          name: el.name,
+          width: el.width,
+          height: el.height,
+          anchor: el.anchor
+        }))
+      : Array.from({ length: config.n || 1 }, (_, i) => ({
+          id: uuidv4(),
+          name: `Key ${i + 1}`,
+          width: defaultElemSize,
+          height: defaultElemSize,
+          anchor: 'NONE' as const
+        }));
+
+    if (elements.length === 0) {
+      toast.error("No elements to place");
+      return;
+    }
+
+    const minElementSize = Math.min(...elements.map(e => Math.min(e.width, e.height)));
+
     // 1. Precise Scribelane Point Extraction
     const xEdges = Array.from(new Set([boundary.x, boundary.x + boundary.width, ...activeChips.flatMap(c => [c.x, c.x + c.width])])).sort((a, b) => a - b);
     const yEdges = Array.from(new Set([boundary.y, boundary.y + boundary.height, ...activeChips.flatMap(c => [c.y, c.y + c.height])])).sort((a, b) => a - b);
@@ -68,13 +92,13 @@ export const useLayoutDesigner = () => {
       for (let j = 0; j < yEdges.length - 1; j++) {
         const w = xEdges[i+1] - xEdges[i];
         const h = yEdges[j+1] - yEdges[j];
-        if (w < elemSize * 0.4 || h < elemSize * 0.4) continue;
-        
+        if (w < minElementSize * 0.4 || h < minElementSize * 0.4) continue;
+
         const cx = xEdges[i] + w / 2;
         const cy = yEdges[j] + h / 2;
-        
-        const isInsideChip = activeChips.some(c => 
-          cx >= c.x - 0.5 && cx <= c.x + c.width + 0.5 && 
+
+        const isInsideChip = activeChips.some(c =>
+          cx >= c.x - 0.5 && cx <= c.x + c.width + 0.5 &&
           cy >= c.y - 0.5 && cy <= c.y + c.height + 0.5
         );
 
@@ -89,66 +113,17 @@ export const useLayoutDesigner = () => {
       return;
     }
 
-    const getDist = (p1: {x:number, y:number}, p2: {x:number, y:number}) => Math.sqrt((p1.x-p2.x)**2 + (p1.y-p2.y)**2);
-    const selected: typeof candidates = [];
-    let pool = [...candidates];
+    // Call Strategy-based placement engine
+    const placementsResult = PlacementEngine.arrange({
+      boundary,
+      candidates,
+      elements,
+      strategyType: config.strategy
+    });
 
-    const pickNearest = (target: {x:number, y:number}) => {
-      if (pool.length === 0 || selected.length >= targetCount) return;
-      pool.sort((a, b) => getDist(a, target) - getDist(b, target));
-      selected.push(pool[0]);
-      pool.splice(0, 1);
-    };
+    setPlacements(placementsResult);
 
-    // 2. Mandatory Priority Placement (Top 5)
-    
-    // 2.1 Absolute Center of Shot Boundary
-    pickNearest({ x: boundary.x + boundary.width / 2, y: boundary.y + boundary.height / 2 });
-
-    // 2.2 4 Outermost Corners
-    const cornerTargets = [
-      { x: boundary.x, y: boundary.y },
-      { x: boundary.x + boundary.width, y: boundary.y },
-      { x: boundary.x, y: boundary.y + boundary.height },
-      { x: boundary.x + boundary.width, y: boundary.y + boundary.height }
-    ];
-    cornerTargets.forEach(pickNearest);
-
-    // 3. Strategy-based Placement for 6th point onwards
-    while (selected.length < targetCount && pool.length > 0) {
-      if (config.strategy === 'UNIFORM_LINEAR') {
-        // Prefer points aligned with existing X or Y to form lines
-        pool.sort((a, b) => {
-          const aAlign = Math.min(...selected.map(s => Math.min(Math.abs(s.x - a.x), Math.abs(s.y - a.y))));
-          const bAlign = Math.min(...selected.map(s => Math.min(Math.abs(s.x - b.x), Math.abs(s.y - b.y))));
-          return aAlign - bAlign;
-        });
-      } 
-      else if (config.strategy === 'BEST_FIT_BIN_PACKING') {
-        // Prefer points in largest available gaps
-        pool.sort((a, b) => b.area - a.area);
-      }
-      else { // GREEDY_GRID: Max-Min distance
-        pool.sort((a, b) => {
-          const aMinD = Math.min(...selected.map(s => getDist(a, s)));
-          const bMinD = Math.min(...selected.map(s => getDist(b, s)));
-          return bMinD - aMinD; // Descending order of min distance
-        });
-      }
-      
-      selected.push(pool[0]);
-      pool.splice(0, 1);
-    }
-
-    // 4. Update Store
-    setPlacements(selected.map(p => ({
-      id: uuidv4(),
-      x: p.x - elemSize / 2,
-      y: p.y - elemSize / 2,
-      width: elemSize, height: elemSize, tag: 'KEY', visible: true, isManual: false
-    })));
-
-    toast.success(`Arranged ${selected.length} elements using ${config.strategy}`);
+    toast.success(`Arranged ${placementsResult.length} elements using ${config.strategy}`);
   }, [setPlacements]);
 
   const saveLayout = async () => {
