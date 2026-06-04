@@ -12,7 +12,7 @@ export interface ProductMeta {
 
 export interface RequestAssignee {
   id: number;
-  requestId: number;
+  requestId?: number;
   category: string;
   userId: string;
   userName: string;
@@ -21,7 +21,7 @@ export interface RequestAssignee {
 
 export interface RequestStep {
   id: number;
-  requestId: number;
+  requestId?: number;
   stepOrder: number;
   stepName: string;
   status: string;
