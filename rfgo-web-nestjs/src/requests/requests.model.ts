@@ -2,6 +2,31 @@ import { Field, Int, ObjectType } from '@nestjs/graphql';
 import { RequestAssignee, RequestStep } from './workflow.model';
 import { Product } from '../master-data/master-data.model';
 import { StreamInfo, GdsPathInfo } from './step-data.model';
+import { UserType } from '../auth/interface/dto/user.type';
+
+@ObjectType()
+export class RequestComment {
+  @Field(() => Int)
+  id: number;
+
+  @Field(() => Int)
+  requestId: number;
+
+  @Field()
+  authorId: string;
+
+  @Field(() => UserType, { nullable: true })
+  author?: UserType;
+
+  @Field()
+  content: string;
+
+  @Field()
+  createdAt: Date;
+
+  @Field()
+  updatedAt: Date;
+}
 
 @ObjectType()
 export class RequestItem {
@@ -49,6 +74,9 @@ export class RequestItem {
 
   @Field(() => [GdsPathInfo], { nullable: true })
   gdsPathInfo?: GdsPathInfo[];
+
+  @Field(() => [RequestComment], { nullable: true })
+  comments?: RequestComment[];
 
   @Field()
   createdAt: Date;

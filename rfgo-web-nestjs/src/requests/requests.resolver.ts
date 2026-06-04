@@ -1,7 +1,7 @@
 import { Args, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { RequestsService } from './requests.service';
-import { RequestItem, PaginatedRequests } from './requests.model';
-import { CreateRequestItemInput, UpdateRequestItemInput } from './requests.dto';
+import { RequestItem, PaginatedRequests, RequestComment } from './requests.model';
+import { CreateRequestItemInput, UpdateRequestItemInput, CreateCommentInput } from './requests.dto';
 import { RequestAssignee, RequestStep, PhotoKey, SheetDiff, PaginatedTableNames } from './workflow.model';
 import { AssignUserInput, UpdateStepInput } from './workflow.dto';
 import { StreamInfo, RequestTableMap, GdsPathInfo } from './step-data.model';
@@ -182,6 +182,35 @@ export class RequestsResolver {
     @Args('search', { type: () => String, nullable: true }) search?: string,
   ) {
     return this.service.getUniqueTableNames(skip, take, search);
+  }
+
+  // Feedback Comments
+  @ResolveField(() => [RequestComment], { nullable: true })
+  async comments(@Parent() request: RequestItem) {
+    return this.service.findRequestComments(request.id);
+  }
+
+  @Query(() => [RequestComment])
+  async requestComments(@Args('requestId', { type: () => Int }) requestId: number) {
+    return this.service.findRequestComments(requestId);
+  }
+
+  @Mutation(() => RequestComment)
+  @UseGuards(GqlAuthGuard)
+  async createRequestComment(
+    @Args('input') input: CreateCommentInput,
+    @CurrentUser() user: any,
+  ) {
+    return this.service.createRequestComment(input.requestId, user.userId, input.content);
+  }
+
+  @Mutation(() => RequestComment)
+  @UseGuards(GqlAuthGuard)
+  async deleteRequestComment(
+    @Args('id', { type: () => Int }) id: number,
+    @CurrentUser() user: any,
+  ) {
+    return this.service.deleteRequestComment(id, user.userId);
   }
 }
 
