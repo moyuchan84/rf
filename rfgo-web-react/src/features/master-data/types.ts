@@ -37,7 +37,7 @@ export interface RequestItem {
   title: string;
   description?: string | null;
   mtoDate?: string;
-  layoutRequestDescription?: string;
+  layoutRequestDescription?: string | null;
   edmList: string[];
   pkdVersions: string[];
   requesterId: string;

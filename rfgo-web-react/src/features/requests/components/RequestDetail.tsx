@@ -260,7 +260,7 @@ export const RequestDetail: React.FC<RequestDetailProps> = ({
         </h3>
         <div 
           className="bg-slate-50 dark:bg-slate-950/30 border border-slate-200 dark:border-slate-800/50 p-6 rounded-md text-sm font-medium text-slate-600 dark:text-slate-300 leading-relaxed prose dark:prose-invert max-w-none shadow-inner transition-all"
-          dangerouslySetInnerHTML={{ __html: request.description }}
+          dangerouslySetInnerHTML={{ __html: request.description || '' }}
         />
       </section>
 
@@ -272,7 +272,7 @@ export const RequestDetail: React.FC<RequestDetailProps> = ({
           </h3>
           <div 
             className="bg-indigo-50/30 dark:bg-indigo-900/10 border border-indigo-100/50 dark:border-indigo-800/50 p-6 rounded-md text-sm font-medium text-slate-600 dark:text-slate-300 leading-relaxed prose dark:prose-invert max-w-none shadow-inner transition-all"
-            dangerouslySetInnerHTML={{ __html: request.layoutRequestDescription }}
+            dangerouslySetInnerHTML={{ __html: request.layoutRequestDescription || '' }}
           />
         </section>
       )}
