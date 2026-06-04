@@ -220,6 +220,20 @@ export const GET_REQUEST_ITEM = gql`
           }
         }
       }
+      comments {
+        id
+        requestId
+        authorId
+        author {
+          userId
+          fullName
+          deptName
+          email
+        }
+        content
+        createdAt
+        updatedAt
+      }
     }
   }
 `;
@@ -426,6 +440,33 @@ export const GET_REQUEST_TABLES = gql`
         }
         workbookData
       }
+    }
+  }
+`;
+
+export const CREATE_REQUEST_COMMENT = gql`
+  mutation CreateRequestComment($input: CreateCommentInput!) {
+    createRequestComment(input: $input) {
+      id
+      requestId
+      authorId
+      author {
+        userId
+        fullName
+        deptName
+        email
+      }
+      content
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const DELETE_REQUEST_COMMENT = gql`
+  mutation DeleteRequestComment($id: Int!) {
+    deleteRequestComment(id: $id) {
+      id
     }
   }
 `;

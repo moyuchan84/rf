@@ -66,3 +66,12 @@ export class UpdateRequestItemInput {
   @Field(() => [EmployeeDto], { nullable: true })
   initialWatchers?: EmployeeDto[];
 }
+
+@InputType()
+export class CreateCommentInput {
+  @Field(() => Int)
+  requestId: number;
+
+  @Field()
+  content: string;
+}

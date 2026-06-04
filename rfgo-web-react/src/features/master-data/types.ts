@@ -12,7 +12,7 @@ export interface ProductMeta {
 
 export interface RequestAssignee {
   id: number;
-  requestId: number;
+  requestId?: number;
   category: string;
   userId: string;
   userName: string;
@@ -21,12 +21,12 @@ export interface RequestAssignee {
 
 export interface RequestStep {
   id: number;
-  requestId: number;
+  requestId?: number;
   stepOrder: number;
   stepName: string;
   status: string;
-  workContent?: string;
-  workerId?: string;
+  workContent?: string | null;
+  workerId?: string | null;
   completedAt?: string;
 }
 
@@ -35,24 +35,25 @@ export interface RequestItem {
   productId: number;
   requestType: string;
   title: string;
-  description: string;
+  description?: string | null;
   mtoDate?: string;
-  layoutRequestDescription?: string;
+  layoutRequestDescription?: string | null;
   edmList: string[];
   pkdVersions: string[];
   requesterId: string;
   createdAt: string;
   updatedAt: string;
-  assignees?: RequestAssignee[];
-  steps?: RequestStep[];
-  product?: Product;
+  assignees?: RequestAssignee[] | null;
+  steps?: RequestStep[] | null;
+  product?: Product | null;
+  comments?: any[] | null;
 }
 
 export interface Product {
   id: number;
   partId: string;
   productName: string;
-  beolOptionId: number;
+  beolOptionId?: number;
   beolOption?: BeolOption;
   metaInfo?: ProductMeta;
   requests?: RequestItem[];

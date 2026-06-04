@@ -75,6 +75,11 @@ input CreateBeolOptionInput {
   processPlanId: Int
 }
 
+input CreateCommentInput {
+  content: String!
+  requestId: Int!
+}
+
 input CreateGdsPathInfoInput {
   beolGroupId: Int
   gdsPathList: [String!]!
@@ -254,6 +259,7 @@ type Mutation {
   createMailGroup(input: CreateUserMailGroupInput!, userId: String!): UserMailGroupDto!
   createProcessPlan(input: CreateProcessPlanInput!): ProcessPlan!
   createProduct(input: CreateProductInput!): Product!
+  createRequestComment(input: CreateCommentInput!): RequestComment!
   createRequestItem(input: CreateRequestItemInput!): RequestItem!
   createStreamInfo(input: CreateStreamInfoInput!): StreamInfo!
   deleteApprovalPath(id: Int!): Boolean!
@@ -263,6 +269,7 @@ type Mutation {
   deleteMailGroup(id: Int!, userId: String!): Boolean!
   deleteProcessPlan(id: Int!): ProcessPlan!
   deleteProduct(id: Int!): Product!
+  deleteRequestComment(id: Int!): RequestComment!
   deleteRequestItem(id: Int!): RequestItem!
   deleteStreamInfo(id: Int!): StreamInfo!
   removeAssignee(id: Int!): RequestAssignee!
@@ -386,6 +393,7 @@ type Query {
   paginatedLayouts(productId: Int, search: String, skip: Int! = 0, take: Int! = 12): PaginatedLayouts!
   photoKeys(beolGroupId: Int, beolOptionId: Int, processPlanId: Int, productId: Int): [PhotoKey!]!
   processPlans: [ProcessPlan!]!
+  requestComments(requestId: Int!): [RequestComment!]!
   requestItem(id: Int!): RequestItem
   requestItems(beolOptionId: Int, processPlanId: Int, requestType: String, search: String, skip: Int! = 0, take: Int! = 10): PaginatedRequests!
   requestItemsByProduct(productId: Int!): [RequestItem!]!
@@ -417,8 +425,19 @@ type RequestAssignee {
   userName: String!
 }
 
+type RequestComment {
+  author: UserType
+  authorId: String!
+  content: String!
+  createdAt: DateTime!
+  id: Int!
+  requestId: Int!
+  updatedAt: DateTime!
+}
+
 type RequestItem {
   assignees: [RequestAssignee!]
+  comments: [RequestComment!]
   createdAt: DateTime!
   description: String
   edmList: [String!]!

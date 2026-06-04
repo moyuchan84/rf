@@ -12,7 +12,9 @@ import {
   Layers,
   Cpu,
   Info,
-  Calendar
+  Calendar,
+  MessageSquare,
+  Send
 } from 'lucide-react';
 import { type RequestItem } from '../../master-data/types';
 import { WorkflowStepper } from './WorkflowStepper';
@@ -20,6 +22,10 @@ import { AssigneeManager } from './AssigneeManager';
 import { StepWorkArea } from './StepWorkArea/index';
 import { REQUEST_TYPE_LABELS, RequestType } from '../types';
 import { RequestKeyTableResult } from './RequestKeyTableResult';
+import { useMutation } from '@apollo/client/react';
+import { useUserStore } from '@/features/auth/store/useUserStore';
+import toast from 'react-hot-toast';
+import { CREATE_REQUEST_COMMENT, DELETE_REQUEST_COMMENT } from '../api/requestQueries';
 
 interface RequestDetailProps {
   request: RequestItem;
@@ -40,6 +46,49 @@ export const RequestDetail: React.FC<RequestDetailProps> = ({
 
   const progress = Math.round((steps.filter(s => s.status === 'DONE').length / 4) * 100);
   const product = request.product;
+
+  const [commentContent, setCommentContent] = useState('');
+  const { user: currentUser } = useUserStore();
+
+  const [createComment, { loading: isCreating }] = useMutation(CREATE_REQUEST_COMMENT);
+  const [deleteComment] = useMutation(DELETE_REQUEST_COMMENT);
+
+  const handleAddComment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!commentContent.trim()) return;
+
+    try {
+      await createComment({
+        variables: {
+          input: {
+            requestId: request.id,
+            content: commentContent.trim()
+          }
+        }
+      });
+      setCommentContent('');
+      toast.success('Feedback comment submitted successfully!');
+      onUpdate();
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to submit comment.');
+    }
+  };
+
+  const handleDeleteComment = async (commentId: number) => {
+    if (!window.confirm('Are you sure you want to delete this comment?')) return;
+
+    try {
+      await deleteComment({
+        variables: { id: commentId }
+      });
+      toast.success('Comment deleted successfully!');
+      onUpdate();
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to delete comment.');
+    }
+  };
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-8 duration-700 space-y-6 pb-16">
@@ -211,7 +260,7 @@ export const RequestDetail: React.FC<RequestDetailProps> = ({
         </h3>
         <div 
           className="bg-slate-50 dark:bg-slate-950/30 border border-slate-200 dark:border-slate-800/50 p-6 rounded-md text-sm font-medium text-slate-600 dark:text-slate-300 leading-relaxed prose dark:prose-invert max-w-none shadow-inner transition-all"
-          dangerouslySetInnerHTML={{ __html: request.description }}
+          dangerouslySetInnerHTML={{ __html: request.description || '' }}
         />
       </section>
 
@@ -223,7 +272,7 @@ export const RequestDetail: React.FC<RequestDetailProps> = ({
           </h3>
           <div 
             className="bg-indigo-50/30 dark:bg-indigo-900/10 border border-indigo-100/50 dark:border-indigo-800/50 p-6 rounded-md text-sm font-medium text-slate-600 dark:text-slate-300 leading-relaxed prose dark:prose-invert max-w-none shadow-inner transition-all"
-            dangerouslySetInnerHTML={{ __html: request.layoutRequestDescription }}
+            dangerouslySetInnerHTML={{ __html: request.layoutRequestDescription || '' }}
           />
         </section>
       )}
@@ -328,6 +377,99 @@ export const RequestDetail: React.FC<RequestDetailProps> = ({
           <RequestKeyTableResult requestId={request.id} />
         </div>
       )}
+
+      {/* 7. Feedback Comments Section (Confluence Style) */}
+      <section className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-md p-8 space-y-6 shadow-sm dark:shadow-xl transition-all">
+        <h3 className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-[0.3em] flex items-center gap-2 transition-colors">
+          <MessageSquare className="w-4 h-4" /> Feedback & Comments
+        </h3>
+        
+        {/* Comment List */}
+        <div className="space-y-4">
+          {request.comments && request.comments.length > 0 ? (
+            request.comments.map((comment: any) => {
+              const isOwner = currentUser?.userId === comment.authorId;
+              const authorName = comment.author?.fullName || comment.authorId;
+              const deptName = comment.author?.deptName ? `(${comment.author.deptName})` : '';
+              const initials = authorName.substring(0, 2).toUpperCase();
+
+              return (
+                <div 
+                  key={comment.id} 
+                  className="flex gap-4 p-4 bg-slate-50/50 dark:bg-slate-950/10 border border-slate-100 dark:border-slate-800/40 rounded-lg relative group transition-colors hover:bg-slate-100/50 dark:hover:bg-slate-950/20"
+                >
+                  {/* Avatar */}
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center text-[10px] font-black shrink-0 shadow-sm shadow-indigo-500/20">
+                    {initials}
+                  </div>
+                  
+                  {/* Content Area */}
+                  <div className="flex-1 space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-black text-slate-800 dark:text-slate-200 uppercase tracking-tight leading-none">{authorName}</span>
+                      {deptName && <span className="text-[8px] font-bold text-slate-400 dark:text-slate-500 leading-none">{deptName}</span>}
+                      <span className="text-[8px] font-medium text-slate-400 dark:text-slate-500 leading-none">
+                        {new Date(comment.createdAt).toLocaleString()}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-medium whitespace-pre-wrap pt-1">{comment.content}</p>
+                  </div>
+
+                  {/* Actions */}
+                  {isOwner && (
+                    <button
+                      onClick={() => handleDeleteComment(comment.id)}
+                      className="absolute top-4 right-4 p-1.5 hover:bg-red-500/10 hover:text-red-500 rounded text-slate-300 dark:text-slate-600 opacity-0 group-hover:opacity-100 transition-all active:scale-95 duration-200"
+                      title="Delete Comment"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+              );
+            })
+          ) : (
+            <div className="text-center py-8 border border-dashed border-slate-200 dark:border-slate-800 rounded-lg bg-slate-50/50 dark:bg-slate-950/10">
+              <MessageSquare className="w-8 h-8 text-slate-300 dark:text-slate-700 mx-auto mb-2.5" />
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">No feedback comments yet. Be the first to leave a comment!</p>
+            </div>
+          )}
+        </div>
+
+        {/* New Comment Input */}
+        {currentUser ? (
+          <form onSubmit={handleAddComment} className="flex gap-4 items-start pt-4 border-t border-slate-100 dark:border-slate-800">
+            <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 flex items-center justify-center text-[10px] font-black shrink-0 border border-slate-300/30">
+              {currentUser.fullName?.substring(0, 2).toUpperCase() || 'U'}
+            </div>
+            
+            <div className="flex-1 space-y-3">
+              <textarea
+                value={commentContent}
+                onChange={(e) => setCommentContent(e.target.value)}
+                placeholder="Ask requester for feedback or write a comment here..."
+                rows={3}
+                required
+                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950/30 border border-slate-200 dark:border-slate-800 rounded-lg text-xs font-medium text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all resize-none shadow-inner"
+              />
+              <div className="flex justify-end">
+                <button
+                  type="submit"
+                  disabled={isCreating || !commentContent.trim()}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:text-slate-400 dark:disabled:text-slate-600 text-white rounded-md text-[10px] font-black uppercase tracking-wider transition-all shadow-md shadow-indigo-600/10 active:scale-95 duration-200"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                  {isCreating ? 'Submitting...' : 'Post Comment'}
+                </button>
+              </div>
+            </div>
+          </form>
+        ) : (
+          <div className="text-center py-4 text-xs font-bold text-slate-400 uppercase tracking-wider bg-slate-50 dark:bg-slate-950/20 border border-slate-100 dark:border-slate-800 rounded-lg">
+            Please log in to leave comments.
+          </div>
+        )}
+      </section>
     </div>
   );
 };

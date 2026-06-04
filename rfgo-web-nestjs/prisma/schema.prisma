@@ -23,6 +23,7 @@ model User {
   updatedAt     DateTime @updatedAt @map("update_time") @db.Timestamptz(6)
 
   requests      RequestItem[]
+  comments      RequestComment[]
 
   @@index([id], map: "ix_users_id")
   @@map("users")
@@ -154,6 +155,7 @@ model RequestItem {
   tableMaps   RequestTableMap[]
   watcher     RequestWatcher?
   approvalDoc ApprovalDocument?
+  comments    RequestComment[]
 
   @@index([id], map: "ix_request_items_id")
   @@map("request_items")
@@ -431,4 +433,20 @@ model N7MaskBeol {
 
   @@map("n7_maskbeol")
   @@schema("smartdne")
+}
+
+model RequestComment {
+  id          Int       @id @default(autoincrement())
+  requestId   Int       @map("request_id")
+  authorId    String    @map("author_id") @db.VarChar
+  content     String    @db.Text
+  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime? @default(now()) @updatedAt @map("update_time") @db.Timestamptz(6)
+
+  request     RequestItem @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  author      User        @relation(fields: [authorId], references: [userId])
+
+  @@index([id], map: "ix_request_comments_id")
+  @@map("request_comments")
+  @@schema("public")
 }

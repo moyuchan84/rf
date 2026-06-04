@@ -9,6 +9,9 @@ import { RequestList } from './components/RequestList';
 import { RequestDetail } from './components/RequestDetail';
 import { useRequestsList } from './hooks/useRequestsList';
 import { type RequestItem } from '../master-data/types';
+import { useQuery } from '@apollo/client/react';
+import { GET_REQUEST_ITEM } from './api/requestQueries';
+import { GetRequestItemQuery, GetRequestItemQueryVariables } from '@/shared/api/generated/graphql';
 
 const Requests: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -16,6 +19,11 @@ const Requests: React.FC = () => {
   const [selectedRequestId, setSelectedRequestId] = useState<number | null>(null);
   const requestsList = useRequestsList();
   const { requests, refetch, deleteRequest } = requestsList;
+
+  const { data: detailData, refetch: refetchDetail } = useQuery<GetRequestItemQuery, GetRequestItemQueryVariables>(GET_REQUEST_ITEM, {
+    variables: { id: selectedRequestId || 0 },
+    skip: selectedRequestId === null,
+  });
 
   useEffect(() => {
     const idParam = searchParams.get('id');
@@ -25,7 +33,7 @@ const Requests: React.FC = () => {
     }
   }, [searchParams]);
 
-  const selectedRequest = requests.find((r: RequestItem) => r.id === selectedRequestId);
+  const selectedRequest = (detailData?.requestItem || requests.find((r: RequestItem) => r.id === selectedRequestId)) as RequestItem | undefined;
 
   const handleRequestClick = (req: RequestItem) => {
     setSelectedRequestId(req.id);
@@ -110,7 +118,7 @@ const Requests: React.FC = () => {
             request={selectedRequest}
             onEdit={() => setView('edit')}
             onDelete={id => handleDeleteClick(null, id)}
-            onUpdate={refetch}
+            onUpdate={refetchDetail}
           />
         ) : (
           <RequestList 

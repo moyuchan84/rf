@@ -39,7 +39,7 @@ export const useRequestForm = (initialData?: RequestItem | null) => {
     if (initialData && processPlans.length > 0) {
       setRequestType(initialData.requestType);
       setTitle(initialData.title);
-      setDescription(initialData.description);
+      setDescription(initialData.description || '');
       setMtoDate(initialData.mtoDate ? new Date(initialData.mtoDate).toISOString().split('T')[0] : '');
       setLayoutRequestDescription(initialData.layoutRequestDescription || '');
       setRequesterId(initialData.requesterId);
