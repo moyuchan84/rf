@@ -22,7 +22,7 @@ import { AssigneeManager } from './AssigneeManager';
 import { StepWorkArea } from './StepWorkArea/index';
 import { REQUEST_TYPE_LABELS, RequestType } from '../types';
 import { RequestKeyTableResult } from './RequestKeyTableResult';
-import { useMutation } from '@apollo/client';
+import { useMutation } from '@apollo/client/react';
 import { useUserStore } from '@/features/auth/store/useUserStore';
 import toast from 'react-hot-toast';
 import { CREATE_REQUEST_COMMENT, DELETE_REQUEST_COMMENT } from '../api/requestQueries';
