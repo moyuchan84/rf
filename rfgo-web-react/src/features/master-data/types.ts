@@ -35,7 +35,7 @@ export interface RequestItem {
   productId: number;
   requestType: string;
   title: string;
-  description: string;
+  description?: string | null;
   mtoDate?: string;
   layoutRequestDescription?: string;
   edmList: string[];
