@@ -617,16 +617,10 @@ export class RequestsService {
     try {
       const request = await this.prisma.requestItem.findUnique({
         where: { id: requestId },
-        include: { requester: true },
       });
 
-      if (!request || !request.requester) {
-        console.warn(`[RequestsService] Request or requester not found for comment mail notification (id: ${requestId})`);
-        return;
-      }
-
-      // If the author of the comment is the requester, no need to send self-notification mail.
-      if (request.requesterId === authorId) {
+      if (!request) {
+        console.warn(`[RequestsService] Request not found for comment mail notification (id: ${requestId})`);
         return;
       }
 
@@ -635,62 +629,20 @@ export class RequestsService {
       });
 
       const authorName = author ? `${author.fullName} (${author.userId})` : authorId;
+      const initials = author && author.fullName ? author.fullName.substring(0, 2).toUpperCase() : 'FE';
+      const senderEmail = author ? author.email : 'system@samsung.com';
+      const datetime = new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
 
-      // Construct mail content
-      const subject = `[RFGo] [피드백 알림] "${request.title}" 요청에 새로운 댓글이 추가되었습니다.`;
-      
-      const link = `${this.config.get('FRONTEND_URL') || 'http://localhost:5173'}/requests?id=${requestId}`;
-      
-      const htmlContent = `
-        <div style="font-family: Arial, sans-serif; line-height: 1.6; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
-          <div style="background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%); color: white; padding: 24px; text-align: center;">
-            <h2 style="margin: 0; font-size: 20px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;">New Feedback Comment</h2>
-            <p style="margin: 4px 0 0 0; font-size: 12px; opacity: 0.8;">RFGo System Notification</p>
-          </div>
-          <div style="padding: 24px; background-color: #ffffff;">
-            <p style="font-size: 14px; color: #1e293b; margin-top: 0;">안녕하세요, <strong>${request.requester.fullName}</strong> 님.</p>
-            <p style="font-size: 14px; color: #475569;">귀하가 작성하신 요청사항에 새로운 피드백 댓글이 등록되었습니다.</p>
-            
-            <div style="background-color: #f8fafc; border-left: 4px solid #4f46e5; padding: 16px; margin: 20px 0; border-radius: 4px;">
-              <p style="margin: 0 0 8px 0; font-size: 12px; font-weight: bold; color: #64748b; text-transform: uppercase;">요청 정보</p>
-              <p style="margin: 0 0 16px 0; font-size: 15px; font-weight: 700; color: #1e293b;">#REQ-${request.id}: ${request.title}</p>
-              
-              <p style="margin: 0 0 8px 0; font-size: 12px; font-weight: bold; color: #64748b; text-transform: uppercase;">작성자</p>
-              <p style="margin: 0 0 16px 0; font-size: 14px; color: #334155; font-weight: 600;">${authorName}</p>
-              
-              <p style="margin: 0 0 8px 0; font-size: 12px; font-weight: bold; color: #64748b; text-transform: uppercase;">댓글 내용</p>
-              <p style="margin: 0; font-size: 14px; color: #334155; white-space: pre-wrap; font-style: italic; background-color: #ffffff; padding: 12px; border: 1px solid #e2e8f0; border-radius: 4px;">"${commentContent}"</p>
-            </div>
-            
-            <div style="text-align: center; margin: 30px 0 10px 0;">
-              <a href="${link}" style="background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-size: 13px; font-weight: bold; display: inline-block; box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);">
-                상세 페이지에서 확인하기
-              </a>
-            </div>
-          </div>
-          <div style="background-color: #f1f5f9; padding: 16px; text-align: center; font-size: 11px; color: #94a3b8; border-top: 1px solid #e2e8f0;">
-            본 메일은 시스템에 의해 자동으로 발송되었습니다. 회신하지 마십시오.
-          </div>
-        </div>
-      `;
-
-      // Use MailerProvider to send mail directly
-      await this.mailer.sendMail({
-        subject,
-        docSecuType: DocSecuType.PERSONAL,
-        contents: htmlContent,
-        contentType: ContentType.HTML,
-        sender: {
-          emailAddress: author ? author.email : 'system@samsung.com',
-        },
-        recipients: [
-          {
-            emailAddress: request.requester.email,
-            recipientType: 'TO',
-          },
-        ],
+      // Call the unified sendRichWorkflowMail function
+      await this.sendRichWorkflowMail(requestId, MailType.FEEDBACK_COMMENT, {
+        subject: `[피드백 알림] "${request.title}" 요청에 새로운 댓글이 추가되었습니다.`,
+        title: '피드백 알림',
+        senderName: authorName,
+        senderEmail,
+        senderInitials: initials,
+        datetime,
+        content: commentContent,
       });
-      console.log(`[RequestsService] Feedback comment notification mail sent to ${request.requester.email}`);
     } catch (error) {
       console.error('[RequestsService] Failed to send feedback comment notification mail:', error);
     }

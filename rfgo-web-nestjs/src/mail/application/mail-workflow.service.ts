@@ -7,7 +7,8 @@ import {
   DefaultMailStrategy, 
   RequestWorkflowStrategy,
   AssigneeChangedStrategy,
-  ApprovalMemoStrategy
+  ApprovalMemoStrategy,
+  FeedbackCommentStrategy
 } from '../infrastructure/strategies/mail-template.strategy';
 import { DocSecuType, ContentType, MailRequestDto } from '../interface/dto/mail.dto';
 import { ConfigService } from '@nestjs/config';
@@ -17,6 +18,7 @@ export enum MailType {
   WORKFLOW_UPDATE = 'WORKFLOW_UPDATE',
   ASSIGNEE_CHANGED = 'ASSIGNEE_CHANGED',
   APPROVAL_MEMO = 'APPROVAL_MEMO',
+  FEEDBACK_COMMENT = 'FEEDBACK_COMMENT',
 }
 
 @Injectable()
@@ -33,6 +35,7 @@ export class MailWorkflowService {
     this.strategies.set(MailType.WORKFLOW_UPDATE, new RequestWorkflowStrategy());
     this.strategies.set(MailType.ASSIGNEE_CHANGED, new AssigneeChangedStrategy());
     this.strategies.set(MailType.APPROVAL_MEMO, new ApprovalMemoStrategy());
+    this.strategies.set(MailType.FEEDBACK_COMMENT, new FeedbackCommentStrategy());
   }
 
   getStrategy(type: MailType): MailTemplateStrategy {
@@ -91,10 +94,16 @@ export class MailWorkflowService {
       sender: {
         emailAddress: payload.senderEmail,
       },
-      recipients: recipients.map((r) => ({
-        emailAddress: r.emailAddress || '',
-        recipientType: 'TO',
-      })).filter(r => r.emailAddress !== ''),
+      recipients: recipients
+        .map((r) => ({
+          emailAddress: r.emailAddress || '',
+          recipientType: 'TO',
+        }))
+        .filter(
+          (r) =>
+            r.emailAddress !== '' &&
+            r.emailAddress.toLowerCase() !== payload.senderEmail.toLowerCase(),
+        ),
     };
 
     try {

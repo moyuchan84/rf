@@ -1,0 +1,29 @@
+<p style="font-size: 15px; margin-top: 0; color: #334155; line-height: 1.5;">
+  안녕하세요, 귀하가 참여 중인 요청에 새로운 피드백 댓글이 작성되었습니다.
+</p>
+
+<div style="margin: 24px 0; padding: 20px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
+  <!-- Author Header -->
+  <table style="width: 100%; border-collapse: collapse; margin-bottom: 12px;">
+    <tr>
+      <td style="width: 36px; vertical-align: middle;">
+        <div style="width: 32px; height: 32px; border-radius: 16px; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: white; text-align: center; line-height: 32px; font-size: 11px; font-weight: 800; text-shadow: 0 1px 2px rgba(0,0,0,0.15);">
+          {{#if senderInitials}}{{senderInitials}}{{else}}FE{{/if}}
+        </div>
+      </td>
+      <td style="padding-left: 10px; vertical-align: middle;">
+        <div style="font-size: 12px; font-weight: 800; color: #1e293b; text-transform: uppercase; letter-spacing: 0.02em;">
+          {{senderName}}
+        </div>
+        <div style="font-size: 10px; color: #94a3b8; margin-top: 1px;">
+          작성일시: {{datetime}}
+        </div>
+      </td>
+    </tr>
+  </table>
+
+  <!-- Comment Box -->
+  <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 14px 16px; font-size: 13px; color: #334155; line-height: 1.6; white-space: pre-wrap; font-style: italic; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);">
+    {{{content}}}
+  </div>
+</div>

@@ -101,3 +101,11 @@ export class ApprovalMemoStrategy extends MailTemplateStrategy {
     return this.renderWithLayout(body, { ...context, subject: context.subject || '결재 상신 안내' });
   }
 }
+
+export class FeedbackCommentStrategy extends MailTemplateStrategy {
+  generate(context: MailContext): string {
+    const template = this.loadTemplate('feedback-comment');
+    const body = template(context);
+    return this.renderWithLayout(body, { ...context, subject: context.subject || '피드백 알림' });
+  }
+}
